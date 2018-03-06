@@ -14,6 +14,7 @@ library(glmnet)
 ## load a simulated example PheWAS data from EHR package
 ## all variables should be coded as numeric values (no character strings are allowed in data):
 ## i.g., values for TRUE or FALSE should changed to numeric values
+## note: for an example of mapping ICD9CM codes to phecodes to build PheWAS data, see "Set up data" under PheWASExamples/Pediatric Matching at https://github.com/PheWAS
 data(dataPheWAS)
 
 ## define list of exposure and demographic covariates for your data
