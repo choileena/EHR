@@ -1,0 +1,11 @@
+## Imports
+import(stats)
+importFrom(utils, head)
+importFrom(logistf, logistf.control, logistpl.control)
+
+## Export
+export(
+zeroOneTable,
+Logistf,
+analysisPheWAS
+)
