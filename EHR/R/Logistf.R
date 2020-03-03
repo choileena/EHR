@@ -1,6 +1,65 @@
 logistpl <- logistf:::logistpl
 logistf.fit <- logistf:::logistf.fit
 
+#' Firth's penalized-likelihood logistic regression with more decimal places of
+#' p-value than \code{\link{logistf}} function in the R package \pkg{logistf}
+#'
+#' Adapted from \code{\link{logistf}} in the R package \pkg{logistf}, this is 
+#' the same as \code{\link{logistf}} except that it provides more decimal places 
+#' of p-value that would be useful for Genome-Wide Association Study (GWAS) 
+#' or Phenome Wide Association Study (PheWAS).
+#'
+#' @param formula a formula object, with the response on the left of the
+#' operator, and the model terms on the right. The response must be a vector
+#' with 0 and 1 or FALSE and TRUE for the  outcome, where the higher value (1 or
+#' TRUE) is modeled. It is possible to include contrasts, interactions, nested
+#' effects, cubic or polynomial splines and all S features as well, e.g.
+#' \code{Y ~ X1*X2 + ns(X3, df=4)}. From version 1.10, you may also include
+#' offset() terms.
+#' @param data a data.frame where the variables named in the formula can be
+#' found, i. e. the variables containing the binary response and the covariates.
+#' @param pl specifies if confidence intervals and tests should be based on the
+#' profile penalized log likelihood (\code{pl=TRUE}, the default) or on the Wald
+#' method (\code{pl=FALSE}).
+#' @param alpha the significance level (1-\eqn{\alpha} the confidence level,
+#' 0.05 as default).
+#' @param control Controls Newton-Raphson iteration. Default is
+#' \code{control=logistf.control(maxstep, maxit, maxhs, lconv, gconv, xconv})
+#' @param plcontrol Controls Newton-Raphson iteration for the estimation of the
+#' profile likelihood confidence intervals. Default is
+#' \code{plcontrol=logistpl.control(maxstep, maxit,}
+#' \code{maxhs, lconv, xconv, ortho, pr)}
+#' @param firth use of Firth's penalized maximum likelihood (\code{firth=TRUE},
+#' default) or the standard maximum likelihood method (\code{firth=FALSE}) for
+#' the logistic regression. Note that by specifying \code{pl=TRUE} and
+#' \code{firth=FALSE} (and probably a lower number of iterations) one obtains
+#' profile likelihood confidence intervals for maximum likelihood logistic
+#' regression parameters.
+#' @param init specifies the initial values of the coefficients for the fitting
+#' algorithm.
+#' @param weights specifies case weights. Each line of the input data set is
+#' multiplied by the corresponding element of \code{weights}.
+#' @param plconf specifies the variables (as vector of their indices) for which
+#' profile likelihood confidence intervals should be computed. Default is to
+#' compute for all variables.
+#' @param dataout If TRUE, copies the \code{data} set to the output object.
+#' @param \dots Further arguments to be passed to logistf.
+#'
+#' @return
+#' same as \code{\link{logistf}} except for providing more decimal places
+#' of p-value.
+#'
+#' @templateVar author choibeck
+#' @template auth
+#'
+#' @references same as those provided in the R package \pkg{logistf}.
+#'
+#' @examples
+#' data(dataPheWAS)
+#' fit <- Logistf(X264.3 ~ exposure + age + race + gender, data=dd)
+#' summary(fit)
+#' @export
+
 `Logistf` <- 
 function (formula = attr(data, "formula"), data = sys.parent(), 
     pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, 
