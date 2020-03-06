@@ -1,0 +1,37 @@
+#' Collapse Dose Data
+#'
+#' Splits drug data and calls \code{makeDose} to collapse at the note and date level.
+#'
+#' If different formulations of the drug (e.g., extended release) exist, they can be separated using a regular expression. This function will call \code{makeDose} on parsed and paired medication data to calculate dose intake and daily dose and remove redundancies at the note and date level.
+#'
+#' @param x data.frame
+#' @param noteMetaData data.frame with columns filename, pid, date, note
+#' @param naFreq Replacing missing frequencies with this value, or the most
+#' common.
+#' @param \dots drug names to split by
+#'
+#' @return A list containing two dataframes, one with the note level and one with the date level collapsed data.
+#' @export
+
+collapse <- function(x, noteMetaData, naFreq = 'most', ...) {
+  ld <- list(...)
+  if(length(ld)) {
+    dn <- x[['drugname']]
+    path <- numeric(length(dn))
+    for(i in seq_along(ld)) {
+      path[grepl(ld[[i]], dn, ignore.case = TRUE) & path == 0] <- i
+    }
+    sx <- split(x, path)
+    res <- lapply(sx, makeDose, noteMetaData, naFreq)
+    rn <- do.call(rbind, lapply(res, function(i) i[['note']]))
+    rn <- rn[order(rn[[1]]),]
+    rownames(rn) <- NULL
+    rd <- do.call(rbind, lapply(res, function(i) i[['date']]))
+    rd <- rd[order(rd[[1]]),]
+    rownames(rd) <- NULL
+    nx <- list(note = rn, date = rd)
+  } else {
+    nx <- makeDose(x, noteMetaData, naFreq)
+  }
+  nx
+}

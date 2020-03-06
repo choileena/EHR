@@ -1,0 +1,359 @@
+#' Internal functions for collapse process
+#'
+#' These internal functions aid the main functions used in the collapse process (\code{collapse}, \code{makeDose}).
+#' 
+#' \code{nowarnnum}: converts a variable to numeric and suppresses warnings
+#' 
+#' \code{freqNum}: converts the frequency entity to numeric
+#' 
+#' \code{parseFreq}: standardizes the frequency entity
+#' 
+#' \code{most}: returns the mode
+#' 
+#' \code{pairDay}: calculates daily dose for dose sequences
+#' 
+#' \code{mergeAdjacent}: collapses adjacent rows that have a drug name change
+#' 
+#' \code{borrowFreqDoseSeq}: imputes a frequency of 'pm' if the preceding row has a frequency of 'am' or 'noon' and there is a 'pm' elsewhere in the note
+#' 
+#' \code{borrowVal}: borrow a unique value within a drug mention
+#' 
+#' \code{reOrder}: order rows
+#' 
+#' \code{borrowWithinDoseSeq}: borrow values within a dose sequence
+#' 
+#' \code{calcDailyDose}: calculates daily dose
+#' 
+#' \code{daySeqDups}: 
+#' 
+#' \code{rmDuplicates}: removes redundant rows
+#'
+#' @name collapse-internal
+#' @aliases nowarnnum freqNum parseFreq most pairDay
+#' mergeAdjacent borrowFreqDoseSeq borrowVal reOrder
+#' borrowWithinDoseSeq calcDailyDose daySeqDups rmDuplicates
+#' @keywords internal
+NULL
+
+nowarnnum <- function(x) suppressWarnings(as.numeric(x))
+
+freqNum <- function(x) {
+  x[x == 'qod'] <- '0.5'
+  x[x %in% c('daily','am','pm','noon')] <- '1'
+  x[x == 'bid'] <- '2'
+  x[x == 'tid'] <- '3'
+  x[x == 'qid'] <- '4'
+  x[x == 'weekly'] <- '0.14' # 1/7
+  x <- sub("^([0-9.]+)x$", "\\1", x)
+  ix <- grep("^([0-9.]+)Xweek$", x)
+  if(length(ix)) {
+    tmp <- sub("^([0-9.]+)Xweek$", "\\1", x[ix])
+    x[ix] <- sprintf("%.2f", nowarnnum(tmp) / 7)
+  }
+  # could add: NXmonth, monthly, Nmonthly, Nweekly
+  nowarnnum(x)
+}
+
+parseFreq <- function(fv) {
+  fv <- gsub('[[:space:]]', '', tolower(fv))
+  fv[fv == ''] <- NA
+  fv <- gsub("[,+.]", "", fv)
+  fv <- sub("and|[io]nthe", "", fv)
+  fv <- sub("prn", "", fv)
+  fv <- sub("weekly$", "perweekly", fv)
+  fv <- sub("on(mon|tue(s)?|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?", "weekly", fv)
+  fv <- sub("^once$", "", fv)
+  fv <- sub("(orasdirected|iftolerated)$", "", fv)
+  fv <- sub("as(directed|needed|necessary)$", "", fv)
+  fv <- sub("^at([a-z])", "\\1", fv)
+  # not sure about this rule
+  fv <- sub("(at|@).*", "", fv)
+  fv <- sub("(each|every|with|w/|during)", "", fv)
+  fv <- sub("/day", "perday", fv)
+  fv <- sub("(cc|var)$", "", fv)
+  fv <- sub("^q?(daily|perday|a[-]?day|onday)$", "1", fv)
+  fv <- sub("([0-9]+)(h|hr|hrs|hour)$", "\\1hours", fv)
+  fv <- sub("([0-9]+)(d|day)$", "\\1days", fv)
+  fv <- sub("day[s]?([0-9]+)$", "d\\1", fv)
+  fv <- sub("(daily|perday|aday)$", "", fv)
+  fv <- sub("weeks?$", "weekly", fv)
+  fv <- sub("months?$", "monthly", fv)
+  fv <- sub("^daily(for|beginning).*", "1", fv)
+  fv <- sub("^daytime", "1", fv)
+  fv <- sub("^onam", "am", fv)
+  fv <- sub("(morning|breakfast|q([0-9]+)?am)", "am", fv)
+  fv <- sub("(lunch|noon)", "noon", fv)
+  fv <- sub("(evening|bedtime|q([0-9]+)?pm|q?hs|afternoon|night(ly)?|nighttime)$", "pm", fv)
+  fv <- sub("dinner|supper$", "pm", fv)
+  fv <- sub("after|before", "", fv)
+  fv <- sub("^(per|in)", "", fv)
+  fv <- sub("(times|x$)", "", fv)
+  fv <- sub("(once|one)", "1", fv)
+  fv <- sub("(twice|two)", "2", fv)
+  fv <- sub("(three|meals?)", "3", fv)
+  fv <- sub("four", "4", fv)
+  fv <- sub("five", "5", fv)
+  fv <- sub("six", "6", fv)
+  fv <- sub("eight", "8", fv)
+  fv <- sub("twelve", "12", fv)
+  fv <- sub("^bi?d([0-9])*$", "2", fv)
+  fv <- sub("^tid$", "3", fv)
+  fv <- sub("^qid$", "4", fv)
+  fv <- sub("^1(aday|daily)(in)?([ap]m)$", "\\3", fv)
+  fv <- sub("(a|per)+weekly$", "Xweek", fv)
+  fv <- sub("(a|per)+monthly$", "Xmonth", fv)
+  ix <- grep("[0-9]+(to|-|or)[0-9]+", fv)
+  a <- sub("^(.*)([0-9]+)(to|-|or)([0-9]+).*$", "\\1", fv[ix])
+  b <- as.numeric(sub(".*([0-9]+)(to|-|or)([0-9]+).*", "\\1", fv[ix]))
+  c <- as.numeric(sub(".*([0-9]+)(to|-|or)([0-9]+).*", "\\3", fv[ix]))
+  d <- sub("^.*([0-9]+)(to|-|or)([0-9]+)(.*)$", "\\4", fv[ix])
+  fv[ix] <- sprintf("%s%.2f%s", a, (b + c) / 2, d)
+  ix <- grep("^q([0-9]+)$", fv)
+  tmp <- as.numeric(sub("^q([0-9]+)$", "\\1", fv[ix]))
+  fv[ix] <- ifelse(tmp > 24 | tmp %in% c(4,6,8,12,24,48), paste0(tmp,'hours'), paste0('d',tmp))
+  fv <- sub("^q", "", fv)
+  fv <- sub("^w(ee)?k$", "weekly", fv)
+  fv <- sub(".*other.*day", "od", fv)
+  ix <- grep("^([0-9.]+)days$", fv)
+  fv[ix] <- sprintf("%.2f", 1 / as.numeric(sub("([0-9.]+)days", "\\1", fv[ix])))
+  ix <- grep("([0-9]+)hours", fv)
+  fv[ix] <- sprintf("%.2f", 24 / as.numeric(sub("([0-9]+)hours", "\\1", fv[ix])))
+  fv <- sub("^(d([0-9]+)?|day)$", "1", fv)
+  fv <- sub("^ampm$", "2", fv)
+  fv <- sub("^(hr|hour)$", "24", fv)
+  fv <- sub("^o(a|p)m([0-9])*$", "0.5", fv)
+  fv <- sub("^od$", "0.5", fv)
+
+  fv[fv %in% c("0.5", "0.50")] <- "qod"
+  fv[fv %in% c("1", "1.00")] <- "daily"
+  fv[fv %in% c("2", "2.00")] <- "bid"
+  fv[fv %in% c("3", "3.00")] <- "tid"
+  fv[fv %in% c("4", "4.00")] <- "qid"
+  fv <- sub("^([0-9.]+)$", "\\1x", fv)
+  fv <- sub("^(a|p)m([0-9])*$", "\\1m", fv)
+
+  fv[fv == ''] <- NA
+  fv
+}
+
+most <- function(x) {
+  x <- x[!is.na(x) & x != '']
+  if(length(x) == 0) return(NULL)
+  tx <- table(x)
+  ix <- which(tx == max(tx))
+  if(length(ix) > 1) return(NULL)
+  names(tx)[ix]
+}
+
+pairDay <- function(x) {
+  nr <- nrow(x)
+  df <- x[['freq']]
+  dv <- x[['dose.intake']] * x[['freq.num']]
+  # should always be more than one row
+  if(nr == 1) {
+    return(cbind(NA, dv[1]))
+  }
+  cnt <- 1
+  ds <- numeric(nr)
+  dd <- numeric(nr)
+  while(cnt < nr - 1) {
+    if(df[cnt] == 'am' && df[cnt+1] == 'noon' && df[cnt+2] == 'pm') {
+      ix <- c(cnt, cnt + 1, cnt + 2)
+    } else if(df[cnt] == 'am' && df[cnt+1] == 'noon' && df[cnt+2] != 'pm') {
+      ix <- c(cnt, cnt + 1)
+    } else if(df[cnt] == 'am' && df[cnt+1] == 'pm') {
+      ix <- c(cnt, cnt + 1)
+    } else if(df[cnt] == 'noon' && df[cnt+1] == 'pm') {
+      ix <- c(cnt, cnt + 1)
+    } else if(df[cnt] == 'am' && df[cnt+1] != 'noon' && df[cnt+1] != 'pm') {
+      ix <- cnt
+    } else if(df[cnt] == 'noon' && df[cnt+1] != 'pm') {
+      ix <- cnt
+    } else if(df[cnt] == 'pm') {
+      ix <- cnt
+    } else {
+      ix <- cnt
+    }
+    l <- length(ix)
+    if(l == 1) {
+      ds[ix] <- NA
+    } else {
+      ds[ix] <- seq(l)
+    }
+    dd[ix] <- sum(dv[ix])
+    cnt <- cnt + l
+  }
+  if(cnt == nr - 1) {
+    ix <- c(cnt, cnt + 1)
+    if(df[cnt] == 'am' && df[cnt+1] %in% c('noon','pm')) {
+      ds[ix] <- seq(2)
+      dd[ix] <- sum(dv[ix])
+    } else if(df[cnt] == 'noon' && df[cnt+1] == 'pm') {
+      ds[ix] <- seq(2)
+      dd[ix] <- sum(dv[ix])
+    } else {
+      ds[ix] <- NA
+      dd[ix] <- dv[ix]
+    }
+  } else if(cnt == nr) {
+    ds[cnt] <- NA
+    dd[cnt] <- dv[cnt]
+  }
+  cbind(ds, dd)
+}
+
+mergeAdjacent <- function(xx, verifyCols) {
+  # if second row has strength -- do not collapse
+  if(!is.na(xx[2,'strength.num'])) return(NULL)
+  # each column in verifyCols should contain at most 1 value for collapse to occur
+  vals <- lapply(xx[,verifyCols], function(i) i[!is.na(i) & nchar(i) > 0])
+  ls <- vapply(vals, length, numeric(1))
+  # route is an exception - it may contain at most 1 unique value
+  if('route' %in% verifyCols) {
+    lr <- length(unique(vals[['route']]))
+    ls[match('route', verifyCols)] <- lr
+  }
+  if(any(ls > 1)) return(NULL)
+  coll <- names(ls[ls == 1])
+  for(i in coll) {
+    xx[,i] <- vals[[i]]
+  }
+  # provide illegal value to remove
+  xx[1,'strength.num'] <- -999
+  xx
+}
+
+borrowFreqDoseSeq <- function(xx) {
+  f <- xx[,'freq']
+  # check for PM within entire note
+  pmAvail <- 'pm' %in% f
+  if(!pmAvail) return(xx)
+  # apply to mention level
+  # first row should always fail
+  isna <- which(is.na(f) & xx[,'drugname_start'] == c(Inf, xx[-1,'drugname_start']))
+  if(length(isna)) {
+    ix <- which(f[isna-1] %in% c('am','noon'))
+    xx[isna[ix], 'freq'] <- 'pm'
+  }
+  xx
+}
+
+# borrow unique values
+borrowVal <- function(xx, col, elig) {
+  f <- xx[,col]
+  isna <- is.na(f)
+  if(!missing(elig)) {
+    isna <- isna & elig
+  }
+  fv <- unique(f[!isna])
+  if(length(fv) == 1) {
+    xx[isna, col] <- fv
+  }
+  xx
+}
+
+reOrder <- function(xx, key = 'rowOrder') {
+  xx <- xx[order(xx[[key]]),]
+  rownames(xx) <- NULL
+  xx
+}
+
+borrowWithinDoseSeq <- function(x, value) {
+  # a dose.seq starts with 1 then continues
+  dseq <- x[,'dose.seq']
+  # every non-dose.seq needs unique day index
+  dseq[is.na(dseq)] <- 1
+  # create unique day index for each group of dose.seq
+  dayix <- unlist(tapply(dseq, x[,'key1'], function(i) cumsum(i == 1)))
+  x[,'key3'] <- paste(x[,'key1'], dayix, sep = '|')
+  vkey <- unique(x[!is.na(x[[value]]),'key3'])
+  chkv <- x[,'key3'] %in% vkey
+  x1 <- x[chkv,]
+  x2 <- x[!chkv,]
+  x3 <- do.call(rbind, lapply(split(x1, x1[,'key3']), borrowVal, value))
+  x4 <- rbind(x3, x2)
+  x4[,'key3'] <- NULL
+  reOrder(x4)
+}
+
+calcDailyDose <- function(x, useDC = FALSE) {
+  ix <- x[,'freq'] %in% c('am','pm','noon')
+  x[ix,'intaketime'] <- x[ix,'freq']
+  daykey <- unique(x[ix, 'key1'])
+  useday <- x[,'key1'] %in% daykey
+  x1 <- x[useday,]
+  x2 <- x[!useday,]
+  if(nrow(x2) > 0) {
+    x2[,'dose.seq'] <- NA
+    x2[,'dose.daily'] <- x2[,'dose.intake'] * x2[,'freq.num']
+  }
+  if(nrow(x1) > 0) {
+    daytot <- do.call(rbind, lapply(split(x1, x1[,'key1']), pairDay))
+    x1[,'dose.seq'] <- daytot[,1]
+    x1[,'dose.daily'] <- daytot[,2]
+    # after pairing, if useDC then borrow dosechange
+    if(useDC) {
+      x1 <- borrowWithinDoseSeq(x1, 'dosechange')
+    }
+  }
+  x <- rbind(x1, x2)
+  reOrder(x)
+}
+
+daySeqDups <- function(x, key, matchingCols) {
+  do.call(rbind, lapply(split(x, key), function(i) {
+    sect <- cumsum(i[,'dose.seq'] == 1)
+    # matchingCols: c('dose.intake','dose.daily','dose.seq','intaketime')
+    ss <- split(i[,matchingCols], sect)
+    pairs <- vapply(ss, function(j) {
+      paste(unlist(j), collapse = "|")
+    }, character(1))
+    ix <- which(duplicated(pairs))
+    i[!(sect %in% ix),]
+  }))
+}
+
+rmDuplicates <- function(x, useRoute = FALSE, useDuration = FALSE, useDoseChange = FALSE) {
+  useday <- !is.na(x[,'dose.seq'])
+  # alternatively, if intaketime -> useday
+  x1 <- x[useday,]
+  x2 <- x[!useday,]
+
+  # duration could be borrowed if within dose.seq
+  if(nrow(x1) > 0 && useDuration) {
+    x1 <- borrowWithinDoseSeq(x1, 'duration')
+  }
+
+  # additional columns should completely match
+  reqMatch <- c('dose.intake','freq.num')
+  reqMatchDaySeq <- c('dose.intake','dose.daily','dose.seq','intaketime')
+  if(useRoute) {
+    reqMatch <- c(reqMatch, 'route')
+    reqMatchDaySeq <- c(reqMatchDaySeq, 'route')
+  }
+  if(useDuration) {
+    reqMatch <- c(reqMatch, 'duration')
+    reqMatchDaySeq <- c(reqMatchDaySeq, 'duration')
+  }
+  if(useDoseChange) {
+    reqMatch <- c(reqMatch, 'dosechange')
+    reqMatchDaySeq <- c(reqMatchDaySeq, 'dosechange')
+  }
+
+  # daySeq duplicates must completely match
+  key1 <- x1[['key1']]
+  key2 <- x1[['key2']]
+  x1[,c('key0','key1','key2')] <- NULL
+  x1n <- daySeqDups(x1, key1, reqMatchDaySeq)
+  x1d <- daySeqDups(x1, key2, reqMatchDaySeq)
+
+  # remove redundant, at intake level
+  key1 <- do.call(paste, c(x2[,c('key1',reqMatch)], sep = '|'))
+  key2 <- do.call(paste, c(x2[,c('key2',reqMatch)], sep = '|'))
+  x2[,c('key0','key1','key2')] <- NULL
+  # note level
+  xn <- rbind(x2[!duplicated(key1),], x1n)
+  # date level
+  xd <- rbind(x2[!duplicated(key2),], x1d)
+  list(note = xn, date = xd)
+}

@@ -13,6 +13,7 @@
 #' @importFrom utils head
 #' @importFrom logistf logistf.control logistpl.control
 #' @import stats
+#' @import data.table
 #'
 #' @author Leena Choi \email{naturechoi@@gmail.com},
 #' Cole Beck \email{cole.beck@@vumc.org},
@@ -63,3 +64,14 @@
 #'                           phenotypes=phenotypeList, data=dd.all.ps) 
 #' }
 "_PACKAGE"
+
+.onLoad <- function(libname, pkgname) {
+  myopts <- list(
+    ehr.dist_method = 'minEntEnd',
+    ehr.na_penalty = 32,
+    ehr.neg_penalty = 0.5,
+    ehr.greedy_threshold = 1e8
+  )
+  options(myopts)
+  invisible()
+}

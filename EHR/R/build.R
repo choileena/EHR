@@ -1,0 +1,119 @@
+#' Combine Dose Data
+#'
+#' Output from parse process is taken and converted into a wide format, grouping drug entity 
+#' information together based on various steps and rules. 
+#' 
+#' The \code{build} function takes as its main input (\code{dat}), a data.table object that is the output 
+#' of a parse process function (\code{parseMedExtractR},  \code{parseMedXN}, \code{parseMedEx}, or \code{parseCLAMP}).
+#' Broadly, the parsed extractions are grouped together to form wide, more complete drug regimen information. This 
+#' reformatting facilitates calculation of dose given intake and daily dose in the \code{collapse} process.
+#' 
+#' The process of creating this output is broken down into multiple steps:
+#' \enumerate{
+#'   \item Removing rows for any drugs not of interest. Drugs of interest are specified with the \code{dn} argument.  
+#'   \item Determining whether extractions are "simple" (only one drug mention and at most one extraction per entity) or 
+#'   complex. Complex cases can be more straightforward if they contain at most one extraction per entity, or require a 
+#'   pairing algorithm to determine the best pairing if there are multiple extractions for one or more entities.
+#'   \item Drug entities are anchored by drug name mention within the parse process. For complex cases, drug entities are 
+#'   further grouped together anchored at each strength (and dose with medExtractR) extraction.
+#'   \item For strength groups with multiple extractions for at least one entity, these groups go through a path searching 
+#'   algorithm, which computes the cost for each path (based on a chosen distance method) and chooses the path with the 
+#'   lowest cost. 
+#'   \item The chosen paths for each strength group are returned as the final pairings. If route is unique within a strength 
+#'   group, it is standardized and added to all entries for that strength group.
+#' }
+#'
+#' The user can specify additional arguments including: 
+#' \itemize{
+#'  \item \code{dist_method}: The distance method is the metric used to determine which entity path is the most likely to 
+#'  be correct based on minimum cost. 
+#'  \item \code{na_penalty}: NA penalties are incurred when extractions are paired with nothing (i.e., an NA), requiring that 
+#'  entities be sufficiently far apart from one another before being left unpaired. 
+#'  \item \code{neg_penalty}: When working with dose amount (DA) and frequency/intake time (FIT), it is much more common 
+#' for the ordering to be DA followed by FIT. Thus, when we observe FIT followed by DA, we apply a negative penalty to make such pairings 
+#' less likely, as  
+#'  \item \code{greedy threshold}: when there are many extractions from a clinical note, the number of possible combinations for paths 
+#'  can get exponentially large, particularly when the medication extraction natural language processing system is incorrect. The greedy 
+#'  threshold puts an upper bound on the number of entity pairings to prevent the function from stalling in such cases. 
+#' }  
+#' If none of the optional arguments are specified, then the \code{build} process uses the default option values specified in the EHR 
+#' package documentation.
+#'
+#' For additional details, see McNeer, et al. 2020.
+#'
+#' @param dat data.table object from the output of \code{parseMedExtractR}, 
+#' \code{parseMedXN}, \code{parseMedEx}, or \code{parseCLAMP}
+#' @param dn Regular expression specifying drug name(s) of interest.
+#' @param dist_method Distance method to use for calculating distance of various paths.
+#' @param na_penalty Penalty for matching extracted entities with NA.
+#' @param neg_penalty Penalty for negative distances between frequency/intake time and dose amounts.
+#' @param greedy_threshold Threshold to use greedy matching, defaults to 1e8.
+#'
+#' @return A data.table object that contains columns for filename (of the clinical note, inherited from the 
+#' parse output object \code{dat}), drugname, strength, dose, route, freq, duration, and drugname_start
+#' @export
+
+build <- function(dat, dn = NULL, dist_method, na_penalty, neg_penalty, greedy_threshold) {
+  if(!missing(dist_method) || !missing(na_penalty) || !missing(neg_penalty) || !missing(greedy_threshold)) {
+    opt_name <- c('ehr.dist_method','ehr.na_penalty','ehr.neg_penalty','ehr.greedy_threshold')
+    curopts <- options()[opt_name]
+    on.exit(options(curopts))
+    if(!missing(dist_method)) options(ehr.dist_method = dist_method)
+    if(!missing(na_penalty)) options(ehr.na_penalty = na_penalty)
+    if(!missing(neg_penalty)) options(ehr.neg_penalty = neg_penalty)
+    if(!missing(greedy_threshold)) options(ehr.greedy_threshold = greedy_threshold)
+  }
+  # NSE fix for R CMD CHECK
+  drugname <- NULL
+  drugname_start <- NULL
+  filename <- NULL
+  ..xnames <- NULL
+  rm(drugname, drugname_start, filename, ..xnames)
+  # end
+  if(!is.null(dn)) {
+    x <- dat[grepl(dn, drugname, ignore.case = TRUE)]
+  } else {
+    x <- dat
+  }
+  # deep copy of data.table column names
+  xnames <- copy(names(x))
+  if('dosechange' %in% xnames) {
+    p <- 'dosechange'
+  } else {
+    p <- NULL
+  }
+
+  # rows with dosestr
+  if('dosestr' %in% xnames) {
+    ixA <- which(x[['dosestr']] != '' & (x[['strength']] != '' | x[['dose']] != ''))
+  } else {
+    ixA <- numeric(0)
+  }
+
+  # rows with multiple entities
+  ixB <- unlist(lapply(x[,-1], grep, pattern = '`'))
+  ix <- sort(unique(c(ixA, ixB)))
+  if(length(ix) == 0) {
+    x1 <- x
+    x3 <- NULL
+  } else {
+    x1 <- x[-ix]
+    x2 <- x[ix]
+
+    res <- vector('list', nrow(x2))
+    for(i in seq_along(res)) {
+      res[[i]] <- makeCombos(x2[i], gap = 100, p)
+    }
+    res <- do.call(rbind, res)
+    x3 <- convert(res)
+  }
+  x1 <- convert(x1)
+  xnames <- c(xnames, 'drugname.A')
+  x4 <- x1[,..xnames]
+  if(!is.null(x3)) {
+    x4 <- rbind(x4, x3[,..xnames])
+  }
+  setnames(x4, 'drugname.A', 'drugname_start')
+  x4 <- x4[order(filename, drugname_start)]
+  x4
+}
