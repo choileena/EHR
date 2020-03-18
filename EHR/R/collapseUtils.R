@@ -139,6 +139,7 @@ parseFreq <- function(fv) {
 most <- function(x) {
   x <- x[!is.na(x) & x != '']
   if(length(x) == 0) return(NULL)
+  if(length(x) == 1) return(x)
   tx <- table(x)
   ix <- which(tx == max(tx))
   if(length(ix) > 1) return(NULL)
@@ -247,7 +248,8 @@ borrowVal <- function(xx, col, elig) {
   }
   fv <- unique(f[!isna])
   if(length(fv) == 1) {
-    xx[isna, col] <- fv
+    f[isna] <- fv
+    xx[[col]] <- f
   }
   xx
 }
