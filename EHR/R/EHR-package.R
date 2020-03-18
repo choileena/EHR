@@ -12,6 +12,7 @@
 #'
 #' @importFrom utils head
 #' @importFrom logistf logistf.control logistpl.control
+#' @importFrom methods as
 #' @import stats
 #' @import data.table
 #'

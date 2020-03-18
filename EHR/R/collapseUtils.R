@@ -57,7 +57,7 @@ qrbind <- function(..., deparse.level=1) {
   cols <- lapply(seq_len(length(df)), function(i) {
     cols <- lapply(args, `[[`, cn[i])
     combined <- do.call(c, unname(cols))
-    as(combined, cl[i])
+    methods::as(combined, cl[i])
   })
   names(cols) <- colnames(df)
   do.call(data.frame, cols)
