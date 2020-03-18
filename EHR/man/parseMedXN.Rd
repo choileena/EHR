@@ -4,10 +4,10 @@
 \alias{parseMedXN}
 \title{Parse MedXN NLP Output}
 \usage{
-parseMedXN(fh, begText = "^[R0-9]+_[0-9-]+_[0-9]+_")
+parseMedXN(filename, begText = "^[R0-9]+_[0-9-]+_[0-9]+_")
 }
 \arguments{
-\item{fh}{File name for single file containg MedXN output.}
+\item{filename}{File name for single file containg MedXN output.}
 
 \item{begText}{A regular expression that would indicate the beginning of a new
 observation (i.e., extracted clinic note).}

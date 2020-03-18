@@ -4,10 +4,10 @@
 \alias{parseMedEx}
 \title{Parse MedEx NLP Output}
 \usage{
-parseMedEx(fh)
+parseMedEx(filename)
 }
 \arguments{
-\item{fh}{File name for a single file containg MedEx output.}
+\item{filename}{File name for a single file containg MedEx output.}
 }
 \value{
 A data.table object with columns for filename, drugname, strength, dose, route, 

@@ -12,7 +12,7 @@
 #' where multiple entities are extracted for the same drug name mention, the entities are 
 #' separated into adjacent rows and the drug name is duplicated.
 #'
-#' @param fh File name for a single file containg MedEx output.
+#' @param filename File name for a single file containg MedEx output.
 #'
 #' @return A data.table object with columns for filename, drugname, strength, dose, route, 
 #' freq, and duration. The filename contains the file name corresponding to the clinical 
@@ -20,8 +20,8 @@
 #' "extracted expression::start position::stop position".
 #' @export
 
-parseMedEx <- function(fh) {
-  con <- file(fh, 'r', blocking = TRUE)
+parseMedEx <- function(filename) {
+  con <- file(filename, 'r', blocking = TRUE)
   l <- readLines(con)
   close(con)
   if(length(l) == 0) return(NULL)
@@ -57,6 +57,6 @@ parseMedEx <- function(fh) {
   }
   # need double-colon
   drugname <- medxnColonFormat(drugname)
-  x <- data.frame(filename = basename(fh), drugname, strength, dose, route, freq, stringsAsFactors = FALSE)
+  x <- data.frame(filename = basename(filename), drugname, strength, dose, route, freq, stringsAsFactors = FALSE)
   data.table::as.data.table(x)
 }

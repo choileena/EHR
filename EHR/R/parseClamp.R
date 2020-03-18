@@ -13,7 +13,7 @@
 #' drug name mention, the entities are separated into adjacent rows and the drug name 
 #' is duplicated.
 #'
-#' @param fh File name for a single file containg CLAMP output.
+#' @param filename File name for a single file containg CLAMP output.
 #'
 #' @return A data.table object with columns for filename, drugname, strength, dose, route, 
 #' freq, and duration. The filename contains the file name corresponding to the clinical 
@@ -21,8 +21,8 @@
 #' "extracted expression::start position::stop position".
 #' @export
 
-parseCLAMP <- function(fh) {
-  con <- file(fh, 'r', blocking = TRUE)
+parseCLAMP <- function(filename) {
+  con <- file(filename, 'r', blocking = TRUE)
   l <- readLines(con)
   close(con)
   if(length(l) == 0) return(NULL)
@@ -89,6 +89,6 @@ parseCLAMP <- function(fh) {
       route[i] <- medxnEntityFormat(attr.r)
     }
   }
-  x <- data.frame(filename = basename(fh), drugname, strength, dose, route, freq, stringsAsFactors = FALSE)
+  x <- data.frame(filename = basename(filename), drugname, strength, dose, route, freq, stringsAsFactors = FALSE)
   data.table::as.data.table(x)
 }

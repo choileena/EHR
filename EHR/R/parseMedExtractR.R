@@ -17,7 +17,7 @@
 #' for the same drug name mention, the entities are separated into adjacent rows and the 
 #' drug name is duplicated.
 #'
-#' @param fh  File name for a single file containg medExtractR output.
+#' @param filename File name for a single file containg medExtractR output.
 #'
 #' @return A data.table object with columns for filename, drugname, strength, dose, route, 
 #' freq, and duration. The filename contains the file name corresponding to the clinical 
@@ -25,7 +25,7 @@
 #' "extracted expression::start position::stop position".
 #' @export
 
-parseMedExtractR <- function(fh) {
+parseMedExtractR <- function(filename) {
   ndig <- options()$digits
   options(digits = 15)
   on.exit(options(digits = ndig))
@@ -34,7 +34,8 @@ parseMedExtractR <- function(fh) {
   expr <- NULL
   entity <- NULL
   # end
-  df <- fread(fh, stringsAsFactors = FALSE)
+  df <- fread(filename, stringsAsFactors = FALSE)
+  rm(filename)
   ix <- which(df[['entity']] == 'DrugName')
   bord <- c(ix[-1]-1, nrow(df))
   l <- length(ix)
@@ -56,13 +57,13 @@ parseMedExtractR <- function(fh) {
   fn <- df[ix,filename]
   fileID <- unclass(as.factor(fn)) * 10
   dn.row <- as.numeric(paste0(fileID, '.', startLoc(df[ix,pos])))
-  dcFileId <- fileID[match(df[dc.ix,filename], fn)]
-  dc.row <- as.numeric(paste0(dcFileId, '.', startLoc(df[dc.ix,pos])))
-#   noteID <- cbind(note = df[ix,note], id = unclass(as.factor(df[ix,note])) * 10)
-#   dn.row <- as.numeric(paste0(noteID[,'id'], '.', startLoc(df[ix,pos])))
-#   dcNoteId <- noteID[match(df[dc.ix,note], noteID[,'note']), 'id']
-#   dc.row <- as.numeric(paste0(dcNoteId, '.', startLoc(df[dc.ix,pos])))
-  dc.match <- ix[vapply(dc.row, function(i) which.min(abs(i - dn.row)), numeric(1))]
+  if(length(dc.ix)) {
+    dcFileId <- fileID[match(df[dc.ix,filename], fn)]
+    dc.row <- as.numeric(paste0(dcFileId, '.', startLoc(df[dc.ix,pos])))
+    dc.match <- ix[vapply(dc.row, function(i) which.min(abs(i - dn.row)), numeric(1))]
+  } else {
+    dc.match <- NA
+  }
   # are there any duplicates?
   for(i in seq(l)) {
     tmp <- df[seq(ix[i], bord[i])]

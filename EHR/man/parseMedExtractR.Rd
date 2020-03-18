@@ -4,10 +4,10 @@
 \alias{parseMedExtractR}
 \title{Parse medExtractR NLP Output}
 \usage{
-parseMedExtractR(fh)
+parseMedExtractR(filename)
 }
 \arguments{
-\item{fh}{File name for a single file containg medExtractR output.}
+\item{filename}{File name for a single file containg medExtractR output.}
 }
 \value{
 A data.table object with columns for filename, drugname, strength, dose, route, 

@@ -4,10 +4,10 @@
 \alias{parseCLAMP}
 \title{Parse CLAMP NLP Output}
 \usage{
-parseCLAMP(fh)
+parseCLAMP(filename)
 }
 \arguments{
-\item{fh}{File name for a single file containg CLAMP output.}
+\item{filename}{File name for a single file containg CLAMP output.}
 }
 \value{
 A data.table object with columns for filename, drugname, strength, dose, route, 

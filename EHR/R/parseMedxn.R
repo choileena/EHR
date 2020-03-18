@@ -18,7 +18,7 @@
 #' the argument \code{begText} to be a regular expression used to identify the lines where output 
 #' for a new clinical note begins. 
 #'
-#' @param fh File name for single file containg MedXN output.
+#' @param filename File name for single file containg MedXN output.
 #' @param begText A regular expression that would indicate the beginning of a new
 #' observation (i.e., extracted clinic note).
 #'
@@ -28,8 +28,8 @@
 #' "extracted expression::start position::stop position".
 #' @export
 
-parseMedXN <- function(fh, begText = "^[R0-9]+_[0-9-]+_[0-9]+_") {
-  con <- file(fh, 'r', blocking = TRUE)
+parseMedXN <- function(filename, begText = "^[R0-9]+_[0-9-]+_[0-9]+_") {
+  con <- file(filename, 'r', blocking = TRUE)
   cnt <- 1
   bld <- list()
   while(TRUE) {
