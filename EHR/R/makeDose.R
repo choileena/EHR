@@ -13,6 +13,9 @@
 #' @export
 
 makeDose <- function(x, noteMetaData, naFreq = 'most') {
+  s2f <- options()$stringsAsFactors
+  options(stringsAsFactors = FALSE)
+  on.exit(options(stringsAsFactors = s2f))
   ix <- match(x[,'filename'], noteMetaData[,'filename'])
   if(any(is.na(ix))) stop('ensure that all filenames in `x` are present in noteMetaData')
   grid <- noteMetaData[ix,'pid']
@@ -188,33 +191,35 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   dn <- tolower(x[,'drugname'])
   verCols <- setdiff(reqCols, 'dosestr.num')
   ix <- which(fn[-1] == fn[-nr] & dn[-1] != dn[-nr])
-  # first pass-through ignores consecutive merges
-  ix1 <- ix[which(c(TRUE, diff(ix) != 1))]
-  if(length(ix1)) {
-    rowList <- vector('list', length(ix1))
-    valList <- rowList
-    for(i in seq_along(ix1)) {
-      rowix <- seq(ix1[i], length.out=2)
-      tmp <- mergeAdjacent(x[rowix,], verCols)
-      if(length(tmp)) {
-        rowList[[i]] <- rowix
-        valList[[i]] <- tmp
+  if(length(ix)) {
+    # first pass-through ignores consecutive merges
+    ix1 <- ix[which(c(TRUE, diff(ix) != 1))]
+    if(length(ix1)) {
+      rowList <- vector('list', length(ix1))
+      valList <- rowList
+      for(i in seq_along(ix1)) {
+        rowix <- seq(ix1[i], length.out=2)
+        tmp <- mergeAdjacent(x[rowix,], verCols)
+        if(length(tmp)) {
+          rowList[[i]] <- rowix
+          valList[[i]] <- tmp
+        }
+      }
+      rowI <- unlist(rowList)
+      valI <- do.call(qrbind, valList)
+      if(length(rowI) > 0L) {
+        x[rowI,] <- valI
       }
     }
-    rowI <- unlist(rowList)
-    valI <- do.call(qrbind, valList)
-    if(length(rowI) > 0L) {
-      x[rowI,] <- valI
-    }
-  }
-  # second pass-through allows consecutive merges
-  ix2 <- setdiff(ix, ix1)
-  for(i in seq_along(ix2)) {
-    rowix <- seq(ix2[i], length.out=2)
-    tmp <- mergeAdjacent(x[rowix,], verCols)
-    if(length(tmp)) {
-      # this is really slow
-      x[rowix,] <- tmp
+    # second pass-through allows consecutive merges
+    ix2 <- setdiff(ix, ix1)
+    for(i in seq_along(ix2)) {
+      rowix <- seq(ix2[i], length.out=2)
+      tmp <- mergeAdjacent(x[rowix,], verCols)
+      if(length(tmp)) {
+        # this is really slow
+        x[rowix,] <- tmp
+      }
     }
   }
   # "bad" strength was tagged for removal
