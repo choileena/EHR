@@ -2,6 +2,7 @@
 % Please edit documentation in R/collapseUtils.R
 \name{collapse-internal}
 \alias{collapse-internal}
+\alias{qrbind}
 \alias{nowarnnum}
 \alias{freqNum}
 \alias{parseFreq}
@@ -20,6 +21,8 @@
 These internal functions aid the main functions used in the collapse process (\code{collapse}, \code{makeDose}).
 }
 \details{
+\code{qrbind}: fast version of rbind.data.frame
+
 \code{nowarnnum}: converts a variable to numeric and suppresses warnings
 
 \code{freqNum}: converts the frequency entity to numeric

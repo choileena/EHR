@@ -2,6 +2,8 @@
 #'
 #' These internal functions aid the main functions used in the collapse process (\code{collapse}, \code{makeDose}).
 #' 
+#' \code{qrbind}: fast version of rbind.data.frame
+#' 
 #' \code{nowarnnum}: converts a variable to numeric and suppresses warnings
 #' 
 #' \code{freqNum}: converts the frequency entity to numeric
@@ -29,11 +31,37 @@
 #' \code{rmDuplicates}: removes redundant rows
 #'
 #' @name collapse-internal
-#' @aliases nowarnnum freqNum parseFreq most pairDay
+#' @aliases qrbind nowarnnum freqNum parseFreq most pairDay
 #' mergeAdjacent borrowFreqDoseSeq borrowVal reOrder
 #' borrowWithinDoseSeq calcDailyDose daySeqDups rmDuplicates
 #' @keywords internal
 NULL
+
+# faster (unsafe) version of rbind.data.frame
+# thanks to Patrick Aboyoun for example stripped from bioconductor's IRanges package
+# https://r.789695.n4.nabble.com/combining-large-list-of-data-frames-td4573033.html
+qrbind <- function(..., deparse.level=1) {
+  args <- list(...)
+  # df must be first non-NULL data.frame
+#   df <- args[[1L]]
+  df <- NULL
+  for(i in seq_along(args)) {
+    if(!is.null(args[[i]])) {
+      df <- args[[i]]
+      break
+    }
+  }
+  if(is.null(df)) return(NULL)
+  cn <- colnames(df)
+  cl <- unlist(lapply(as.list(df, use.names = FALSE), class))
+  cols <- lapply(seq_len(length(df)), function(i) {
+    cols <- lapply(args, `[[`, cn[i])
+    combined <- do.call(c, unname(cols))
+    as(combined, cl[i])
+  })
+  names(cols) <- colnames(df)
+  do.call(data.frame, cols)
+}
 
 nowarnnum <- function(x) suppressWarnings(as.numeric(x))
 
@@ -246,10 +274,13 @@ borrowVal <- function(xx, col, elig) {
   if(!missing(elig)) {
     isna <- isna & elig
   }
+  if(!any(isna)) return(xx)
   fv <- unique(f[!isna])
   if(length(fv) == 1) {
+# not sure which is faster
     f[isna] <- fv
     xx[[col]] <- f
+#     xx[isna, col] <- fv
   }
   xx
 }
@@ -272,7 +303,7 @@ borrowWithinDoseSeq <- function(x, value) {
   chkv <- x[,'key3'] %in% vkey
   x1 <- x[chkv,]
   x2 <- x[!chkv,]
-  x3 <- do.call(rbind, lapply(split(x1, x1[,'key3']), borrowVal, value))
+  x3 <- do.call(qrbind, lapply(split(x1, x1[,'key3']), borrowVal, value))
   x4 <- rbind(x3, x2)
   x4[,'key3'] <- NULL
   reOrder(x4)
@@ -290,6 +321,7 @@ calcDailyDose <- function(x, useDC = FALSE) {
     x2[,'dose.daily'] <- x2[,'dose.intake'] * x2[,'freq.num']
   }
   if(nrow(x1) > 0) {
+    # actually using rbind.matrix so qrbind unavailable
     daytot <- do.call(rbind, lapply(split(x1, x1[,'key1']), pairDay))
     x1[,'dose.seq'] <- daytot[,1]
     x1[,'dose.daily'] <- daytot[,2]
@@ -303,7 +335,7 @@ calcDailyDose <- function(x, useDC = FALSE) {
 }
 
 daySeqDups <- function(x, key, matchingCols) {
-  do.call(rbind, lapply(split(x, key), function(i) {
+  do.call(qrbind, lapply(split(x, key), function(i) {
     sect <- cumsum(i[,'dose.seq'] == 1)
     # matchingCols: c('dose.intake','dose.daily','dose.seq','intaketime')
     ss <- split(i[,matchingCols], sect)

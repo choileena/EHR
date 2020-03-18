@@ -171,7 +171,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
     chkds <- x[,'key0'] %in% dskey
     x1 <- x[chkds,]
     x2 <- x[!chkds,]
-    x1 <- do.call(rbind, lapply(split(x1, x1[,'key0']), function(xs) {
+    x1 <- do.call(qrbind, lapply(split(x1, x1[,'key0']), function(xs) {
       borrowVal(xs, col = 'dosestr.num', elig = is.na(xs[,'strength.num']) & is.na(xs[,'doseamt.num']))
     }))
     x <- rbind(x1, x2)
@@ -187,15 +187,23 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   fn <- tolower(x[,'filename'])
   dn <- tolower(x[,'drugname'])
   ix <- which(fn[-1] == fn[-nr] & dn[-1] != dn[-nr])
-  check <- logical(length(ix))
   verCols <- setdiff(reqCols, 'dosestr.num')
+  rowList <- vector('list', length(ix))
+  valList <- rowList
   for(i in seq_along(ix)) {
     rowix <- seq(ix[i], length.out=2)
     tmp <- mergeAdjacent(x[rowix,], verCols)
     if(length(tmp)) {
-      check[i] <- TRUE
-      x[rowix,] <- tmp
+      # this is really slow
+#       x[rowix,] <- tmp
+      rowList[[i]] <- rowix
+      valList[[i]] <- tmp
     }
+  }
+  rowI <- unlist(rowList)
+  valI <- do.call(qrbind, valList)
+  if(length(rowI) > 0L) {
+    x[rowI,] <- valI
   }
   # "bad" strength was tagged for removal
   x <- x[is.na(x[,'strength.num']) | x[,'strength.num'] != -999,]
@@ -217,7 +225,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   chkstr <- x[,'key0'] %in% strkey
   x1 <- x[chkstr,]
   x2 <- x[!chkstr,]
-  x1 <- do.call(rbind, lapply(split(x1, x1[,'key0']), borrowVal, 'strength.num'))
+  x1 <- do.call(qrbind, lapply(split(x1, x1[,'key0']), borrowVal, 'strength.num'))
   x <- rbind(x1, x2)
   # remove missing strength
   x <- x[!is.na(x[,'strength.num']),]
@@ -231,7 +239,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   chkdose <- x[,'key0'] %in% dosekey
   x1 <- x[chkdose,]
   x2 <- x[!chkdose,]
-  x1 <- do.call(rbind, lapply(split(x1, x1[,'key0']), borrowVal, 'doseamt.num'))
+  x1 <- do.call(qrbind, lapply(split(x1, x1[,'key0']), borrowVal, 'doseamt.num'))
   x <- rbind(x1, x2)
   ix <- which(is.na(x[,'doseamt.num']))
   x[ix, 'doseamt.num'] <- 1
@@ -259,7 +267,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   chkfreq <- x[,'key1'] %in% freqkey
   x1 <- x[chkfreq,]
   x2 <- x[!chkfreq,]
-  x1 <- do.call(rbind, lapply(split(x1, x1[,'key1']), borrowFreqDoseSeq))
+  x1 <- do.call(qrbind, lapply(split(x1, x1[,'key1']), borrowFreqDoseSeq))
   x <- reOrder(rbind(x1, x2))
   ix <- which(is.na(x[,'freq']))
   if(length(ix)) {
@@ -280,7 +288,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
       x1 <- x[chkv,]
       x2 <- x[!chkv,]
       # borrow if unique
-      x1 <- do.call(rbind, lapply(split(x1, x1[,'key1']), borrowVal, 'route'))
+      x1 <- do.call(qrbind, lapply(split(x1, x1[,'key1']), borrowVal, 'route'))
       # borrow global mode
       x1[is.na(x1[,'route']),'route'] <- na.route
       x <- rbind(x1, x2)
