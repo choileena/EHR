@@ -23,10 +23,10 @@ collapse <- function(x, noteMetaData, naFreq = 'most', ...) {
     }
     sx <- split(x, path)
     res <- lapply(sx, makeDose, noteMetaData, naFreq)
-    rn <- do.call(rbind, lapply(res, function(i) i[['note']]))
+    rn <- do.call(qrbind, lapply(res, function(i) i[['note']]))
     rn <- rn[order(rn[[1]]),]
     rownames(rn) <- NULL
-    rd <- do.call(rbind, lapply(res, function(i) i[['date']]))
+    rd <- do.call(qrbind, lapply(res, function(i) i[['date']]))
     rd <- rd[order(rd[[1]]),]
     rownames(rd) <- NULL
     nx <- list(note = rn, date = rd)
