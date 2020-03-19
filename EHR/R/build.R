@@ -44,6 +44,8 @@
 #' @param dat data.table object from the output of \code{parseMedExtractR}, 
 #' \code{parseMedXN}, \code{parseMedEx}, or \code{parseCLAMP}
 #' @param dn Regular expression specifying drug name(s) of interest.
+#' @param preserve Column names to include in output, whose values should not be combined with other rows.
+#' If present, dosechange and lastdose are always preserved.
 #' @param dist_method Distance method to use for calculating distance of various paths.
 #' @param na_penalty Penalty for matching extracted entities with NA.
 #' @param neg_penalty Penalty for negative distances between frequency/intake time and dose amounts.
@@ -53,7 +55,7 @@
 #' parse output object \code{dat}), drugname, strength, dose, route, freq, duration, and drugname_start
 #' @export
 
-build <- function(dat, dn = NULL, dist_method, na_penalty, neg_penalty, greedy_threshold) {
+build <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, neg_penalty, greedy_threshold) {
   if(!missing(dist_method) || !missing(na_penalty) || !missing(neg_penalty) || !missing(greedy_threshold)) {
     opt_name <- c('ehr.dist_method','ehr.na_penalty','ehr.neg_penalty','ehr.greedy_threshold')
     curopts <- options()[opt_name]
@@ -77,10 +79,10 @@ build <- function(dat, dn = NULL, dist_method, na_penalty, neg_penalty, greedy_t
   }
   # deep copy of data.table column names
   xnames <- copy(names(x))
-  if('dosechange' %in% xnames) {
-    p <- 'dosechange'
-  } else {
-    p <- NULL
+  preserve <- unique(c(preserve, 'dosechange', 'lastdose'))
+  preserve <- intersect(preserve, xnames)
+  if(length(preserve) == 0L) {
+    preserve <- NULL
   }
 
   # rows with dosestr
@@ -102,7 +104,7 @@ build <- function(dat, dn = NULL, dist_method, na_penalty, neg_penalty, greedy_t
 
     res <- vector('list', nrow(x2))
     for(i in seq_along(res)) {
-      res[[i]] <- makeCombos(x2[i], gap = 100, p)
+      res[[i]] <- makeCombos(x2[i], gap = 100, preserve)
     }
     res <- do.call(rbind, res)
     x3 <- convert(res)

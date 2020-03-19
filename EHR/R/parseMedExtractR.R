@@ -46,6 +46,8 @@ parseMedExtractR <- function(filename) {
   dose <- init
   route <- init
   freq <- init
+  # add potential attributes
+  lastdose <- init
   dosestr <- init
   dosechange <- init
 #   dc.ix <- which(df[['entity']] == 'DoseChange')
@@ -81,6 +83,7 @@ parseMedExtractR <- function(filename) {
     attr.f <- tmp[entity == 'Frequency', paste(expr, pos, sep = ':')]
     attr.t <- tmp[entity == 'IntakeTime', paste(expr, pos, sep = ':')]
     attr.da <- tmp[entity == 'Dose', paste(expr, pos, sep = ':')]
+    attr.ld <- tmp[entity == 'LastDose', paste(expr, pos, sep = ':')]
     if(length(attr.t)) {
       attr.f <- c(attr.f, attr.t)
     }
@@ -88,9 +91,11 @@ parseMedExtractR <- function(filename) {
     dose[i] <- medxnEntityFormat(attr.d)
     freq[i] <- medxnEntityFormat(attr.f)
     dosestr[i] <- medxnEntityFormat(attr.da)
+    lastdose[i] <- medxnEntityFormat(attr.ld)
   }
   # need double-colon
   drugname <- medxnColonFormat(drugname)
-  x <- data.frame(filename, drugname, strength, dose, route, freq, dosestr, dosechange, stringsAsFactors = FALSE)
+  # if all dosechange or lastdose are missing, drop column?
+  x <- data.frame(filename, drugname, strength, dose, route, freq, dosestr, dosechange, lastdose, stringsAsFactors = FALSE)
   data.table::as.data.table(x)
 }
