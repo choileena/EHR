@@ -22,6 +22,6 @@ Description: Process and analyze Electronic Health Record (EHR) data. Frequency 
 Depends: R (>= 2.10)
 License: GPL (>=3)
 Imports: stats, utils, logistf, data.table, methods
-Suggests: glmnet
+Suggests: glmnet, medExtractR
 NeedsCompilation: no
 RoxygenNote: 6.1.1

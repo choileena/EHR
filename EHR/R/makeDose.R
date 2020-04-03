@@ -39,6 +39,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   useDur <- 'duration' %in% xcols
   useDC <- 'dosechange' %in% xcols
   useDS <- 'dosestr' %in% xcols
+  useLD <- 'lastdose' %in% xcols
 
   if(useRte) {
     reqCols <- c(reqCols, 'route')
@@ -88,6 +89,11 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
     reqCols <- c(reqCols, 'dosestr.num')
     cstrg <- sub('^([0-9.]+)[^0-9.].*', '\\1', sub('two', '2', tolower(x[,'dosestr'])))
     x[,'dosestr.num'] <- nowarnnum(cstrg)
+  }
+
+  if(useLD) {
+    reqCols <- c(reqCols, 'lastdose')
+    x[!is.na(x[,'lastdose']) & nchar(x[,'lastdose']) == 0,'lastdose'] <- NA
   }
 
   cstrg <- sub('two', '2', tolower(x[,'strength']))
@@ -168,6 +174,29 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   nas <- rowSums(is.na(x[,verCols])) == length(verCols)
   x <- x[!nas,]
 
+  # borrow last dose
+  # at note level, then date level if unique
+  if(useLD) {
+    vkey <- unique(x[!is.na(x[,'lastdose']),'key1'])
+    chkv <- x[,'key1'] %in% vkey
+    if(any(chkv)) {
+      x1 <- x[chkv,]
+      x2 <- x[!chkv,]
+      # use first lastdose
+      ldvals <- tapply(x1[,'lastdose'], x1[,'key1'], function(i) i[!is.na(i)][1])
+      x1[,'lastdose'] <- ldvals[match(x1[,'key1'], names(ldvals))]
+      x <- rbind(x1, x2)
+      ldkey <- unique(x[is.na(x[,'lastdose']),'key2'])
+      chkld <- x[,'key2'] %in% ldkey
+      x1 <- x[chkld,]
+      x2 <- x[!chkld,]
+      # borrow if unique
+      x1 <- do.call(qrbind, lapply(split(x1, x1[,'key2']), borrowVal, 'lastdose'))
+      x <- rbind(x1, x2)
+    }
+    x <- reOrder(x)
+  }
+
   # borrow dosestr.num - require unique w/in mention
   if(useDS) {
     dskey <- unique(x[is.na(x[,'strength.num']) & is.na(x[,'dosestr.num']) & is.na(x[,'doseamt.num']),'key0'])
@@ -189,7 +218,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   nr <- nrow(x)
   fn <- tolower(x[,'filename'])
   dn <- tolower(x[,'drugname'])
-  verCols <- setdiff(reqCols, 'dosestr.num')
+  verCols <- setdiff(reqCols, c('dosestr.num','lastdose'))
   ix <- which(fn[-1] == fn[-nr] & dn[-1] != dn[-nr])
   if(length(ix)) {
     # first pass-through ignores consecutive merges
@@ -357,12 +386,12 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
     x <- calcDailyDose(x)
   }
 
-  l1 <- rmDuplicates(x, useRoute = useRte, useDuration = useDur)
+  l1 <- rmDuplicates(x, useRoute = useRte, useDuration = useDur, useLastDose = useLD)
   xn <- l1[['note']]
   xd <- l1[['date']]
   # re-combine
   if(useDC) {
-    l2 <- rmDuplicates(dc, useRoute = useRte, useDuration = useDur, useDoseChange = TRUE)
+    l2 <- rmDuplicates(dc, useRoute = useRte, useDuration = useDur, useDoseChange = TRUE, useLastDose = useLD)
     xn <- rbind(xn, l2[['note']])
     xd <- rbind(xd, l2[['date']])
   }

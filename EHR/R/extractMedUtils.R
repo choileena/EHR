@@ -17,7 +17,7 @@ getNote <- function(note) {
 
 # Runs medExtractR, formats output to include filename
 getDose <- function(note, ...) {
-  d <- medExtractR(getNote(note), ...)
+  d <- medExtractR::medExtractR(getNote(note), ...)
   # return NULL if d is NA
   if(length(d) == 1 && is.na(d)) return(NULL)
 

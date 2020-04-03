@@ -4,7 +4,8 @@
 \alias{extractMed}
 \title{Extract medication inforamtion from clinical notes}
 \usage{
-extractMed(note_fn, drugnames, drgunit, windowlength, max_edit_dist = 0, ...)
+extractMed(note_fn, drugnames, drgunit, windowlength, max_edit_dist = 0,
+  ...)
 }
 \arguments{
 \item{note_fn}{File name(s) for the text files containing the clinical notes. Can be 

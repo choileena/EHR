@@ -12,7 +12,7 @@ getNote(note)
 These internal functions aid the main function used in the Extract-Med module (\code{extractMed}).
 }
 \details{
-\code{getNote}: 
+\code{getNote}:
 
 \code{getDose}:
 }

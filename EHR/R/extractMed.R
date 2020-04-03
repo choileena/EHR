@@ -21,40 +21,50 @@
 #' @return A data.frame with the extracted dosing information
 #' @export
 #'
-extractMed <- function(note_fn, drugnames, drgunit,
-                        windowlength, max_edit_dist = 0, ...){
 
-  if(!(class(note_fn) %in% c("character", "list"))){
+extractMed <- function(note_fn, drugnames, drgunit,
+                        windowlength, max_edit_dist = 0, ...) {
+  if(!(class(note_fn) %in% c("character", "list"))) {
     stop("`notefn` must be of class 'character' or 'list'")
   }
-  
-  # note_fn is a single note
-  if((class(note_fn)[1] == "character") & (length(note_fn) == 1)){
-    
-    gdx <- getDose(note_fn,
-                   drug_names = drugnames,
-                   unit=drgunit,
-                   window_length=windowlength,
-                   max_dist=max_edit_dist, ...)  
-    
-  }else{ 
-    # note_fn contains multiple notes
-    
-    # If supplied as a vector, convert to list
-    if(class(note_fn) == "character"){
-      note_fn <- as.list(note_fn)
-    }
-    
-    # Run module on all notes
-    gdx <- do.call(rbind, lapply(note_fn, function(x){
-      getDose(x,
-              drug_names = drugnames,
-              unit=drgunit,
-              window_length=windowlength,
-              max_dist=max_edit_dist, ...) 
-    }))
-    
+  if(!requireNamespace("medExtractR", quietly = TRUE)) {
+    stop("extractMed requires the medExtractR package, please install it.",
+      call. = FALSE)
   }
+  library(medExtractR, warn.conflicts = FALSE, quietly = TRUE)
+  s2f <- options()$stringsAsFactors
+  options(stringsAsFactors = FALSE)
+  on.exit(options(stringsAsFactors = s2f))
+  addl <- list(...)
+  addlvar <- names(addl)
+  batchsize <- 1000
+  if('batchsize' %in% addlvar) {
+    batchsize <- addl[['batchsize']]
+    addl[['batchsize']] <- NULL
+  }
+  progress <- TRUE
+  if('progress' %in% addlvar) {
+    progress <- addl[['progress']]
+    addl[['progress']] <- NULL
+  }
+  doseArgs <- list(
+    drug_names = drugnames,
+    unit = drgunit,
+    window_length = windowlength,
+    max_dist = max_edit_dist
+  )
 
-  return(gdx)
+  n <- length(note_fn)
+  chunks <- ceiling(n / batchsize)
+  dat <- vector('list', length = chunks)
+  for(i in seq_along(dat)) {
+    a <- (i - 1) * batchsize + 1
+    b <- min(i * batchsize, n)
+    if(progress) cat(sprintf("running batch %s of %s (%s%%)\r", a, n, round(100 * a / n)))
+    dat[[i]] <- do.call(qrbind, lapply(note_fn[seq(a, b)], function(x) {
+      do.call(getDose, c(x, doseArgs, addl))
+    }))
+  }
+  if(progress) cat("\n")
+  do.call(qrbind, dat)
 }

@@ -16,6 +16,11 @@
 \alias{calcDailyDose}
 \alias{daySeqDups}
 \alias{rmDuplicates}
+\alias{standardize_time}
+\alias{convert_military}
+\alias{convert_morn_night}
+\alias{convert_ampm}
+\alias{get_dur}
 \title{Internal functions for collapse process}
 \description{
 These internal functions aid the main functions used in the collapse process (\code{collapse}, \code{makeDose}).
@@ -48,5 +53,15 @@ These internal functions aid the main functions used in the collapse process (\c
 \code{daySeqDups}:
 
 \code{rmDuplicates}: removes redundant rows
+
+\code{get_dur}: Duration - don't convert just extract number
+
+\code{convert_ampm}: convert am/pm times
+
+\code{convert_morn_night}: if night/morning used, convert to am or pm
+
+\code{convert_military}: convert military format into 12h
+
+\code{standardize_time}: create standardized form of time
 }
 \keyword{internal}
