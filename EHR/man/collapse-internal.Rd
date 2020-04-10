@@ -50,18 +50,21 @@ These internal functions aid the main functions used in the collapse process (\c
 
 \code{calcDailyDose}: calculates daily dose
 
-\code{daySeqDups}:
+\code{daySeqDups}: look for duplicate dose sequence
 
 \code{rmDuplicates}: removes redundant rows
 
-\code{get_dur}: Duration - don't convert just extract number
+\code{convert_ampm}: convert time expressions that explicitly use \sQuote{am} or \sQuote{pm} into 
+HH:MM:SS format
 
-\code{convert_ampm}: convert am/pm times
+\code{convert_morn_night}: if night/morning used, e.g. \sQuote{10 last night}, convert to am or pm
 
-\code{convert_morn_night}: if night/morning used, convert to am or pm
+\code{convert_military}: convert military time into standardized HH:MM:SS format
 
-\code{convert_military}: convert military format into 12h
+\code{get_dur}: for duration expressions, e.g. \sQuote{12 hour level}, the numeric portion is extracted 
+but not converted to a standardized time yet since it requires knowledge of lab time.
 
-\code{standardize_time}: create standardized form of time
+\code{standardize_time}: applies \code{convert_military}, \code{convert_morn_night}, \code{convert_ampm},  
+and \code{get_dur} to create a string with standardized form of time in HH:MM:SS format
 }
 \keyword{internal}
