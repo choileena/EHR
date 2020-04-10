@@ -9,7 +9,8 @@
 #' these rows are collpased into one row if there are no conflicts. Missing strengths, dose 
 #' amounts, frequencies, and routes are borrowed or imputed using various rules (see McNeer et al., 
 #' 2020 for details). Dose given intake and daily dose are calculated. Redundancies are removed at 
-#' the date and note level.
+#' the date and note level. If time of last dose is being used and it is unique within the level of 
+#' collapsing, it is borrowed across all rows.
 #'
 #' @param x data.frame containing the output of \code{build}, or the output of \code{addLastDose} if 
 #' last dose information is being incorporated.
