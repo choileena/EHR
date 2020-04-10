@@ -14,7 +14,7 @@ build(dat, dn = NULL, preserve = NULL, dist_method, na_penalty,
 \item{dn}{Regular expression specifying drug name(s) of interest.}
 
 \item{preserve}{Column names to include in output, whose values should not be combined with other rows.
-If present, dosechange and lastdose are always preserved.}
+If present, dosechange is always preserved.}
 
 \item{dist_method}{Distance method to use for calculating distance of various paths.}
 

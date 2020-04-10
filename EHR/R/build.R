@@ -45,7 +45,7 @@
 #' \code{parseMedXN}, \code{parseMedEx}, or \code{parseCLAMP}
 #' @param dn Regular expression specifying drug name(s) of interest.
 #' @param preserve Column names to include in output, whose values should not be combined with other rows.
-#' If present, dosechange and lastdose are always preserved.
+#' If present, dosechange is always preserved.
 #' @param dist_method Distance method to use for calculating distance of various paths.
 #' @param na_penalty Penalty for matching extracted entities with NA.
 #' @param neg_penalty Penalty for negative distances between frequency/intake time and dose amounts.
@@ -79,7 +79,7 @@ build <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, neg_
   }
   # deep copy of data.table column names
   xnames <- copy(names(x))
-  preserve <- unique(c(preserve, 'dosechange', 'lastdose'))
+  preserve <- unique(c(preserve, 'dosechange'))
   preserve <- intersect(preserve, xnames)
   if(length(preserve) == 0L) {
     preserve <- NULL
