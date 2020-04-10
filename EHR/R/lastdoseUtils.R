@@ -49,25 +49,3 @@ mergeLastDose <- function(buildData, lastdoseData) {
   ids <- names(ldl)
   do.call(qrbind, lapply(ids, function(i) matchLastDose(tbl[[i]], ldl[[i]])))
 }
-
-#' Add Lastdose Data
-#'
-#' Add lastdose data to data set
-#'
-#' Lastdose is a datetime string associated with dose data.
-#'
-#' @param buildData data.frame, output of \code{build} function.
-#' @param lastdoseData data.frame with columns filename, ld_start, lastdose,
-#' raw_time, time_type
-#'
-#' @return a data.frame with the \sQuote{lastdose} column added.
-#' @export
-addLastDose <- function(buildData, lastdoseData) {
-  mld <- mergeLastDose(buildData, lastdoseData)
-  mld <- mld[!is.na(mld[,'lastdose']),]
-  key1 <- do.call(paste, c(buildData[,c('filename','drugname_start')], sep = '|'))
-  key2 <- do.call(paste, c(mld[,c('filename','drugname_start')], sep = '|'))
-  ix <- match(key1, key2)
-  buildData[,'lastdose'] <- mld[ix,'lastdose']
-  buildData
-}

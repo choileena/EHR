@@ -2,9 +2,10 @@
 #'
 #' These internal functions aid the main function used in the Extract-Med module (\code{extractMed}).
 #' 
-#' \code{getNote}: 
+#' \code{getNote}: Takes the file name and reads in the note as a character vector
 #' 
-#' \code{getDose}:
+#' \code{getDose}: Runs \code{medExtractR} on a single clinical note (file) and labels 
+#' the results output with file name
 #'
 #' @name extractMed-internal
 #' @aliases getNote getDose

@@ -13,9 +13,9 @@ These internal functions aid the main functions used in the parsing process
 \details{
 \code{medxnColonFormat}: converts entity information into the 
 form "extracted expression::start position::stop position", similar 
-to how output is formatted by default in MedXN output.
+to how output is formatted by default in MedXN output.  
 
-\code{entorder}: a helper function that orders the entities by start position
+\code{entorder}: a helper function that orders the entities by start position  
 
 \code{medxnEntityFormat}: a helper function that applies both \code{medxnColonFormat} 
 to convert entities into the "extraction::start::stop" format and \code{entorder} to 
