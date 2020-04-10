@@ -4,11 +4,10 @@
 \alias{extractMed}
 \title{Extract medication inforamtion from clinical notes}
 \usage{
-extractMed(note_fn, drugnames, drgunit, windowlength, max_edit_dist = 0,
-  ...)
+extractMed(note_fn, drugnames, drgunit, windowlength, max_edit_dist = 0, ...)
 }
 \arguments{
-\item{note_fn}{File name(s) for the text files containing the clinical notes. Can be 
+\item{note_fn}{File name(s) for the text file(s) containing the clinical notes. Can be 
 a character string for an individual note, or a vector or list of file names for 
 multiple notes.}
 
@@ -23,13 +22,37 @@ which to search for dosing entities}
 \item{max_edit_dist}{Maximum edit distance allowed when attempting to extract \code{drugnames}. 
 Allows for capturing misspelled drug name information.}
 
-\item{...}{Additional arguments to \code{medExtractR}}
+\item{...}{Additional arguments to \code{medExtractR}, for example \code{lastdose=TRUE} to extract 
+time of last dose (see \code{medExtractR} package documentation for details)}
 }
 \value{
-A data.frame with the extracted dosing information
+A data.frame with the extracted dosing information, labeled with file name as an identifier \cr
+Sample output:\cr
+\tabular{rrrr}{
+filename \tab entity    \tab  expr   \tab    pos\cr
+note_file1.txt \tab DoseChange\tab  decrease \tab  66:74\cr
+note_file1.txt \tab DrugName   \tab Prograf \tab   78:85\cr
+note_file1.txt \tab Strength  \tab  2 mg   \tab    86:90\cr
+note_file1.txt \tab DoseAmt   \tab  1     \tab     91:92\cr
+note_file1.txt \tab Frequency \tab  bid    \tab    101:104\cr
+note_file1.txt \tab LastDose  \tab  2100    \tab   121:125\cr
+}
 }
 \description{
 This function is an interface to the \code{medExtractR} function within the \code{medExtractR} 
-package, and allows drug dosing information to be extracted from free text sources, 
+package, and allows drug dosing information to be extracted from free-text sources, 
 e.g., clinical notes.
+}
+\details{
+Medication information, including dosing data, is often stored in free-text sources such as 
+clinical notes. The \code{extractMed} function serves as a convenient wrapper for the 
+\code{medExtractR} package, a natural language processing system written in R for extracting 
+medication data. Within \code{extractMed}, the \code{medExtractR} function identifies dosing 
+data for drug(s) of interest, specified by the \code{drugnames} argument, using rule-based and 
+dictionary-based approaches. Relevant dosing entities include medication strength (identified 
+using the \code{unit} argument), dose amount, dose given intake, intake time or frequency of 
+dose, dose change keywords (e.g., 'increase' or 'decrease'), and time of last dose. For more 
+details, see Weeks, et al. 2020. After applying \code{medExtractR} to extract drug dosing 
+information, \code{extractMed} appends the file name to results to ensure they are appropriately 
+labeled.
 }
