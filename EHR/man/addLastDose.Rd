@@ -27,7 +27,7 @@ to \code{addLastDose}. This function then combines the processed last dose times
 from the \code{build} process by file name to pair last dose times with dosing regimens based on position. 
 Alternatively, the user can provide their own table of lastdose data. In this case, with position 
 information absent, the lastdose data should be restricted to one unique last dose time per 
-unique patient ID-date identifier.  
+unique patient ID-date identifier.
 
 In the case where \code{lastdoseData} is output from \code{processLastDose}, it is possbile to 
 have more than one extracted last dose time. In this case, rules are applied to determine which 

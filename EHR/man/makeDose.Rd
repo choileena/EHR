@@ -10,8 +10,10 @@ makeDose(x, noteMetaData, naFreq = "most")
 \item{x}{data.frame containing the output of \code{build}, or the output of \code{addLastDose} if 
 last dose information is being incorporated.}
 
-\item{noteMetaData}{data.frame containing identifying meta data for each note, including patient ID 
-(pid), date of the note, and note ID}
+\item{noteMetaData}{data.frame containing identifying meta data for each
+note, including patient ID, date of the note, and note ID. Column names
+should be set to \sQuote{filename}, \sQuote{pid}, \sQuote{date},
+\sQuote{note}.}
 
 \item{naFreq}{Replacing missing frequencies with this value, or by default the most common value across 
 the entire set in \code{x}.}

@@ -7,9 +7,12 @@
 #' parsed and paired medication data to calculate dose intake and daily dose and remove redundancies 
 #' at the note and date level.
 #'
-#' @param x data.frame containing output from \code{makeDose}
-#' @param noteMetaData data.frame containing identifying meta data for each note, including patient ID 
-#' (pid), date of the note, and note ID
+#' @param x data.frame containing the output of \code{build}, or the output of \code{addLastDose} if 
+#' last dose information is being incorporated.
+#' @param noteMetaData data.frame containing identifying meta data for each
+#' note, including patient ID, date of the note, and note ID. Column names
+#' should be set to \sQuote{filename}, \sQuote{pid}, \sQuote{date},
+#' \sQuote{note}.
 #' @param naFreq Expression used to replace missing frequencies with, or by default use the most
 #' common.
 #' @param \dots drug names to split by
