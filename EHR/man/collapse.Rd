@@ -7,11 +7,12 @@
 collapse(x, noteMetaData, naFreq = "most", ...)
 }
 \arguments{
-\item{x}{data.frame}
+\item{x}{data.frame containing output from \code{makeDose}}
 
-\item{noteMetaData}{data.frame with columns filename, pid, date, note}
+\item{noteMetaData}{data.frame containing identifying meta data for each note, including patient ID 
+(pid), date of the note, and note ID}
 
-\item{naFreq}{Replacing missing frequencies with this value, or the most
+\item{naFreq}{Expression used to replace missing frequencies with, or by default use the most
 common.}
 
 \item{\dots}{drug names to split by}
@@ -23,5 +24,8 @@ A list containing two dataframes, one with the note level and one with the date 
 Splits drug data and calls \code{makeDose} to collapse at the note and date level.
 }
 \details{
-If different formulations of the drug (e.g., extended release) exist, they can be separated using a regular expression. This function will call \code{makeDose} on parsed and paired medication data to calculate dose intake and daily dose and remove redundancies at the note and date level.
+If different formulations of the drug (e.g., extended release) exist, they can be separated 
+using a regular expression (e.g., \sQuote{xr|er}). This function will call \code{makeDose} on 
+parsed and paired medication data to calculate dose intake and daily dose and remove redundancies 
+at the note and date level.
 }

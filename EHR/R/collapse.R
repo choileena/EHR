@@ -2,11 +2,15 @@
 #'
 #' Splits drug data and calls \code{makeDose} to collapse at the note and date level.
 #'
-#' If different formulations of the drug (e.g., extended release) exist, they can be separated using a regular expression. This function will call \code{makeDose} on parsed and paired medication data to calculate dose intake and daily dose and remove redundancies at the note and date level.
+#' If different formulations of the drug (e.g., extended release) exist, they can be separated 
+#' using a regular expression (e.g., \sQuote{xr|er}). This function will call \code{makeDose} on 
+#' parsed and paired medication data to calculate dose intake and daily dose and remove redundancies 
+#' at the note and date level.
 #'
-#' @param x data.frame
-#' @param noteMetaData data.frame with columns filename, pid, date, note
-#' @param naFreq Replacing missing frequencies with this value, or the most
+#' @param x data.frame containing output from \code{makeDose}
+#' @param noteMetaData data.frame containing identifying meta data for each note, including patient ID 
+#' (pid), date of the note, and note ID
+#' @param naFreq Expression used to replace missing frequencies with, or by default use the most
 #' common.
 #' @param \dots drug names to split by
 #'

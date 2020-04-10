@@ -26,19 +26,22 @@
 #' 
 #' \code{calcDailyDose}: calculates daily dose
 #' 
-#' \code{daySeqDups}: 
+#' \code{daySeqDups}: look for duplicate dose sequence 
 #' 
 #' \code{rmDuplicates}: removes redundant rows
 #'
-#' \code{get_dur}: Duration - don't convert just extract number
+#' \code{convert_ampm}: convert time expressions that explicitly use \sQuote{am} or \sQuote{pm} into 
+#' HH:MM:SS format
 #'
-#' \code{convert_ampm}: convert am/pm times
+#' \code{convert_morn_night}: if night/morning used, e.g. \sQuote{10 last night}, convert to am or pm
 #'
-#' \code{convert_morn_night}: if night/morning used, convert to am or pm
+#' \code{convert_military}: convert military time into standardized HH:MM:SS format
+#' 
+#' \code{get_dur}: for duration expressions, e.g. \sQuote{12 hour level}, the numeric portion is extracted 
+#' but not converted to a standardized time yet since it requires knowledge of lab time.
 #'
-#' \code{convert_military}: convert military format into 12h
-#'
-#' \code{standardize_time}: create standardized form of time
+#' \code{standardize_time}: applies \code{convert_military}, \code{convert_morn_night}, \code{convert_ampm},  
+#' and \code{get_dur} to create a string with standardized form of time in HH:MM:SS format
 #'
 #' @name collapse-internal
 #' @aliases qrbind nowarnnum freqNum parseFreq most pairDay
@@ -407,16 +410,16 @@ rmDuplicates <- function(x, useRoute = FALSE, useDuration = FALSE, useDoseChange
   list(note = xn, date = xd)
 }
 
-convert_military <- function(tm) {
-  ix <- which(!is.na(tm) & !grepl("[a-z]", tm))
-  if(length(ix)) {
-    val <- tm[ix]
-    if(any(nchar(val) != 4)) stop("unexpected time length")
-    val <- sprintf("%s:%s:00", substr(val, 1, 2), substr(val, 3, 4))
-    tm[ix] <- val
-  }
-  tm
-}
+# convert_military <- function(tm) {
+#   ix <- which(!is.na(tm) & !grepl("[a-z]", tm))
+#   if(length(ix)) {
+#     val <- tm[ix]
+#     if(any(nchar(val) != 4)) stop("unexpected time length")
+#     val <- sprintf("%s:%s:00", substr(val, 1, 2), substr(val, 3, 4))
+#     tm[ix] <- val
+#   }
+#   tm
+# }
 
 # convert_morn_night <- function(tm) {
 #   ix <- which(!is.na(tm) & grepl("night", tm))

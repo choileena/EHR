@@ -1,15 +1,25 @@
 #' Make Dose Data
 #'
-#' Takes parsed and paired medication data, calculates dose intake and daily dose, and removes redundant information at the note and date level.
+#' Takes parsed and paired medication data, calculates dose intake and daily dose, and 
+#' removes redundant information at the note and date level.
 #'
-#' This function standardizes frequency, route, and duration entities. Dose amount, strength, and frequency entities are converted to numeric. Rows with only drug name and/or route are removed. If there are drug name changes in adjacent rows, these rows are collpased into one row if there are no conflicts. Missing strengths, dose amounts, frequencies, and routes are borrowed or imputed using various rules. Dose given intake and daily dose are calculated. Redundancies are removed at the date and note level.
+#' This function standardizes frequency, route, and duration entities. Dose amount, strength, 
+#' and frequency entities are converted to numeric. Rows with only drug name and/or route are 
+#' removed. If there are drug name changes in adjacent rows (e.g.m from a generic to brand name), 
+#' these rows are collpased into one row if there are no conflicts. Missing strengths, dose 
+#' amounts, frequencies, and routes are borrowed or imputed using various rules (see McNeer et al., 
+#' 2020 for details). Dose given intake and daily dose are calculated. Redundancies are removed at 
+#' the date and note level.
 #'
-#' @param x data.frame
-#' @param noteMetaData data.frame
-#' @param naFreq Replacing missing frequencies with this value, or the most
-#' common.
+#' @param x data.frame containing the output of \code{build}, or the output of \code{addLastDose} if 
+#' last dose information is being incorporated.
+#' @param noteMetaData data.frame containing identifying meta data for each note, including patient ID 
+#' (pid), date of the note, and note ID
+#' @param naFreq Replacing missing frequencies with this value, or by default the most common value across 
+#' the entire set in \code{x}.
 #'
-#' @return A list containing two dataframes, one with the note level and one with the date level collapsed data.
+#' @return A list containing two dataframes, one with the note level and one with the date level 
+#' collapsed data.
 #' @export
 
 makeDose <- function(x, noteMetaData, naFreq = 'most') {
