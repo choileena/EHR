@@ -18,6 +18,16 @@
 #' @param \dots drug names to split by
 #'
 #' @return A list containing two dataframes, one with the note level and one with the date level collapsed data.
+#' 
+#' @examples
+#' data(lamParseOutput)
+#' data(lamMetadata)
+#' 
+#' lam_build_out <- build(lamParseOutput)
+#' 
+#' lam_collapsed <- collapse(lam_build_out, lamMetadata, naFreq = 'most', 'xr|er')
+#' lam_collapsed$note # Note level collapsing
+#' lam_collapsed$date # Date level collapsing
 #' @export
 
 collapse <- function(x, noteMetaData, naFreq = 'most', ...) {

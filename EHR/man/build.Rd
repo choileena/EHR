@@ -4,8 +4,15 @@
 \alias{build}
 \title{Combine Dose Data}
 \usage{
-build(dat, dn = NULL, preserve = NULL, dist_method, na_penalty,
-  neg_penalty, greedy_threshold)
+build(
+  dat,
+  dn = NULL,
+  preserve = NULL,
+  dist_method,
+  na_penalty,
+  neg_penalty,
+  greedy_threshold
+)
 }
 \arguments{
 \item{dat}{data.table object from the output of \code{parseMedExtractR}, 
@@ -61,8 +68,8 @@ The user can specify additional arguments including:
  entities be sufficiently far apart from one another before being left unpaired. 
  \item \code{neg_penalty}: When working with dose amount (DA) and frequency/intake time (FIT), it is much more common 
 for the ordering to be DA followed by FIT. Thus, when we observe FIT followed by DA, we apply a negative penalty to make such pairings 
-less likely, as  
- \item \code{greedy threshold}: when there are many extractions from a clinical note, the number of possible combinations for paths 
+less likely.
+ \item \code{greedy threshold}: When there are many extractions from a clinical note, the number of possible combinations for paths 
  can get exponentially large, particularly when the medication extraction natural language processing system is incorrect. The greedy 
  threshold puts an upper bound on the number of entity pairings to prevent the function from stalling in such cases. 
 }  
@@ -70,4 +77,9 @@ If none of the optional arguments are specified, then the \code{build} process u
 package documentation.
 
 For additional details, see McNeer, et al. 2020.
+}
+\examples{
+data(lamParseOutput)
+
+build(lamParseOutput)
 }

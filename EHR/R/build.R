@@ -31,8 +31,8 @@
 #'  entities be sufficiently far apart from one another before being left unpaired. 
 #'  \item \code{neg_penalty}: When working with dose amount (DA) and frequency/intake time (FIT), it is much more common 
 #' for the ordering to be DA followed by FIT. Thus, when we observe FIT followed by DA, we apply a negative penalty to make such pairings 
-#' less likely, as  
-#'  \item \code{greedy threshold}: when there are many extractions from a clinical note, the number of possible combinations for paths 
+#' less likely.
+#'  \item \code{greedy threshold}: When there are many extractions from a clinical note, the number of possible combinations for paths 
 #'  can get exponentially large, particularly when the medication extraction natural language processing system is incorrect. The greedy 
 #'  threshold puts an upper bound on the number of entity pairings to prevent the function from stalling in such cases. 
 #' }  
@@ -53,6 +53,11 @@
 #'
 #' @return A data.table object that contains columns for filename (of the clinical note, inherited from the 
 #' parse output object \code{dat}), drugname, strength, dose, route, freq, duration, and drugname_start
+#' 
+#' @examples
+#' data(lamParseOutput)
+#' 
+#' build(lamParseOutput)
 #' @export
 
 build <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, neg_penalty, greedy_threshold) {

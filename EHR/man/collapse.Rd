@@ -32,3 +32,13 @@ using a regular expression (e.g., \sQuote{xr|er}). This function will call \code
 parsed and paired medication data to calculate dose intake and daily dose and remove redundancies 
 at the note and date level.
 }
+\examples{
+data(lamParseOutput)
+data(lamMetadata)
+
+lam_build_out <- build(lamParseOutput)
+
+lam_collapsed <- collapse(lam_build_out, lamMetadata, naFreq = 'most', 'xr|er')
+lam_collapsed$note # Note level collapsing
+lam_collapsed$date # Date level collapsing
+}

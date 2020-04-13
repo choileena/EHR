@@ -29,10 +29,20 @@ removes redundant information at the note and date level.
 \details{
 This function standardizes frequency, route, and duration entities. Dose amount, strength, 
 and frequency entities are converted to numeric. Rows with only drug name and/or route are 
-removed. If there are drug name changes in adjacent rows (e.g.m from a generic to brand name), 
-these rows are collpased into one row if there are no conflicts. Missing strengths, dose 
+removed. If there are drug name changes in adjacent rows (e.g., from a generic to brand name), 
+these rows are collapsed into one row if there are no conflicts. Missing strengths, dose 
 amounts, frequencies, and routes are borrowed or imputed using various rules (see McNeer et al., 
 2020 for details). Dose given intake and daily dose are calculated. Redundancies are removed at 
 the date and note level. If time of last dose is being used and it is unique within the level of 
 collapsing, it is borrowed across all rows.
+}
+\examples{
+data(lamParseOutput)
+data(lamMetadata)
+
+lam_build_out <- build(lamParseOutput)
+
+lam_collapsed <- makeDose(lam_build_out,lamMetadata)
+lam_collapsed[[1]] # Note level collapsing
+lam_collapsed[[2]] # Date level collapsing
 }
