@@ -11,7 +11,7 @@
 #' 
 #' \code{medxnEntityFormat}: a helper function that applies both \code{medxnColonFormat} 
 #' to convert entities into the "extraction::start::stop" format and \code{entorder} to 
-#' sort them. It then collapses the entities and separate the extractions with backticks
+#' sort them. It then collapses the entities and separates the extractions with backticks
 #'
 #' @name parse-internal
 #' @aliases medxnColonFormat entorder medxnEntityFormat
