@@ -51,13 +51,13 @@
 #' @param neg_penalty Penalty for negative distances between frequency/intake time and dose amounts.
 #' @param greedy_threshold Threshold to use greedy matching, defaults to 1e8.
 #'
-#' @return A data.table object that contains columns for filename (of the clinical note, inherited from the 
+#' @return A data.frame object that contains columns for filename (of the clinical note, inherited from the 
 #' parse output object \code{dat}), drugname, strength, dose, route, freq, duration, and drugname_start
 #' 
 #' @examples
-#' data(lamParseOutput)
+#' data(lam_mxr_parsed)
 #' 
-#' build(lamParseOutput)
+#' build(lam_mxr_parsed)
 #' @export
 
 build <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, neg_penalty, greedy_threshold) {
@@ -122,5 +122,6 @@ build <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, neg_
   }
   setnames(x4, 'drugname.A', 'drugname_start')
   x4 <- x4[order(filename, drugname_start)]
+  class(x4) <- 'data.frame'
   x4
 }

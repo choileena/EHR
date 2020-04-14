@@ -58,12 +58,15 @@ results.sub <- analysisPheWAS(method='firth', adjust='PS', Exposure='exposure',
 }
 }
 \author{
-Leena Choi \email{naturechoi@gmail.com},
-Cole Beck \email{cole.beck@vumc.org},
-Hannah Weeks \email{hannah.l.weeks@vanderbilt.edu}, and
-Elizabeth McNeer \email{elizabeth.mcneer@vumc.org}
+\strong{Maintainer}: Leena Choi \email{naturechoi@gmail.com}
 
-Maintainer: Leena Choi \email{naturechoi@gmail.com}
+Authors:
+\itemize{
+  \item Cole Beck \email{cole.beck@vumc.org} (0000-0002-6849-6255)
+  \item Hannah Weeks \email{hannah.l.weeks@vanderbilt.edu}
+  \item Elizabeth McNeer \email{elizabeth.mcneer@vumc.org}
+}
+
 }
 \keyword{EHR}
 \keyword{PheWAS}

@@ -4,15 +4,8 @@
 \alias{build}
 \title{Combine Dose Data}
 \usage{
-build(
-  dat,
-  dn = NULL,
-  preserve = NULL,
-  dist_method,
-  na_penalty,
-  neg_penalty,
-  greedy_threshold
-)
+build(dat, dn = NULL, preserve = NULL, dist_method, na_penalty,
+  neg_penalty, greedy_threshold)
 }
 \arguments{
 \item{dat}{data.table object from the output of \code{parseMedExtractR}, 
@@ -32,7 +25,7 @@ If present, dosechange is always preserved.}
 \item{greedy_threshold}{Threshold to use greedy matching, defaults to 1e8.}
 }
 \value{
-A data.table object that contains columns for filename (of the clinical note, inherited from the 
+A data.frame object that contains columns for filename (of the clinical note, inherited from the 
 parse output object \code{dat}), drugname, strength, dose, route, freq, duration, and drugname_start
 }
 \description{
@@ -79,7 +72,7 @@ package documentation.
 For additional details, see McNeer, et al. 2020.
 }
 \examples{
-data(lamParseOutput)
+data(lam_mxr_parsed)
 
-build(lamParseOutput)
+build(lam_mxr_parsed)
 }

@@ -13,7 +13,7 @@ last dose information is being incorporated.}
 \item{noteMetaData}{data.frame containing identifying meta data for each
 note, including patient ID, date of the note, and note ID. Column names
 should be set to \sQuote{filename}, \sQuote{pid}, \sQuote{date},
-\sQuote{note}.}
+\sQuote{note}. Date should have format YYYY-MM-DD.}
 
 \item{naFreq}{Replacing missing frequencies with this value, or by default the most common value across 
 the entire set in \code{x}.}
@@ -37,12 +37,12 @@ the date and note level. If time of last dose is being used and it is unique wit
 collapsing, it is borrowed across all rows.
 }
 \examples{
-data(lamParseOutput)
-data(lamMetadata)
+data(lam_mxr_parsed)
+data(lam_metadata)
 
-lam_build_out <- build(lamParseOutput)
+lam_build_out <- build(lam_mxr_parsed)
 
-lam_collapsed <- makeDose(lam_build_out,lamMetadata)
+lam_collapsed <- makeDose(lam_build_out, lam_metadata)
 lam_collapsed[[1]] # Note level collapsing
 lam_collapsed[[2]] # Date level collapsing
 }

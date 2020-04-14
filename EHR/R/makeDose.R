@@ -17,7 +17,7 @@
 #' @param noteMetaData data.frame containing identifying meta data for each
 #' note, including patient ID, date of the note, and note ID. Column names
 #' should be set to \sQuote{filename}, \sQuote{pid}, \sQuote{date},
-#' \sQuote{note}.
+#' \sQuote{note}. Date should have format YYYY-MM-DD.
 #' @param naFreq Replacing missing frequencies with this value, or by default the most common value across 
 #' the entire set in \code{x}.
 #'
@@ -25,12 +25,12 @@
 #' collapsed data.
 #' 
 #' @examples
-#' data(lamParseOutput)
-#' data(lamMetadata)
+#' data(lam_mxr_parsed)
+#' data(lam_metadata)
 #' 
-#' lam_build_out <- build(lamParseOutput)
+#' lam_build_out <- build(lam_mxr_parsed)
 #' 
-#' lam_collapsed <- makeDose(lam_build_out,lamMetadata)
+#' lam_collapsed <- makeDose(lam_build_out, lam_metadata)
 #' lam_collapsed[[1]] # Note level collapsing
 #' lam_collapsed[[2]] # Date level collapsing
 #' @export
@@ -75,7 +75,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
     x[,'route'] <- rte
     na.route <- most(rte)
     if(is.null(na.route)) {
-      warning('unable to calculate mode for route, naRoute set to "orally"')
+      warning('unable to calculate mode for route, naRoute set to "orally"', call. = FALSE)
       na.route <- 'orally'
     }
   }
@@ -180,7 +180,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
     na.freq <- most(cfreq1[ix])
     # possible there isn't a most-used frequency
     if(is.null(na.freq)) {
-      warning('unable to calculate mode for frequency, naFreq set to "bid"')
+      warning('unable to calculate mode for frequency, naFreq set to "bid"', call. = FALSE)
       na.freq <- 'bid'
     }
   } else {

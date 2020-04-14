@@ -52,7 +52,6 @@ extractMed <- function(note_fn, drugnames, drgunit,
     stop("extractMed requires the medExtractR package, please install it.",
       call. = FALSE)
   }
-  library(medExtractR, warn.conflicts = FALSE, quietly = TRUE)
   s2f <- options()$stringsAsFactors
   options(stringsAsFactors = FALSE)
   on.exit(options(stringsAsFactors = s2f))
@@ -68,6 +67,28 @@ extractMed <- function(note_fn, drugnames, drgunit,
     progress <- addl[['progress']]
     addl[['progress']] <- NULL
   }
+  # data in EHR package must be manually loaded
+  if(!('dosechange_dict' %in% addlvar)) {
+    dosechange_vals <- NULL
+    utils::data(dosechange_vals, package = "medExtractR")
+    addl[['dosechange_dict']] <- dosechange_vals
+  }
+  if(!('drug_list' %in% addlvar)) {
+    rxnorm_druglist <- NULL
+    utils::data(rxnorm_druglist, package = "medExtractR")
+    addl[['drug_list']] <- rxnorm_druglist
+  }
+  if(!('freq_dict' %in% addlvar)) {
+    freq_vals <- NULL
+    utils::data(freq_vals, package = "medExtractR")
+    addl[['freq_dict']] <- freq_vals
+  }
+  if(!('intaketime_dict' %in% addlvar)) {
+    intaketime_vals <- NULL
+    utils::data(intaketime_vals, package = "medExtractR")
+    addl[['intaketime_dict']] <- intaketime_vals
+  }
+
   doseArgs <- list(
     drug_names = drugnames,
     unit = drgunit,

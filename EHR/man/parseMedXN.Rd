@@ -30,7 +30,7 @@ for various drug entities (e.g., drug name, strength, frequency, etc.) each rece
 their own column formatted as "extracted expression::start position::stop position". 
 MedXN output files anchor extractions to a specific drug name extraction. In the case 
 where multiple entities are extracted for the same drug name mention, the entities are 
-separated into adjacent rows and the drug name is duplicated. 
+separated into adjacent rows and the drug name is duplicated.
 
 In MedXN output files, the results from multiple clinical notes can be combined into 
 a single output file. The beginning of some lines of the output file can indicate 

@@ -1,6 +1,6 @@
 #' Example of Lamotrigine Output from `parseMedExtractR`
 #'
-#' The output after running `parseMedExtractR` on 4 example clinical notes.
+#' The output after running \code{parseMedExtractR} on 4 example clinical notes.
 #'
 #' @format A data frame with 10 observations on the following variables.
 #' \describe{
@@ -17,6 +17,6 @@
 #'
 #' @keywords datasets
 #'
-#'
 #' @examples
-#' data(lamParseOutput)
+#' data(lam_mxr_parsed)
+"lam_mxr_parsed"

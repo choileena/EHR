@@ -1,6 +1,6 @@
 #' Example of Metadata for Lamotrigine Data
 #'
-#' An example of the metadata needed for the `makeDose` and `collapse` functions.
+#' An example of the metadata needed for the \code{makeDose} and \code{collapse} functions.
 #'
 #' @format A data frame with 5 observations on the following variables.
 #' \describe{
@@ -12,6 +12,6 @@
 #'
 #' @keywords datasets
 #'
-#'
 #' @examples
-#' data(lamMetadata)
+#' data(lam_metadata)
+"lam_metadata"

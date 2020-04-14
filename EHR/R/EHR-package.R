@@ -10,18 +10,12 @@
 #'
 #' @docType package
 #'
-#' @importFrom utils head
+#' @importFrom utils data head
 #' @importFrom logistf logistf.control logistpl.control
 #' @importFrom methods as
 #' @import stats
 #' @import data.table
 #'
-#' @author Leena Choi \email{naturechoi@@gmail.com},
-#' Cole Beck \email{cole.beck@@vumc.org},
-#' Hannah Weeks \email{hannah.l.weeks@@vanderbilt.edu}, and
-#' Elizabeth McNeer \email{elizabeth.mcneer@@vumc.org}
-#'
-#' Maintainer: Leena Choi \email{naturechoi@gmail.com}
 #' @keywords EHR process PheWAS
 #' @examples
 #' data(dataPheWAS)

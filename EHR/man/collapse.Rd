@@ -13,7 +13,7 @@ last dose information is being incorporated.}
 \item{noteMetaData}{data.frame containing identifying meta data for each
 note, including patient ID, date of the note, and note ID. Column names
 should be set to \sQuote{filename}, \sQuote{pid}, \sQuote{date},
-\sQuote{note}.}
+\sQuote{note}. Date should have format YYYY-MM-DD.}
 
 \item{naFreq}{Expression used to replace missing frequencies with, or by default use the most
 common.}
@@ -33,12 +33,12 @@ parsed and paired medication data to calculate dose intake and daily dose and re
 at the note and date level.
 }
 \examples{
-data(lamParseOutput)
-data(lamMetadata)
+data(lam_mxr_parsed)
+data(lam_metadata)
 
-lam_build_out <- build(lamParseOutput)
+lam_build_out <- build(lam_mxr_parsed)
 
-lam_collapsed <- collapse(lam_build_out, lamMetadata, naFreq = 'most', 'xr|er')
+lam_collapsed <- collapse(lam_build_out, lam_metadata, naFreq = 'most', 'xr|er')
 lam_collapsed$note # Note level collapsing
 lam_collapsed$date # Date level collapsing
 }
