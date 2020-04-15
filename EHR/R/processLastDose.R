@@ -59,7 +59,7 @@ processLastDose <- function(mxrData, noteMetaData, labData){
   mxrLD$ld_start <- as.numeric(sub(":.+", "", mxrLD$pos))
   
   # Standardize the times found to all be in same format
-  mxrLD$std_time <- standardize_time(mxrLD$expr)
+  mxrLD$std_time <- standardizeTime(mxrLD$expr)
   
   # Separate into time vs duration
   mxrLD$last_dose_time <- ifelse(sapply(mxrLD$std_time, checkTime),
