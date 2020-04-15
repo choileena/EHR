@@ -5,9 +5,14 @@
 #' \code{matchLastDose}: match lastdose data to built data
 #' 
 #' \code{mergeLastDose}: merge lastdose data into built data
+#' 
+#' \code{checkTime}: check if lastdose expression is a time expression in the format HH:MM:SS
+#' 
+#' \code{checkDuration}: check if lastdose expression is a duration expression (number that is 
+#' not in the HH:MM:SS format)
 #'
 #' @name lastdose-internal
-#' @aliases matchLastDose mergeLastDose
+#' @aliases matchLastDose mergeLastDose checkTime checkDuration
 #' @keywords internal
 NULL
 
@@ -48,4 +53,14 @@ mergeLastDose <- function(buildData, lastdoseData) {
   ldl <- split(lastdoseData, lastdoseData[,'filename'])
   ids <- names(ldl)
   do.call(qrbind, lapply(ids, function(i) matchLastDose(tbl[[i]], ldl[[i]])))
+}
+
+# distinguish between time and duration
+checkTime <- function(tm){
+  !is.na(tm) & nchar(tm) == 8 &
+    substr(tm, 3, 3) == ":" & substr(tm, 6, 6) == ":"
+}
+
+checkDuration <- function(tm){
+  !is.na(tm) & !checkTime(tm)
 }

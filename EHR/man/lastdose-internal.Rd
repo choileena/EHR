@@ -4,6 +4,8 @@
 \alias{lastdose-internal}
 \alias{matchLastDose}
 \alias{mergeLastDose}
+\alias{checkTime}
+\alias{checkDuration}
 \title{Internal functions for lastdose}
 \description{
 These internal functions incorporate lastdose.
@@ -12,5 +14,10 @@ These internal functions incorporate lastdose.
 \code{matchLastDose}: match lastdose data to built data
 
 \code{mergeLastDose}: merge lastdose data into built data
+
+\code{checkTime}: check if lastdose expression is a time expression in the format HH:MM:SS
+
+\code{checkDuration}: check if lastdose expression is a duration expression (number that is 
+not in the HH:MM:SS format)
 }
 \keyword{internal}
