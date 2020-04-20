@@ -23,6 +23,11 @@
 #' freq, and duration. The filename contains the file name corresponding to the clinical 
 #' note. Each of the entity columns are of the format 
 #' "extracted expression::start position::stop position".
+#' 
+#' @examples
+#' mxr_output <- system.file("data","lam_mxr.csv",package = "EHR")
+#' 
+#' parseMedExtractR(mxr_output)
 #' @export
 
 parseMedExtractR <- function(filename) {

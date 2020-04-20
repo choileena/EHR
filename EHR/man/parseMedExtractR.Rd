@@ -24,7 +24,7 @@ Output from different medication extraction systems is formatted in different wa
 In order to be able to process the extracted information, we first need to convert 
 the output from different systems into a standardized format. Extracted expressions 
 for various drug entities (e.g., drug name, strength, frequency, etc.) each receive 
-their own column formatted as "extracted expression::start position::stop position".
+their own column formatted as "extracted expression::start position::stop position". 
 
 The medExtractR system returns extractions in a long table format, indicating the 
 entity, extracted expression, and start:stop position of the extraction. To perform 
@@ -33,4 +33,9 @@ one exception to this is the dose change entity, which can occur before the drug
 (see Weeks, et al. 2020 for details). In the case where multiple entities are extracted 
 for the same drug name mention, the entities are separated into adjacent rows and the 
 drug name is duplicated.
+}
+\examples{
+mxr_output <- system.file("data","lam_mxr.csv",package = "EHR")
+
+parseMedExtractR(mxr_output)
 }

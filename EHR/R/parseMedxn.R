@@ -26,6 +26,11 @@
 #' freq, and duration. The filename contains the file name corresponding to the clinical 
 #' note. Each of the entity columns are of the format 
 #' "extracted expression::start position::stop position".
+#' 
+#' @examples
+#' mxn_output <- system.file("data","lam_medxn.csv",package = "EHR")
+#' 
+#' parseMedXN(mxn_output)
 #' @export
 
 parseMedXN <- function(filename, begText = "^[R0-9]+_[0-9-]+_[0-9]+_") {

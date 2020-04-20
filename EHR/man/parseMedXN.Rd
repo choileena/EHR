@@ -30,11 +30,16 @@ for various drug entities (e.g., drug name, strength, frequency, etc.) each rece
 their own column formatted as "extracted expression::start position::stop position". 
 MedXN output files anchor extractions to a specific drug name extraction. In the case 
 where multiple entities are extracted for the same drug name mention, the entities are 
-separated into adjacent rows and the drug name is duplicated.
+separated into adjacent rows and the drug name is duplicated. 
 
 In MedXN output files, the results from multiple clinical notes can be combined into 
 a single output file. The beginning of some lines of the output file can indicate 
 when output for a new observation (or new clinical note) begins. The user should specify 
 the argument \code{begText} to be a regular expression used to identify the lines where output 
 for a new clinical note begins.
+}
+\examples{
+mxn_output <- system.file("data","lam_medxn.csv",package = "EHR")
+
+parseMedXN(mxn_output)
 }
