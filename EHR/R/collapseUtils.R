@@ -30,24 +30,10 @@
 #' 
 #' \code{rmDuplicates}: removes redundant rows
 #'
-#' \code{convert_ampm}: convert time expressions that explicitly use \sQuote{am} or \sQuote{pm} into 
-#' HH:MM:SS format
-#'
-#' \code{convert_morn_night}: if night/morning used, e.g. \sQuote{10 last night}, convert to am or pm
-#'
-#' \code{convert_military}: convert military time into standardized HH:MM:SS format
-#' 
-#' \code{get_dur}: for duration expressions, e.g. \sQuote{12 hour level}, the numeric portion is extracted 
-#' but not converted to a standardized time yet since it requires knowledge of lab time.
-#'
-#' \code{standardize_time}: applies \code{convert_military}, \code{convert_morn_night}, \code{convert_ampm},  
-#' and \code{get_dur} to create a string with standardized form of time in HH:MM:SS format
-#'
 #' @name collapse-internal
 #' @aliases qrbind nowarnnum freqNum parseFreq most pairDay
 #' mergeAdjacent borrowFreqDoseSeq borrowVal reOrder
 #' borrowWithinDoseSeq calcDailyDose daySeqDups rmDuplicates
-#' standardize_time convert_military convert_morn_night convert_ampm get_dur
 #' @keywords internal
 NULL
 
@@ -409,70 +395,3 @@ rmDuplicates <- function(x, useRoute = FALSE, useDuration = FALSE, useDoseChange
   xd <- rbind(x2[!duplicated(key2),], x1d)
   list(note = xn, date = xd)
 }
-
-# convert_military <- function(tm) {
-#   ix <- which(!is.na(tm) & !grepl("[a-z]", tm))
-#   if(length(ix)) {
-#     val <- tm[ix]
-#     if(any(nchar(val) != 4)) stop("unexpected time length")
-#     val <- sprintf("%s:%s:00", substr(val, 1, 2), substr(val, 3, 4))
-#     tm[ix] <- val
-#   }
-#   tm
-# }
-
-# convert_morn_night <- function(tm) {
-#   ix <- which(!is.na(tm) & grepl("night", tm))
-#   if(length(ix)) {
-#     tm[ix] <- paste0(gsub("[a-z]", "", tm[ix]), "pm")
-#   }
-#   ix <- which(!is.na(tm) & grepl("morn", tm))
-#   if(length(ix)) {
-#     tm[ix] <- paste0(gsub("[a-z]", "", tm[ix]), "am")
-#   }
-#   tm
-# }
-# 
-# convert_ampm <- function(tm) {
-#   ix <- which(!is.na(tm) & grepl("[0-9](a|p)m?$", tm))
-#   if(length(ix)) {
-#     val <- tm[ix]
-#     is_pm <- grepl("[0-9]pm?$", val) & !grepl("^12", val)
-#     num <- gsub('^([0-9]+)(a|p)m?$', '\\1', val)
-#     ndig <- nchar(num)
-#     ix1 <- ndig %in% c(1,2)
-#     ix3 <- ndig %in% c(3,4)
-#     num[ix1] <- sprintf("%02d:00:00", as.numeric(num[ix1]) + 12 * is_pm[ix1])
-#     hourpart <- as.numeric(substr(num[ix3], 1, ndig[ix3] - 2)) + 12 * is_pm[ix3]
-#     mintpart <- substr(num[ix3], ndig[ix3] - 1, ndig[ix3])
-#     num[ix3] <- sprintf("%02d:%s:00", hourpart, mintpart)
-#     # Not a real time
-#     num[as.numeric(substr(num, 1, 2)) > 23] <- NA
-#     tm[ix] <- num
-#   }
-#   tm
-# }
-# 
-# get_dur <- function(tm) {
-#   ix <- which(!is.na(tm) & grepl("hr|hours?", tm))
-#   if(length(ix)) {
-#     val <- gsub("(hr|hour)s?", "", tm[ix])
-#     ix1 <- which(nchar(gsub("[^0-9]", "", val)) == 4 & !grepl("[.]", val))
-#     if(length(ix1)) {
-#       val[ix1] <- convert_military(val[ix1])
-#     }
-#     tm[ix] <- val
-#   }
-#   tm
-# }
-# 
-# standardize_time <- function(time_string) {
-#   time_string <- gsub("\n| |:", "", tolower(time_string))
-#   orig <- time_string
-#   time_string <- convert_military(time_string)
-#   time_string <- convert_morn_night(time_string)
-#   time_string <- convert_ampm(time_string)
-#   time_string <- get_dur(time_string)
-#   names(time_string) <- orig
-#   time_string
-# }

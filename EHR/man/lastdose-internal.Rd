@@ -4,6 +4,13 @@
 \alias{lastdose-internal}
 \alias{matchLastDose}
 \alias{mergeLastDose}
+\alias{checkTime}
+\alias{checkDuration}
+\alias{standardizeTime}
+\alias{convertMilitary}
+\alias{convertMornNight}
+\alias{convertAMPM}
+\alias{getDuration}
 \title{Internal functions for lastdose}
 \description{
 These internal functions incorporate lastdose.
@@ -12,5 +19,20 @@ These internal functions incorporate lastdose.
 \code{matchLastDose}: match lastdose data to built data
 
 \code{mergeLastDose}: merge lastdose data into built data
+
+\code{getDuration}: Duration - don't convert just extract number
+
+\code{convertAMPM}: convert am/pm times
+
+\code{convertMornNight}: if night/morning used, convert to am or pm
+
+\code{convertMilitary}: convert military format into 12h
+
+\code{standardizeTime}: create standardized form of time
+
+\code{checkTime}: check if lastdose expression is a time expression in the format HH:MM:SS
+
+\code{checkDuration}: check if lastdose expression is a duration expression (number that is 
+not in the HH:MM:SS format)
 }
 \keyword{internal}
