@@ -50,7 +50,7 @@ These internal functions aid the main functions used in the collapse process (\c
 
 \code{calcDailyDose}: calculates daily dose
 
-\code{daySeqDups}: look for duplicate dose sequence
+\code{daySeqDups}: look for duplicate dose sequence 
 
 \code{rmDuplicates}: removes redundant rows
 

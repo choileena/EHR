@@ -39,7 +39,7 @@ the argument \code{begText} to be a regular expression used to identify the line
 for a new clinical note begins.
 }
 \examples{
-mxn_output <- system.file("data","lam_medxn.csv",package = "EHR")
-
-parseMedXN(mxn_output)
+mxn_output <- system.file("examples", "lam_medxn.csv", package = "EHR")
+mxn_parsed <- parseMedXN(mxn_output, begText = "^ID[0-9]+_[0-9-]+_")
+mxn_parsed
 }

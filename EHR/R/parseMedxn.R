@@ -28,9 +28,9 @@
 #' "extracted expression::start position::stop position".
 #' 
 #' @examples
-#' mxn_output <- system.file("data","lam_medxn.csv",package = "EHR")
-#' 
-#' parseMedXN(mxn_output)
+#' mxn_output <- system.file("examples", "lam_medxn.csv", package = "EHR")
+#' mxn_parsed <- parseMedXN(mxn_output, begText = "^ID[0-9]+_[0-9-]+_")
+#' mxn_parsed
 #' @export
 
 parseMedXN <- function(filename, begText = "^[R0-9]+_[0-9-]+_[0-9]+_") {

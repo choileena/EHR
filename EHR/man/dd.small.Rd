@@ -4,7 +4,9 @@
 \name{dd.small}
 \alias{dd.small}
 \title{dd.small}
-\format{A data frame with 2000 observations on 55 variables.}
+\format{
+A data frame with 2000 observations on 55 variables.
+}
 \usage{
 dd.small
 }

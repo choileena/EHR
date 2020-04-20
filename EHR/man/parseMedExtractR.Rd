@@ -35,7 +35,7 @@ for the same drug name mention, the entities are separated into adjacent rows an
 drug name is duplicated.
 }
 \examples{
-mxr_output <- system.file("data","lam_mxr.csv",package = "EHR")
-
-parseMedExtractR(mxr_output)
+mxr_output <- system.file("examples", "lam_mxr.csv", package = "EHR")
+mxr_parsed <- parseMedExtractR(mxr_output)
+mxr_parsed
 }

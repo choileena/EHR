@@ -5,9 +5,20 @@
 \title{Firth's penalized-likelihood logistic regression with more decimal places of
 p-value than \code{\link{logistf}} function in the R package \pkg{logistf}}
 \usage{
-Logistf(formula = attr(data, "formula"), data = sys.parent(),
-  pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init,
-  weights, plconf = NULL, dataout = TRUE, ...)
+Logistf(
+  formula = attr(data, "formula"),
+  data = sys.parent(),
+  pl = TRUE,
+  alpha = 0.05,
+  control,
+  plcontrol,
+  firth = TRUE,
+  init,
+  weights,
+  plconf = NULL,
+  dataout = TRUE,
+  ...
+)
 }
 \arguments{
 \item{formula}{a formula object, with the response on the left of the

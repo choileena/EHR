@@ -62,7 +62,7 @@ results.sub <- analysisPheWAS(method='firth', adjust='PS', Exposure='exposure',
 
 Authors:
 \itemize{
-  \item Cole Beck \email{cole.beck@vumc.org} (0000-0002-6849-6255)
+  \item Cole Beck \email{cole.beck@vumc.org} (\href{https://orcid.org/0000-0002-6849-6255}{ORCID})
   \item Hannah Weeks \email{hannah.l.weeks@vanderbilt.edu}
   \item Elizabeth McNeer \email{elizabeth.mcneer@vumc.org}
 }
