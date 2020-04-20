@@ -4,8 +4,15 @@
 \alias{build}
 \title{Combine Dose Data}
 \usage{
-build(dat, dn = NULL, preserve = NULL, dist_method, na_penalty,
-  neg_penalty, greedy_threshold)
+build(
+  dat,
+  dn = NULL,
+  preserve = NULL,
+  dist_method,
+  na_penalty,
+  neg_penalty,
+  greedy_threshold
+)
 }
 \arguments{
 \item{dat}{data.table object from the output of \code{parseMedExtractR}, 

@@ -24,4 +24,4 @@ License: GPL (>=3)
 Imports: stats, utils, logistf, data.table, methods
 Suggests: glmnet, medExtractR
 NeedsCompilation: no
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0

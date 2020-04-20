@@ -24,7 +24,7 @@ These internal functions aid the \code{build} function and process.
 }
 \details{
 \code{tstrsplit2}: a wrapper for the \code{tstrsplit} function in \code{data.table} 
-with some additional formatting
+with some additional formatting 
 
 \code{convert}: formats final results that are returned in \code{build}, including 
 separating the extracted expression from its start and stop position
@@ -48,7 +48,7 @@ separating the extracted expression from its start and stop position
 combines costs at the path level using the helper functions \code{remainder} and \code{getPaths}, 
 and returns the path with the minimum cost
 
-\code{getCosts}: computes the distance for each path based on the distance method specified in \code{build}
+\code{getCosts}: computes the distance for each path based on the distance method specified in \code{build} 
 
 \code{findOptPath}: uses the helper functions \code{getCosts} and \code{getOpt} to 
 determine the optimal path based on the selected distance method

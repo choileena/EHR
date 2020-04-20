@@ -4,7 +4,9 @@
 \name{dd}
 \alias{dd}
 \title{dd}
-\format{A data frame with 10000 observations on 1505 variables.}
+\format{
+A data frame with 10000 observations on 1505 variables.
+}
 \usage{
 dd
 }

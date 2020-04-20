@@ -4,8 +4,15 @@
 \alias{analysisPheWAS}
 \title{Statistical Analysis for PheWAS}
 \usage{
-analysisPheWAS(method = c("firth", "glm", "lr"), adjust = c("PS",
-  "demo", "PS.demo", "none"), Exposure, PS, demographics, phenotypes, data)
+analysisPheWAS(
+  method = c("firth", "glm", "lr"),
+  adjust = c("PS", "demo", "PS.demo", "none"),
+  Exposure,
+  PS,
+  demographics,
+  phenotypes,
+  data
+)
 }
 \arguments{
 \item{method}{define the statistical analysis method from 'firth', 'glm', and

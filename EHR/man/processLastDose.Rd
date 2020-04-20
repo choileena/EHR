@@ -26,33 +26,8 @@ This function takes last dose times extracted using the \code{medExtractR} syste
 processes the times into standardized datetime objects using recorded lab data.
 }
 \examples{
-## Lastdose post processing - just time standardization
-tac_wd <- file.path('/', 'Volumes', 'pk', 'tacrolimus')
-ld_wd <- file.path('/', 'Volumes', 'pk', 'tacrolimus', 'lastdose_pk')
-pp_wd <- file.path('/', 'Volumes', 'pk', 'postprocess', 'validation', 'lastdose')
-
-# read in the dataset being used to test lastdose
-#df <- read.csv(file.path(pp_wd, 'mxr_tac_notes.csv')) # all extracted data - lastdose rows removed (leaving this way, cole might need LD and non-LD info separate)
-df <- read.csv(file.path(pp_wd, 'mxr_tac_lastdose_info.csv')) # last dose extractions
-
-id_xwalk <- read.csv(file.path(tac_wd, 'tacGRIDlabtime.csv'),
-                     stringsAsFactors = FALSE) \%>\%
-  select(OLD_RUID, GRID, labtime)
-tac_data <- read.csv(file.path(tac_wd, 'dmet', 'finalLDAdata446.csv'),
-                     stringsAsFactors = FALSE) \%>\%
-  select(c(id, labtime, conc, dose_morn, dose_even))
-# convert labtime to datetime variable
-id_xwalk <- within(id_xwalk, labtime <- as.POSIXct(labtime, format = '\%m/\%d/\%y \%H:\%M'))
-tac_data <- within(tac_data, labtime <- as.POSIXct(labtime, format = '\%m/\%d/\%y \%H:\%M'))
-tac_lab <- left_join(tac_data, id_xwalk, by = c("id" = "OLD_RUID", "labtime")) \%>\%
-  select(-id) \%>\% arrange(GRID, labtime) \%>\% select(GRID, labtime, conc, dose_morn, dose_even) \%>\%
-  mutate(lab_date = str_extract(labtime, "\\\\d{4}-\\\\d{2}-\\\\d{2}"))
-
-tac_lab$pid <- tac_lab$GRID
-tac_lab$date <- tac_lab$lab_date
-
-# data frame with the note meta data
-
+\donttest{
+# add data before finalizing example
 processLastDose(mxrData = df, noteMetaData = meta_data, labData = tac_lab)
-
+}
 }
