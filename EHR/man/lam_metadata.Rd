@@ -17,7 +17,7 @@ A data frame with 5 observations on the following variables.
 lam_metadata
 }
 \description{
-An example of the metadata needed for the \code{makeDose} and \code{collapse} functions.
+An example of the metadata needed for the \code{makeDose} and \code{collapseDose} functions.
 }
 \examples{
 data(lam_metadata)

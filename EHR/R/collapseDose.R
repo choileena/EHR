@@ -7,7 +7,7 @@
 #' parsed and paired medication data to calculate dose intake and daily dose and remove redundancies 
 #' at the note and date level.
 #'
-#' @param x data.frame containing the output of \code{build}, or the output of \code{addLastDose} if 
+#' @param x data.frame containing the output of \code{buildDose}, or the output of \code{addLastDose} if 
 #' last dose information is being incorporated.
 #' @param noteMetaData data.frame containing identifying meta data for each
 #' note, including patient ID, date of the note, and note ID. Column names
@@ -23,14 +23,14 @@
 #' data(lam_mxr_parsed)
 #' data(lam_metadata)
 #' 
-#' lam_build_out <- build(lam_mxr_parsed)
+#' lam_build_out <- buildDose(lam_mxr_parsed)
 #' 
-#' lam_collapsed <- collapse(lam_build_out, lam_metadata, naFreq = 'most', 'xr|er')
+#' lam_collapsed <- collapseDose(lam_build_out, lam_metadata, naFreq = 'most', 'xr|er')
 #' lam_collapsed$note # Note level collapsing
 #' lam_collapsed$date # Date level collapsing
 #' @export
 
-collapse <- function(x, noteMetaData, naFreq = 'most', ...) {
+collapseDose <- function(x, noteMetaData, naFreq = 'most', ...) {
   ld <- list(...)
   if(length(ld)) {
     dn <- x[['drugname']]

@@ -16,9 +16,9 @@
 \alias{calcDailyDose}
 \alias{daySeqDups}
 \alias{rmDuplicates}
-\title{Internal functions for collapse process}
+\title{Internal functions for collapseDose process}
 \description{
-These internal functions aid the main functions used in the collapse process (\code{collapse}, \code{makeDose}).
+These internal functions aid the main functions used in the collapse process (\code{collapseDose}, \code{makeDose}).
 }
 \details{
 \code{qrbind}: fast version of rbind.data.frame

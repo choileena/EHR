@@ -28,7 +28,7 @@
 NULL
 
 matchLastDose <- function(x, y) {
-  # x was created with EHR::build
+  # x was created with EHR::buildDose
   xnr <- nrow(x)
   ynr <- nrow(y)
   dist <- abs(vapply(y[,'ld_start'], `-`, numeric(xnr), x[,'drugname_start']))

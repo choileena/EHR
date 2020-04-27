@@ -12,7 +12,7 @@
 #' the date and note level. If time of last dose is being used and it is unique within the level of 
 #' collapsing, it is borrowed across all rows.
 #'
-#' @param x data.frame containing the output of \code{build}, or the output of \code{addLastDose} if 
+#' @param x data.frame containing the output of \code{buildDose}, or the output of \code{addLastDose} if 
 #' last dose information is being incorporated.
 #' @param noteMetaData data.frame containing identifying meta data for each
 #' note, including patient ID, date of the note, and note ID. Column names
@@ -28,7 +28,7 @@
 #' data(lam_mxr_parsed)
 #' data(lam_metadata)
 #' 
-#' lam_build_out <- build(lam_mxr_parsed)
+#' lam_build_out <- buildDose(lam_mxr_parsed)
 #' 
 #' lam_collapsed <- makeDose(lam_build_out, lam_metadata)
 #' lam_collapsed[[1]] # Note level collapsing

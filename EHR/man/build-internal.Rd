@@ -18,15 +18,15 @@
 \alias{anchorByStrength}
 \alias{combineGroups}
 \alias{makeCombos}
-\title{Internal functions for build process}
+\title{Internal functions for buildDose process}
 \description{
-These internal functions aid the \code{build} function and process.
+These internal functions aid the \code{buildDose} function and process.
 }
 \details{
 \code{tstrsplit2}: a wrapper for the \code{tstrsplit} function in \code{data.table} 
 with some additional formatting 
 
-\code{convert}: formats final results that are returned in \code{build}, including 
+\code{convert}: formats final results that are returned in \code{buildDose}, including 
 separating the extracted expression from its start and stop position
 
 \code{entVal}: isolates the extracted expression from a string of the format 
@@ -48,13 +48,13 @@ separating the extracted expression from its start and stop position
 combines costs at the path level using the helper functions \code{remainder} and \code{getPaths}, 
 and returns the path with the minimum cost
 
-\code{getCosts}: computes the distance for each path based on the distance method specified in \code{build} 
+\code{getCosts}: computes the distance for each path based on the distance method specified in \code{buildDose} 
 
 \code{findOptPath}: uses the helper functions \code{getCosts} and \code{getOpt} to 
 determine the optimal path based on the selected distance method
 
 \code{stdRoute}: standardize the "route" entity. This function is also used in the 
-\code{collapse} function and process.
+\code{collapseDose} function and process.
 
 \code{grp}: groups drug entities based on a particular anchor point (e.g. strength 
 or dose)
@@ -66,7 +66,7 @@ which are anchored by drug name
 number of extractions for each entity)
 
 \code{makeCombos}: takes all extracted entities and puts them into groups based on position and minimum cost of paths. 
-This is the highest level function within \code{build}; it calls other helper functions including \code{combineGroups} 
+This is the highest level function within \code{buildDose}; it calls other helper functions including \code{combineGroups} 
 and \code{anchorByStrength}.
 }
 \keyword{internal}

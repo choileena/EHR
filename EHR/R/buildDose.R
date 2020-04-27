@@ -3,10 +3,10 @@
 #' Output from parse process is taken and converted into a wide format, grouping drug entity 
 #' information together based on various steps and rules. 
 #' 
-#' The \code{build} function takes as its main input (\code{dat}), a data.table object that is the output 
+#' The \code{buildDose} function takes as its main input (\code{dat}), a data.table object that is the output 
 #' of a parse process function (\code{parseMedExtractR},  \code{parseMedXN}, \code{parseMedEx}, or \code{parseCLAMP}).
 #' Broadly, the parsed extractions are grouped together to form wide, more complete drug regimen information. This 
-#' reformatting facilitates calculation of dose given intake and daily dose in the \code{collapse} process.
+#' reformatting facilitates calculation of dose given intake and daily dose in the \code{collapseDose} process.
 #' 
 #' The process of creating this output is broken down into multiple steps:
 #' \enumerate{
@@ -36,7 +36,7 @@
 #'  can get exponentially large, particularly when the medication extraction natural language processing system is incorrect. The greedy 
 #'  threshold puts an upper bound on the number of entity pairings to prevent the function from stalling in such cases. 
 #' }  
-#' If none of the optional arguments are specified, then the \code{build} process uses the default option values specified in the EHR 
+#' If none of the optional arguments are specified, then the \code{buildDose} process uses the default option values specified in the EHR 
 #' package documentation.
 #'
 #' For additional details, see McNeer, et al. 2020.
@@ -57,10 +57,10 @@
 #' @examples
 #' data(lam_mxr_parsed)
 #' 
-#' build(lam_mxr_parsed)
+#' buildDose(lam_mxr_parsed)
 #' @export
 
-build <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, neg_penalty, greedy_threshold) {
+buildDose <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, neg_penalty, greedy_threshold) {
   if(!missing(dist_method) || !missing(na_penalty) || !missing(neg_penalty) || !missing(greedy_threshold)) {
     opt_name <- c('ehr.dist_method','ehr.na_penalty','ehr.neg_penalty','ehr.greedy_threshold')
     curopts <- options()[opt_name]

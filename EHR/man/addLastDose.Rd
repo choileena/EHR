@@ -7,7 +7,7 @@
 addLastDose(buildData, lastdoseData)
 }
 \arguments{
-\item{buildData}{data.frame, output of \code{build} function.}
+\item{buildData}{data.frame, output of \code{buildDose} function.}
 
 \item{lastdoseData}{data.frame with columns filename, ld_start, lastdose,
 raw_time, time_type}
@@ -16,7 +16,7 @@ raw_time, time_type}
 a data.frame with the \sQuote{lastdose} column added.
 }
 \description{
-Add lastdose data to data set from the \code{build} process.
+Add lastdose data to data set from the \code{buildDose} process.
 }
 \details{
 Lastdose is a datetime string associated with dose data. Information on time 
@@ -24,7 +24,7 @@ of last dose can be extracted within the \code{extractMed} function (i.e., \code
 using the argument \code{lastdose=TRUE}. Raw extracted times should first be processed 
 using the \code{processLastDose} function to convert to datetime format before providing 
 to \code{addLastDose}. This function then combines the processed last dose times with output 
-from the \code{build} process by file name to pair last dose times with dosing regimens based on position. 
+from the \code{buildDose} process by file name to pair last dose times with dosing regimens based on position. 
 Alternatively, the user can provide their own table of lastdose data. In this case, with position 
 information absent, the lastdose data should be restricted to one unique last dose time per 
 unique patient ID-date identifier.  

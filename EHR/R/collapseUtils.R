@@ -1,6 +1,6 @@
-#' Internal functions for collapse process
+#' Internal functions for collapseDose process
 #'
-#' These internal functions aid the main functions used in the collapse process (\code{collapse}, \code{makeDose}).
+#' These internal functions aid the main functions used in the collapse process (\code{collapseDose}, \code{makeDose}).
 #' 
 #' \code{qrbind}: fast version of rbind.data.frame
 #' 
