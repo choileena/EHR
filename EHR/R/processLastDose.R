@@ -21,11 +21,11 @@
 #' and standardized last dose times as a POSIXct column
 #'
 #' @examples
-#' data(tac_mxr_parsed)
+#' tac_mxr <- system.file("examples", "tac_mxr.csv", package = "EHR")
 #' data(tac_metadata)
 #' data(tac_lab)
 #' 
-#' processLastDose(mxrData = tac_mxr_parsed, noteMetaData = tac_metadata, labData = tac_lab)
+#' processLastDose(mxrData = tac_mxr, noteMetaData = tac_metadata, labData = tac_lab)
 #' 
 #' @export
 #'
