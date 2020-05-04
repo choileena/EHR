@@ -13,13 +13,16 @@
 #'
 #' @return data.frame with identifying information (e.g., filename, etc) as well as processed 
 #' and standardized last dose times as a POSIXct column
-#' @export
 #'
 #' @examples
-#' \donttest{
-#' # add data before finalizing example
-#' processLastDose(mxrData = df, noteMetaData = meta_data, labData = tac_lab)
-#' }
+#' data(tac_mxr_parsed)
+#' data(tac_metadata)
+#' data(tac_lab)
+#' 
+#' processLastDose(mxrData = tac_mxr_parsed, noteMetaData = tac_metadata, labData = tac_lab)
+#' 
+#' @export
+#'
 
 processLastDose <- function(mxrData, noteMetaData, labData) {
   
