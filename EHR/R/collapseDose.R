@@ -15,7 +15,7 @@
 #' \sQuote{note}. Date should have format YYYY-MM-DD.
 #' @param naFreq Expression used to replace missing frequencies with, or by default use the most
 #' common.
-#' @param \dots drug names to split by
+#' @param \dots drug formulations to split by
 #'
 #' @return A list containing two dataframes, one with the note level and one with the date level collapsed data.
 #' 
