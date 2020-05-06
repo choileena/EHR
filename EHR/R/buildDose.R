@@ -77,13 +77,17 @@ buildDose <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, 
   ..xnames <- NULL
   rm(drugname, drugname_start, filename, ..xnames)
   # end
-  if(!is.null(dn)) {
-    x <- dat[grepl(dn, drugname, ignore.case = TRUE)]
-  } else {
-    x <- dat
+  if(inherits(dat, 'data.frame') && !inherits(dat, 'data.table')) {
+    dat <- data.table::as.data.table(dat)
   }
+  if(!is.null(dn)) {
+    x <- data.table::copy(dat[grepl(dn, drugname, ignore.case = TRUE)])
+  } else {
+    x <- data.table::copy(dat)
+  }
+  rm(dat)
   # deep copy of data.table column names
-  xnames <- copy(names(x))
+  xnames <- data.table::copy(names(x))
   preserve <- unique(c(preserve, 'dosechange'))
   preserve <- intersect(preserve, xnames)
   if(length(preserve) == 0L) {

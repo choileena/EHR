@@ -68,26 +68,24 @@ extractMed <- function(note_fn, drugnames, drgunit,
     addl[['progress']] <- NULL
   }
   # data in EHR package must be manually loaded
+  e <- new.env()
   if(!('dosechange_dict' %in% addlvar)) {
-    dosechange_vals <- NULL
-    utils::data(dosechange_vals, package = "medExtractR")
-    addl[['dosechange_dict']] <- dosechange_vals
+    utils::data('dosechange_vals', package = "medExtractR", envir = e)
+    addl[['dosechange_dict']] <- e$dosechange_vals
   }
   if(!('drug_list' %in% addlvar)) {
-    rxnorm_druglist <- NULL
-    utils::data(rxnorm_druglist, package = "medExtractR")
-    addl[['drug_list']] <- rxnorm_druglist
+    utils::data('rxnorm_druglist', package = "medExtractR", envir = e)
+    addl[['drug_list']] <- e$rxnorm_druglist
   }
   if(!('freq_dict' %in% addlvar)) {
-    freq_vals <- NULL
-    utils::data(freq_vals, package = "medExtractR")
-    addl[['freq_dict']] <- freq_vals
+    utils::data('freq_vals', package = "medExtractR", envir = e)
+    addl[['freq_dict']] <- e$freq_vals
   }
   if(!('intaketime_dict' %in% addlvar)) {
-    intaketime_vals <- NULL
-    utils::data(intaketime_vals, package = "medExtractR")
-    addl[['intaketime_dict']] <- intaketime_vals
+    utils::data('intaketime_vals', package = "medExtractR", envir = e)
+    addl[['intaketime_dict']] <- e$intaketime_vals
   }
+  rm(e)
 
   doseArgs <- list(
     drug_names = drugnames,
@@ -102,7 +100,7 @@ extractMed <- function(note_fn, drugnames, drgunit,
   for(i in seq_along(dat)) {
     a <- (i - 1) * batchsize + 1
     b <- min(i * batchsize, n)
-    if(progress) cat(sprintf("running batch %s of %s (%s%%)\r", a, n, round(100 * a / n)))
+    if(progress) cat(sprintf("running notes %s-%s in batch %s of %s (%s%%)\r", a, b, i, chunks, round(100 * i / chunks)))
     dat[[i]] <- do.call(qrbind, lapply(note_fn[seq(a, b)], function(x) {
       do.call(getDose, c(x, doseArgs, addl))
     }))
