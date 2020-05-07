@@ -1,7 +1,7 @@
-#' Example of Metadata for Lamotrigine Data
+#' Example of Metadata for Tacrolimus Data
 #'
 #' An example of the metadata needed for the \code{processLastDose}, \code{makeDose}, and 
-#' \code{collapseDose} functions.
+#' \code{collapseDose} functions.  
 #'
 #' @format A data frame with 5 observations on the following variables.
 #' \describe{
@@ -14,5 +14,5 @@
 #' @keywords datasets
 #'
 #' @examples
-#' data(lam_metadata)
-"lam_metadata"
+#' data(tac_metadata)
+"tac_metadata"

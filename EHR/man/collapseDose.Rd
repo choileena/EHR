@@ -18,7 +18,7 @@ should be set to \sQuote{filename}, \sQuote{pid}, \sQuote{date},
 \item{naFreq}{Expression used to replace missing frequencies with, or by default use the most
 common.}
 
-\item{\dots}{drug names to split by}
+\item{\dots}{drug formulations to split by}
 }
 \value{
 A list containing two dataframes, one with the note level and one with the date level collapsed data.

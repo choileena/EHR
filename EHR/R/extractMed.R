@@ -40,6 +40,18 @@
 #' note_file1.txt \tab Frequency \tab  bid    \tab    101:104\cr
 #' note_file1.txt \tab LastDose  \tab  2100    \tab   121:125\cr
 #' }
+#' 
+#' @examples 
+#' tac_fn <- list(system.file("examples", "tacpid1_2008-06-26_note1_1.txt", package = "EHR"),
+#'                system.file("examples", "tacpid1_2008-06-26_note2_1.txt", package = "EHR"),
+#'                system.file("examples", "tacpid1_2008-12-16_note3_1.txt", package = "EHR"))
+#' 
+#' extractMed(tac_fn,
+#'            drugnames = c("tacrolimus", "prograf", "tac", "tacro", "fk", "fk506"),
+#'            drgunit = "mg",
+#'            windowlength = 60,
+#'            max_edit_dist = 2,
+#'            lastdose=TRUE)
 #' @export
 #'
 
