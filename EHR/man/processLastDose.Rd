@@ -32,7 +32,7 @@ the last dose time is calculated from the labtime by extracting the appropriate 
 final dataset is returned with last dose time formattted into a POSIXct variable.
 }
 \examples{
-tac_mxr <- system.file("examples", "tac_mxr.csv", package = "EHR")
+tac_mxr <- read.csv(system.file("examples", "tac_mxr.csv", package = "EHR"))
 data(tac_metadata)
 data(tac_lab)
 

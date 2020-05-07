@@ -9,8 +9,7 @@ addLastDose(buildData, lastdoseData)
 \arguments{
 \item{buildData}{data.frame, output of \code{buildDose} function.}
 
-\item{lastdoseData}{data.frame with columns filename, ld_start, lastdose,
-raw_time, time_type}
+\item{lastdoseData}{data.frame with columns filename, ld_start, lastdose, raw_time, time_type}
 }
 \value{
 a data.frame with the \sQuote{lastdose} column added.
@@ -34,4 +33,17 @@ have more than one extracted last dose time. In this case, rules are applied to 
 time should be kept. First, we give preference to an explicit time expression (e.g., "10:30pm") 
 over a duration expression (e.g., "14 hour level"). Then, we pair last dose times with drug regimens 
 based on minimum distance between last dose time start position and drug name start position.
+}
+\examples{
+# Get build data
+data(tac_mxr_parsed)
+tac_build <- buildDose(tac_mxr_parsed)
+# Get processed last dose data
+tac_mxr <- read.csv(system.file("examples", "tac_mxr.csv", package = "EHR"))
+data(tac_metadata)
+data(tac_lab)
+ld_data <- processLastDose(tac_mxr, tac_metadata, tac_lab)
+
+processLastDose(tac_build, ld_data)
+
 }

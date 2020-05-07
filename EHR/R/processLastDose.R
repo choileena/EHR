@@ -21,7 +21,7 @@
 #' and standardized last dose times as a POSIXct column
 #'
 #' @examples
-#' tac_mxr <- system.file("examples", "tac_mxr.csv", package = "EHR")
+#' tac_mxr <- read.csv(system.file("examples", "tac_mxr.csv", package = "EHR"))
 #' data(tac_metadata)
 #' data(tac_lab)
 #' 
