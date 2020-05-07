@@ -9,7 +9,7 @@ addLastDose(buildData, lastdoseData)
 \arguments{
 \item{buildData}{data.frame, output of \code{buildDose} function.}
 
-\item{lastdoseData}{data.frame with columns filename, ld_start, lastdose, raw_time, time_type}
+\item{lastdoseData}{data.frame with columns filename, lastdose, and (if using output of \code{processLastDose}) ld_start}
 }
 \value{
 a data.frame with the \sQuote{lastdose} column added.

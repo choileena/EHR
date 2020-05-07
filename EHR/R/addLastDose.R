@@ -19,7 +19,7 @@
 #' based on minimum distance between last dose time start position and drug name start position. 
 #'
 #' @param buildData data.frame, output of \code{buildDose} function.
-#' @param lastdoseData data.frame with columns filename, ld_start, lastdose, raw_time, time_type
+#' @param lastdoseData data.frame with columns filename, lastdose, and (if using output of \code{processLastDose}) ld_start
 #'
 #' @return a data.frame with the \sQuote{lastdose} column added.
 #' @examples 
