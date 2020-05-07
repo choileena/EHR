@@ -51,9 +51,8 @@ matchLastDose <- function(x, y) {
   } else {
     mtch <- apply(dist, 2, which.min)
   }
-  out <- x[,c('filename','drugname_start')]
   coi <- c('ld_start', coi)
-  out[,coi] <- NA
+  out <- x[,c('filename','drugname_start')]
   out[mtch,coi] <- opt[,coi]
   out
 }
@@ -63,9 +62,9 @@ mergeLastDose <- function(buildData, lastdoseData) {
   tbl <- split(bd, bd[,'filename'])
   ldl <- split(lastdoseData, lastdoseData[,'filename'])
   ids <- names(ldl)
-  do.call(qrbind, lapply(ids, function(i) matchLastDose(tbl[[i]], ldl[[i]])))
+  # qrbind is faster but fails with POSIXct
+  do.call(rbind, lapply(ids, function(i) matchLastDose(tbl[[i]], ldl[[i]])))
 }
-
 
 convertMilitary <- function(tm) {
   ix <- which(!is.na(tm) & !grepl("[a-z]", tm))

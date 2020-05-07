@@ -1,4 +1,4 @@
-#' Extract medication inforamtion from clinical notes
+#' Extract medication information from clinical notes
 #'
 #' This function is an interface to the \code{medExtractR} function within the \code{medExtractR} 
 #' package, and allows drug dosing information to be extracted from free-text sources, 

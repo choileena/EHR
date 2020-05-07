@@ -4,7 +4,8 @@
 \name{tac_mxr_parsed}
 \alias{tac_mxr_parsed}
 \title{Example of Tacrolimus Output from `parseMedExtractR`}
-\format{A data frame with 7 observations on the following variables.
+\format{
+A data frame with 7 observations on the following variables.
 \describe{
   \item{filename}{A character vector, filename for the clinical note}
   \item{drugname}{A character vector, drug name extracted from the clinical note along with start and stop positions}
@@ -15,7 +16,8 @@
   \item{dosestr}{A character vector, dose intakes extracted from the clinical note along with start and stop positions}
   \item{dosechange}{A character vector, dose change keywords extracted from the clinical note along with start and stop positions}
   \item{lastdose}{A character vector, last dose times extracted from the clinical note along with start and stop positions}
-}}
+}
+}
 \usage{
 tac_mxr_parsed
 }

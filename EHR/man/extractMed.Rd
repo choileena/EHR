@@ -2,7 +2,7 @@
 % Please edit documentation in R/extractMed.R
 \name{extractMed}
 \alias{extractMed}
-\title{Extract medication inforamtion from clinical notes}
+\title{Extract medication information from clinical notes}
 \usage{
 extractMed(note_fn, drugnames, drgunit, windowlength, max_edit_dist = 0, ...)
 }

@@ -4,12 +4,14 @@
 \name{tac_lab}
 \alias{tac_lab}
 \title{Example of Lab Time Data for Tacrolimus}
-\format{A data frame with 2 observations on the following variables.
+\format{
+A data frame with 2 observations on the following variables.
 \describe{
   \item{pid}{A character vector, patient ID associated with the lab value}
   \item{date}{A character vector, date associated with the lab value}
   \item{labtime}{A POSIXct vector, datetime at which the lab was performed formatted as YYYY-MM-DD HH:MM:SS}
-}}
+}
+}
 \usage{
 tac_lab
 }

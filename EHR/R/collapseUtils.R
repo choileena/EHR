@@ -41,6 +41,13 @@ NULL
 # thanks to Patrick Aboyoun for example stripped from bioconductor's IRanges package
 # https://r.789695.n4.nabble.com/combining-large-list-of-data-frames-td4573033.html
 qrbind <- function(..., deparse.level=1) {
+# conceivable add support for Date/times
+#   setMethod("coerce", signature(from = "character", to = "Date"), function(from, to) {
+#     as.Date(from)
+#   })
+#   setMethod("coerce", signature(from = "character", to = "POSIXct"), function(from, to) {
+#     as.POSIXct(from)
+#   })
   args <- list(...)
   # df must be first non-NULL data.frame
 #   df <- args[[1L]]

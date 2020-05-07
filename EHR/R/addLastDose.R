@@ -32,7 +32,7 @@
 #' data(tac_lab)
 #' ld_data <- processLastDose(tac_mxr, tac_metadata, tac_lab)
 #' 
-#' processLastDose(tac_build, ld_data)
+#' addLastDose(tac_build, ld_data)
 #' 
 #' @export
 addLastDose <- function(buildData, lastdoseData) {
