@@ -8,7 +8,8 @@
 \title{Internal functions for parse process}
 \description{
 These internal functions aid the main functions used in the parsing process 
-(\code{parseMedExtractR}, \code{parseMedxn}, \code{parseMedEx}, \code{parseClamp}).
+(\code{\link{parseMedExtractR}}, \code{\link{parseMedXN}},
+\code{\link{parseMedEx}}, \code{\link{parseCLAMP}}).
 }
 \details{
 \code{medxnColonFormat}: converts entity information into the 

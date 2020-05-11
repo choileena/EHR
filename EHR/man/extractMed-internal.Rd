@@ -9,12 +9,12 @@
 getNote(note)
 }
 \description{
-These internal functions aid the main function used in the Extract-Med module (\code{extractMed}).
+These internal functions aid the main function used in the Extract-Med module (\code{\link{extractMed}}).
 }
 \details{
 \code{getNote}: Takes the file name and reads in the note as a character vector
 
-\code{getDose}: Runs \code{medExtractR} on a single clinical note (file) and labels 
+\code{getDose}: Runs \code{\link[medExtractR]{medExtractR}} on a single clinical note (file) and labels 
 the results output with file name
 }
 \keyword{internal}

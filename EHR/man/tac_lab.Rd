@@ -13,10 +13,10 @@ A data frame with 2 observations on the following variables.
 }
 }
 \usage{
-tac_lab
+data(tac_lab, package = 'EHR')
 }
 \description{
-An example dataset used in \code{processLastDose} that contains lab time data. This dataset should 
+An example dataset used in \code{\link{processLastDose}} that contains lab time data. This dataset should
 have one row per patient ID-date pair, and contain the time a lab was performed as a datetime variable.
 }
 \examples{

@@ -19,10 +19,10 @@ A data frame with 10 observations on the following variables.
 }
 }
 \usage{
-lam_mxr_parsed
+data(lam_mxr_parsed, package = 'EHR')
 }
 \description{
-The output after running \code{parseMedExtractR} on 4 example clinical notes.
+The output after running \code{\link{parseMedExtractR}} on 4 example clinical notes.
 }
 \examples{
 data(lam_mxr_parsed)

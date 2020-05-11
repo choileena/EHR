@@ -3,33 +3,33 @@
 #' Takes parsed and paired medication data, calculates dose intake and daily dose, and 
 #' removes redundant information at the note and date level.
 #'
-#' This function standardizes frequency, route, and duration entities. Dose amount, strength, 
-#' and frequency entities are converted to numeric. Rows with only drug name and/or route are 
-#' removed. If there are drug name changes in adjacent rows (e.g., from a generic to brand name), 
-#' these rows are collapsed into one row if there are no conflicts. Missing strengths, dose 
-#' amounts, frequencies, and routes are borrowed or imputed using various rules (see McNeer et al., 
-#' 2020 for details). Dose given intake and daily dose are calculated. Redundancies are removed at 
-#' the date and note level. If time of last dose is being used and it is unique within the level of 
+#' This function standardizes frequency, route, and duration entities. Dose amount, strength,
+#' and frequency entities are converted to numeric. Rows with only drug name and/or route are
+#' removed. If there are drug name changes in adjacent rows (e.g., from a generic to brand name),
+#' these rows are collapsed into one row if there are no conflicts. Missing strengths, dose
+#' amounts, frequencies, and routes are borrowed or imputed using various rules (see McNeer et al.,
+#' 2020 for details). Dose given intake and daily dose are calculated. Redundancies are removed at
+#' the date and note level. If time of last dose is being used and it is unique within the level of
 #' collapsing, it is borrowed across all rows.
 #'
-#' @param x data.frame containing the output of \code{buildDose}, or the output of \code{addLastDose} if 
-#' last dose information is being incorporated.
+#' @param x data.frame containing the output of \code{\link{buildDose}}, or the output
+#' of \code{\link{addLastDose}} if last dose information is being incorporated.
 #' @param noteMetaData data.frame containing identifying meta data for each
 #' note, including patient ID, date of the note, and note ID. Column names
 #' should be set to \sQuote{filename}, \sQuote{pid}, \sQuote{date},
 #' \sQuote{note}. Date should have format YYYY-MM-DD.
-#' @param naFreq Replacing missing frequencies with this value, or by default the most common value across 
+#' @param naFreq Replacing missing frequencies with this value, or by default the most common value across
 #' the entire set in \code{x}.
 #'
-#' @return A list containing two dataframes, one with the note level and one with the date level 
+#' @return A list containing two dataframes, one with the note level and one with the date level
 #' collapsed data.
-#' 
+#'
 #' @examples
 #' data(lam_mxr_parsed)
 #' data(lam_metadata)
-#' 
+#'
 #' lam_build_out <- buildDose(lam_mxr_parsed)
-#' 
+#'
 #' lam_collapsed <- makeDose(lam_build_out, lam_metadata)
 #' lam_collapsed[[1]] # Note level collapsing
 #' lam_collapsed[[2]] # Date level collapsing
@@ -44,10 +44,6 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   grid <- noteMetaData[ix,'pid']
   date <- as.Date(noteMetaData[ix,'date'], format = '%Y-%m-%d')
   note <- noteMetaData[ix,'note']
-#   fns <- strsplit(x[,'filename'], '_')
-#   grid <- sapply(fns, `[`, 1)
-#   date <- as.Date(sapply(fns, `[`, 2), format = '%Y-%m-%d')
-#   note <- sapply(fns, `[`, 3)
   # make keys
   x[,'key0'] <- paste(grid, date, note, x[['drugname_start']], sep = '|')
   x[,'key1'] <- paste(grid, date, note, sep = '|')

@@ -18,7 +18,8 @@
 \alias{rmDuplicates}
 \title{Internal functions for collapseDose process}
 \description{
-These internal functions aid the main functions used in the collapse process (\code{collapseDose}, \code{makeDose}).
+These internal functions aid the main functions used in the collapse
+process (\code{\link{collapseDose}}, \code{\link{makeDose}}).
 }
 \details{
 \code{qrbind}: fast version of rbind.data.frame

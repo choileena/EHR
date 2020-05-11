@@ -61,7 +61,7 @@ data(dataPheWASsmall)
 upper.code.list <- unique(sub("[.][^.]*(.).*", "", colnames(dd.baseline.small)) )
 upper.code.list <- intersect(upper.code.list, colnames(dd.baseline.small))
 dd.base <- dd.baseline.small[, upper.code.list]
-## perfrom regularized logistic regression to obtain propensity score (PS) 
+## perform regularized logistic regression to obtain propensity score (PS) 
 ## to adjust for potential confounders at baseline
 phenos <- setdiff(colnames(dd.base), c('id', 'exposure'))
 data.x <- as.matrix(dd.base[, phenos])

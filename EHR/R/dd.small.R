@@ -6,6 +6,8 @@
 #'
 #' @format A data frame with 2000 observations on 55 variables.
 #'
+#' @usage data(dataPheWASsmall, package = 'EHR')
+#'
 #' @keywords datasets
 #'
 #' @examples

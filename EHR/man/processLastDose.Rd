@@ -7,29 +7,29 @@
 processLastDose(mxrData, noteMetaData, labData)
 }
 \arguments{
-\item{mxrData}{data.frame containing output from the \code{medExtractR} system}
+\item{mxrData}{data.frame containing output from the \code{\link[medExtractR]{medExtractR}} system}
 
-\item{noteMetaData}{data.frame with meta data (\code{pid} (patient ID) and \code{date}) for 
+\item{noteMetaData}{data.frame with meta data (\code{pid} (patient ID) and \code{date}) for
 the file names contained within \code{mxrData}}
 
-\item{labData}{data.frame that contains lab dates and times associated with the file names 
-within \code{mxrData}. Must contain columns \code{pid} and \code{date}, as well as \code{labtime}. 
-The \code{date} column must be in the same format as \code{date} in \code{noteMetaData}, and 
+\item{labData}{data.frame that contains lab dates and times associated with the file names
+within \code{mxrData}. Must contain columns \code{pid} and \code{date}, as well as \code{labtime}.
+The \code{date} column must be in the same format as \code{date} in \code{noteMetaData}, and
 \code{labtime} must be a POSIXct}
 }
 \value{
-data.frame with identifying information (e.g., filename, etc) as well as processed 
+data.frame with identifying information (e.g., filename, etc) as well as processed
 and standardized last dose times as a POSIXct column
 }
 \description{
-This function takes last dose times extracted using the \code{medExtractR} system and 
-processes the times into standardized datetime objects using recorded lab data where necessary. 
-The raw output from \code{extractMed} is filtered to just the LastDose extractions. Time expressions 
-are standardized into HH:MM:SS format based on what category they fall into (e.g., a time represented 
-with AM/PM, 24-hour military time, etc.). When the last dose time is after 12pm, it is assumed to have 
-been taken one day previous to the note's date. For any duration extractions (e.g. "14 hour level"), 
-the last dose time is calculated from the labtime by extracting the appropriate number of hours. The 
-final dataset is returned with last dose time formattted into a POSIXct variable.
+This function takes last dose times extracted using the \pkg{medExtractR} system and
+processes the times into standardized datetime objects using recorded lab data where necessary.
+The raw output from \code{\link{extractMed}} is filtered to just the LastDose extractions. Time expressions
+are standardized into HH:MM:SS format based on what category they fall into (e.g., a time represented
+with AM/PM, 24-hour military time, etc.). When the last dose time is after 12pm, it is assumed to have
+been taken one day previous to the note's date. For any duration extractions (e.g. "14 hour level"),
+the last dose time is calculated from the labtime by extracting the appropriate number of hours. The
+final dataset is returned with last dose time formatted into a POSIXct variable.
 }
 \examples{
 tac_mxr <- read.csv(system.file("examples", "tac_mxr.csv", package = "EHR"))

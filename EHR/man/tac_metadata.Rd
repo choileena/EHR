@@ -14,11 +14,11 @@ A data frame with 5 observations on the following variables.
 }
 }
 \usage{
-tac_metadata
+data(tac_metadata, package = 'EHR')
 }
 \description{
-An example of the metadata needed for the \code{processLastDose}, \code{makeDose}, and 
-\code{collapseDose} functions.
+An example of the metadata needed for the \code{\link{processLastDose}},
+\code{\link{makeDose}}, and \code{\link{collapseDose}} functions.
 }
 \examples{
 data(tac_metadata)

@@ -1,11 +1,11 @@
 #' Internal functions for buildDose process
 #'
-#' These internal functions aid the \code{buildDose} function and process.
+#' These internal functions aid the \code{\link{buildDose}} function and process.
 #' 
-#' \code{tstrsplit2}: a wrapper for the \code{tstrsplit} function in \code{data.table} 
+#' \code{tstrsplit2}: a wrapper for the \code{\link[data.table]{tstrsplit}} function in \pkg{data.table} 
 #' with some additional formatting 
 #' 
-#' \code{convert}: formats final results that are returned in \code{buildDose}, including 
+#' \code{convert}: formats final results that are returned in \code{\link{buildDose}}, including 
 #' separating the extracted expression from its start and stop position
 #' 
 #' \code{entVal}: isolates the extracted expression from a string of the format 
@@ -45,7 +45,7 @@
 #' number of extractions for each entity)
 #' 
 #' \code{makeCombos}: takes all extracted entities and puts them into groups based on position and minimum cost of paths. 
-#' This is the highest level function within \code{buildDose}; it calls other helper functions including \code{combineGroups} 
+#' This is the highest level function within \code{\link{buildDose}}; it calls other helper functions including \code{combineGroups} 
 #' and \code{anchorByStrength}.
 #'
 #' @name build-internal
@@ -56,7 +56,7 @@
 NULL
 
 tstrsplit2 <- function(x, split) {
-  res <- tstrsplit(x, split)
+  res <- data.table::tstrsplit(x, split)
   if(length(res) == 0) {
     tmp <- rep(NA, length(x))
     res <- list(tmp, tmp, tmp)

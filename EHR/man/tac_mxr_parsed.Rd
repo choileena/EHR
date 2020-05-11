@@ -19,10 +19,10 @@ A data frame with 7 observations on the following variables.
 }
 }
 \usage{
-tac_mxr_parsed
+data(tac_mxr_parsed, package = 'EHR')
 }
 \description{
-The output after running \code{parseMedExtractR} on 3 example clinical notes.
+The output after running \code{\link{parseMedExtractR}} on 3 example clinical notes.
 }
 \examples{
 data(tac_mxr_parsed)

@@ -1,14 +1,14 @@
 #' Collapse Dose Data
 #'
-#' Splits drug data and calls \code{makeDose} to collapse at the note and date level.
+#' Splits drug data and calls \code{\link{makeDose}} to collapse at the note and date level.
 #'
-#' If different formulations of the drug (e.g., extended release) exist, they can be separated 
-#' using a regular expression (e.g., \sQuote{xr|er}). This function will call \code{makeDose} on 
-#' parsed and paired medication data to calculate dose intake and daily dose and remove redundancies 
-#' at the note and date level.
+#' If different formulations of the drug (e.g., extended release) exist, they can be
+#' separated using a regular expression (e.g., \sQuote{xr|er}). This function will call
+#' \code{\link{makeDose}} on parsed and paired medication data to calculate dose intake
+#' and daily dose and remove redundancies at the note and date level.
 #'
-#' @param x data.frame containing the output of \code{buildDose}, or the output of \code{addLastDose} if 
-#' last dose information is being incorporated.
+#' @param x data.frame containing the output of \code{\link{buildDose}}, or the output of
+#' \code{\link{addLastDose}} if last dose information is being incorporated.
 #' @param noteMetaData data.frame containing identifying meta data for each
 #' note, including patient ID, date of the note, and note ID. Column names
 #' should be set to \sQuote{filename}, \sQuote{pid}, \sQuote{date},

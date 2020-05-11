@@ -1,6 +1,6 @@
 #' Example of Lamotrigine Output from `parseMedExtractR`
 #'
-#' The output after running \code{parseMedExtractR} on 4 example clinical notes.
+#' The output after running \code{\link{parseMedExtractR}} on 4 example clinical notes.
 #'
 #' @format A data frame with 10 observations on the following variables.
 #' \describe{
@@ -14,6 +14,8 @@
 #'   \item{dosechange}{A character vector, dose change keywords extracted from the clinical note along with start and stop positions}
 #'   \item{lastdose}{A character vector, last dose times extracted from the clinical note along with start and stop positions}
 #' }
+#'
+#' @usage data(lam_mxr_parsed, package = 'EHR')
 #'
 #' @keywords datasets
 #'

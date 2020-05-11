@@ -18,11 +18,11 @@
 #' 
 #' \code{checkTime}: check if lastdose expression is a time expression in the format HH:MM:SS
 #' 
-#' \code{checkDuration}: check if lastdose expression is a duration expression (number that is 
+#' \code{checkDuration}: check if lastdose expression is a duration expression (number that is
 #' not in the HH:MM:SS format)
 #'
 #' @name lastdose-internal
-#' @aliases matchLastDose mergeLastDose checkTime checkDuration standardizeTime 
+#' @aliases matchLastDose mergeLastDose checkTime checkDuration standardizeTime
 #' convertMilitary convertMornNight convertAMPM getDuration
 #' @keywords internal
 NULL
@@ -132,8 +132,6 @@ standardizeTime <- function(time_string) {
   names(time_string) <- orig
   time_string
 }
-
-
 
 # distinguish between time and duration
 checkTime <- function(tm){

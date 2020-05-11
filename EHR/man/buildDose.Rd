@@ -15,65 +15,71 @@ buildDose(
 )
 }
 \arguments{
-\item{dat}{data.table object from the output of \code{parseMedExtractR}, 
-\code{parseMedXN}, \code{parseMedEx}, or \code{parseCLAMP}}
+\item{dat}{data.table object from the output of \code{\link{parseMedExtractR}},
+\code{\link{parseMedXN}}, \code{\link{parseMedEx}}, or \code{\link{parseCLAMP}}}
 
 \item{dn}{Regular expression specifying drug name(s) of interest.}
 
 \item{preserve}{Column names to include in output, whose values should not be combined with other rows.
 If present, dosechange is always preserved.}
 
-\item{dist_method}{Distance method to use for calculating distance of various paths.}
+\item{dist_method}{Distance method to use for calculating distance of various paths. Alternatively set the
+\sQuote{ehr.dist_method} option, which defaults to \sQuote{minEntEnd}.}
 
-\item{na_penalty}{Penalty for matching extracted entities with NA.}
+\item{na_penalty}{Penalty for matching extracted entities with NA. Alternatively set the\cr
+\sQuote{ehr.na_penalty} option, which defaults to 32.}
 
-\item{neg_penalty}{Penalty for negative distances between frequency/intake time and dose amounts.}
+\item{neg_penalty}{Penalty for negative distances between frequency/intake time and dose amounts. Alternatively
+set the \sQuote{ehr.neg_penalty} option, which defaults to 0.5.}
 
-\item{greedy_threshold}{Threshold to use greedy matching, defaults to 1e8.}
+\item{greedy_threshold}{Threshold to use greedy matching; increasing this value too high could lead to the
+algorithm taking a long time to finish. Alternatively set the\cr
+\sQuote{ehr.greedy_threshold} option, which defaults to 1e8.}
 }
 \value{
-A data.frame object that contains columns for filename (of the clinical note, inherited from the 
+A data.frame object that contains columns for filename (of the clinical note, inherited from the
 parse output object \code{dat}), drugname, strength, dose, route, freq, duration, and drugname_start
 }
 \description{
-Output from parse process is taken and converted into a wide format, grouping drug entity 
+Output from parse process is taken and converted into a wide format, grouping drug entity
 information together based on various steps and rules.
 }
 \details{
-The \code{buildDose} function takes as its main input (\code{dat}), a data.table object that is the output 
-of a parse process function (\code{parseMedExtractR},  \code{parseMedXN}, \code{parseMedEx}, or \code{parseCLAMP}).
-Broadly, the parsed extractions are grouped together to form wide, more complete drug regimen information. This 
-reformatting facilitates calculation of dose given intake and daily dose in the \code{collapseDose} process.
+The \code{buildDose} function takes as its main input (\code{dat}), a data.table object that
+is the output of a parse process function (\code{\link{parseMedExtractR}}, \code{\link{parseMedXN}},
+\code{\link{parseMedEx}}, or \code{\link{parseCLAMP}}). Broadly, the parsed extractions are grouped
+together to form wide, more complete drug regimen information. This reformatting facilitates
+calculation of dose given intake and daily dose in the \code{\link{collapseDose}} process.
 
 The process of creating this output is broken down into multiple steps:
 \enumerate{
-  \item Removing rows for any drugs not of interest. Drugs of interest are specified with the \code{dn} argument.  
-  \item Determining whether extractions are "simple" (only one drug mention and at most one extraction per entity) or 
-  complex. Complex cases can be more straightforward if they contain at most one extraction per entity, or require a 
+  \item Removing rows for any drugs not of interest. Drugs of interest are specified with the \code{dn} argument.
+  \item Determining whether extractions are "simple" (only one drug mention and at most one extraction per entity) or
+  complex. Complex cases can be more straightforward if they contain at most one extraction per entity, or require a
   pairing algorithm to determine the best pairing if there are multiple extractions for one or more entities.
-  \item Drug entities are anchored by drug name mention within the parse process. For complex cases, drug entities are 
+  \item Drug entities are anchored by drug name mention within the parse process. For complex cases, drug entities are
   further grouped together anchored at each strength (and dose with medExtractR) extraction.
-  \item For strength groups with multiple extractions for at least one entity, these groups go through a path searching 
-  algorithm, which computes the cost for each path (based on a chosen distance method) and chooses the path with the 
-  lowest cost. 
-  \item The chosen paths for each strength group are returned as the final pairings. If route is unique within a strength 
+  \item For strength groups with multiple extractions for at least one entity, these groups go through a path searching
+  algorithm, which computes the cost for each path (based on a chosen distance method) and chooses the path with the
+  lowest cost.
+  \item The chosen paths for each strength group are returned as the final pairings. If route is unique within a strength
   group, it is standardized and added to all entries for that strength group.
 }
 
-The user can specify additional arguments including: 
+The user can specify additional arguments including:
 \itemize{
- \item \code{dist_method}: The distance method is the metric used to determine which entity path is the most likely to 
- be correct based on minimum cost. 
- \item \code{na_penalty}: NA penalties are incurred when extractions are paired with nothing (i.e., an NA), requiring that 
- entities be sufficiently far apart from one another before being left unpaired. 
- \item \code{neg_penalty}: When working with dose amount (DA) and frequency/intake time (FIT), it is much more common 
-for the ordering to be DA followed by FIT. Thus, when we observe FIT followed by DA, we apply a negative penalty to make such pairings 
+ \item \code{dist_method}: The distance method is the metric used to determine which entity path is the most likely to
+ be correct based on minimum cost.
+ \item \code{na_penalty}: NA penalties are incurred when extractions are paired with nothing (i.e., an NA), requiring that
+ entities be sufficiently far apart from one another before being left unpaired.
+ \item \code{neg_penalty}: When working with dose amount (DA) and frequency/intake time (FIT), it is much more common
+for the ordering to be DA followed by FIT. Thus, when we observe FIT followed by DA, we apply a negative penalty to make such pairings
 less likely.
- \item \code{greedy threshold}: When there are many extractions from a clinical note, the number of possible combinations for paths 
- can get exponentially large, particularly when the medication extraction natural language processing system is incorrect. The greedy 
- threshold puts an upper bound on the number of entity pairings to prevent the function from stalling in such cases. 
-}  
-If none of the optional arguments are specified, then the \code{buildDose} process uses the default option values specified in the EHR 
+ \item \code{greedy threshold}: When there are many extractions from a clinical note, the number of possible combinations for paths
+ can get exponentially large, particularly when the medication extraction natural language processing system is incorrect. The greedy
+ threshold puts an upper bound on the number of entity pairings to prevent the function from stalling in such cases.
+}
+If none of the optional arguments are specified, then the \code{buildDose} process uses the default option values specified in the EHR
 package documentation.
 
 For additional details, see McNeer, et al. 2020.

@@ -23,10 +23,10 @@ logistf.fit <- logistf:::logistf.fit
 #' method (\code{pl=FALSE}).
 #' @param alpha the significance level (1-\eqn{\alpha} the confidence level,
 #' 0.05 as default).
-#' @param control Controls Newton-Raphson iteration. Default is
+#' @param control Controls Newton-Raphson iteration. Default is \cr
 #' \code{control=logistf.control(maxstep, maxit, maxhs, lconv, gconv, xconv})
 #' @param plcontrol Controls Newton-Raphson iteration for the estimation of the
-#' profile likelihood confidence intervals. Default is
+#' profile likelihood confidence intervals. Default is \cr
 #' \code{plcontrol=logistpl.control(maxstep, maxit,}
 #' \code{maxhs, lconv, xconv, ortho, pr)}
 #' @param firth use of Firth's penalized maximum likelihood (\code{firth=TRUE},

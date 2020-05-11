@@ -8,7 +8,7 @@
 A data frame with 2000 observations on 55 variables.
 }
 \usage{
-dd.baseline.small
+data(dataPheWASsmall, package = 'EHR')
 }
 \description{
 A smaller subset of baseline data example, dd.baseline. The dataset includes 55

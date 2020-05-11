@@ -8,7 +8,7 @@
 A data frame with 10000 observations on 1505 variables.
 }
 \usage{
-dd
+data(dataPheWAS, package = 'EHR')
 }
 \description{
 Simulated outcome data example from Phenome Wide Association Study (PheWAS) 

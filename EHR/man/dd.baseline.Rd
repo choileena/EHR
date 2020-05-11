@@ -8,7 +8,7 @@
 A data frame with 10000 observations on 1505 variables.
 }
 \usage{
-dd.baseline
+data(dataPheWAS, package = 'EHR')
 }
 \description{
 Simulated baseline data example from a Phenome Wide Association Study (PheWAS) 

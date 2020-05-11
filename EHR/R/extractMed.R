@@ -1,33 +1,33 @@
 #' Extract medication information from clinical notes
 #'
-#' This function is an interface to the \code{medExtractR} function within the \code{medExtractR} 
-#' package, and allows drug dosing information to be extracted from free-text sources, 
-#' e.g., clinical notes.
-#' 
-#' Medication information, including dosing data, is often stored in free-text sources such as 
-#' clinical notes. The \code{extractMed} function serves as a convenient wrapper for the 
-#' \code{medExtractR} package, a natural language processing system written in R for extracting 
-#' medication data. Within \code{extractMed}, the \code{medExtractR} function identifies dosing 
-#' data for drug(s) of interest, specified by the \code{drugnames} argument, using rule-based and 
-#' dictionary-based approaches. Relevant dosing entities include medication strength (identified 
-#' using the \code{unit} argument), dose amount, dose given intake, intake time or frequency of 
-#' dose, dose change keywords (e.g., 'increase' or 'decrease'), and time of last dose. For more 
-#' details, see Weeks, et al. 2020. After applying \code{medExtractR} to extract drug dosing 
-#' information, \code{extractMed} appends the file name to results to ensure they are appropriately 
-#' labeled.
+#' This function is an interface to the \code{\link[medExtractR]{medExtractR}} function
+#' within the \pkg{medExtractR} package, and allows drug dosing information to be extracted
+#' from free-text sources, e.g., clinical notes.
 #'
-#' @param note_fn File name(s) for the text file(s) containing the clinical notes. Can be 
-#' a character string for an individual note, or a vector or list of file names for 
+#' Medication information, including dosing data, is often stored in free-text sources such as
+#' clinical notes. The \code{extractMed} function serves as a convenient wrapper for the
+#' \pkg{medExtractR} package, a natural language processing system written in R for extracting
+#' medication data. Within \code{extractMed}, the \code{\link[medExtractR]{medExtractR}} function
+#' identifies dosing data for drug(s) of interest, specified by the \code{drugnames} argument,
+#' using rule-based and dictionary-based approaches. Relevant dosing entities include medication
+#' strength (identified using the \code{unit} argument), dose amount, dose given intake, intake
+#' time or frequency of dose, dose change keywords (e.g., 'increase' or 'decrease'), and time of
+#' last dose. For more details, see Weeks, et al. 2020. After applying \code{\link[medExtractR]{medExtractR}}
+#' to extract drug dosing information, \code{extractMed} appends the file name to results to ensure
+#' they are appropriately labeled.
+#'
+#' @param note_fn File name(s) for the text file(s) containing the clinical notes. Can be
+#' a character string for an individual note, or a vector or list of file names for
 #' multiple notes.
-#' @param drugnames Vector of drug names for which dosing information should be extracted. 
+#' @param drugnames Vector of drug names for which dosing information should be extracted.
 #' Can include various forms (e.g., generic, brand name) as well as abbreviations.
 #' @param drgunit Unit of the drug being extracted, e.g., 'mg'
-#' @param windowlength Length of the search window (in characters) around the drug name in 
+#' @param windowlength Length of the search window (in characters) around the drug name in
 #' which to search for dosing entities
-#' @param max_edit_dist Maximum edit distance allowed when attempting to extract \code{drugnames}. 
-#' Allows for capturing misspelled drug name information. 
-#' @param ... Additional arguments to \code{medExtractR}, for example \code{lastdose=TRUE} to extract 
-#' time of last dose (see \code{medExtractR} package documentation for details)
+#' @param max_edit_dist Maximum edit distance allowed when attempting to extract \code{drugnames}.
+#' Allows for capturing misspelled drug name information.
+#' @param ... Additional arguments to \code{\link[medExtractR]{medExtractR}}, for example
+#' \code{lastdose=TRUE} to extract time of last dose (see \pkg{medExtractR} package documentation for details)
 #'
 #' @return A data.frame with the extracted dosing information, labeled with file name as an identifier \cr
 #' Sample output:\cr
@@ -40,12 +40,12 @@
 #' note_file1.txt \tab Frequency \tab  bid    \tab    101:104\cr
 #' note_file1.txt \tab LastDose  \tab  2100    \tab   121:125\cr
 #' }
-#' 
-#' @examples 
+#'
+#' @examples
 #' tac_fn <- list(system.file("examples", "tacpid1_2008-06-26_note1_1.txt", package = "EHR"),
 #'                system.file("examples", "tacpid1_2008-06-26_note2_1.txt", package = "EHR"),
 #'                system.file("examples", "tacpid1_2008-12-16_note3_1.txt", package = "EHR"))
-#' 
+#'
 #' extractMed(tac_fn,
 #'            drugnames = c("tacrolimus", "prograf", "tac", "tacro", "fk", "fk506"),
 #'            drgunit = "mg",
@@ -53,7 +53,6 @@
 #'            max_edit_dist = 2,
 #'            lastdose=TRUE)
 #' @export
-#'
 
 extractMed <- function(note_fn, drugnames, drgunit,
                         windowlength, max_edit_dist = 0, ...) {

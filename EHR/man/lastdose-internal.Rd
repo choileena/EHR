@@ -32,7 +32,7 @@ These internal functions incorporate lastdose.
 
 \code{checkTime}: check if lastdose expression is a time expression in the format HH:MM:SS
 
-\code{checkDuration}: check if lastdose expression is a duration expression (number that is 
+\code{checkDuration}: check if lastdose expression is a duration expression (number that is
 not in the HH:MM:SS format)
 }
 \keyword{internal}
