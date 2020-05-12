@@ -1,6 +1,6 @@
 Package: EHR
 Version: 0.2-0
-Date: 2020-03-06
+Date: 2020-05-11
 Title: Electronic Health Record (EHR) Data Processing and Analysis Tool
 Maintainer: Leena Choi <naturechoi@gmail.com>
 Authors@R: 
@@ -22,6 +22,12 @@ Description: Process and analyze Electronic Health Record (EHR) data. Frequency 
 Depends: R (>= 2.10)
 License: GPL (>=3)
 Imports: stats, utils, logistf, data.table, methods
-Suggests: glmnet, medExtractR
+Suggests: 
+    glmnet,
+    medExtractR,
+    knitr,
+    rmarkdown,
+    ggplot2
 NeedsCompilation: no
 RoxygenNote: 7.1.0
+VignetteBuilder: knitr
