@@ -102,6 +102,9 @@ parseFreq <- function(fv) {
   fv <- sub("(orasdirected|iftolerated)$", "", fv)
   fv <- sub("as(directed|needed|necessary)$", "", fv)
   fv <- sub("^at([a-z])", "\\1", fv)
+  fv <- sub("(at|@)(morning|breakfast)", "am", fv)
+  fv <- sub("(at|@)(lunch|noon)", "noon", fv)
+  fv <- sub("(at|@)(evening|bedtime|dinner|supper)", "pm", fv)
   # not sure about this rule
   fv <- sub("(at|@).*", "", fv)
   fv <- sub("(each|every|with|w/|during)", "", fv)
