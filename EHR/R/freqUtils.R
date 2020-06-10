@@ -33,7 +33,6 @@ parseFreq <- function(fv) {
   useUnq <- length(ufv) != length(fv)
   if(useUnq) {
     mix <- match(fv, ufv)
-    ofv <- fv
     fv <- ufv
   }
   fv <- gsub('[[:space:]]', '', tolower(fv))
@@ -134,7 +133,7 @@ parseFreq <- function(fv) {
 
   fv[fv == ''] <- NA
   if(useUnq) {
-    fv <- fv[match(ofv, ufv)]
+    fv <- fv[mix]
   }
   fv
 }
