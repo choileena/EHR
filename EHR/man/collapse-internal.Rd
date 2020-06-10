@@ -4,8 +4,6 @@
 \alias{collapse-internal}
 \alias{qrbind}
 \alias{nowarnnum}
-\alias{freqNum}
-\alias{parseFreq}
 \alias{most}
 \alias{pairDay}
 \alias{mergeAdjacent}
@@ -25,10 +23,6 @@ process (\code{\link{collapseDose}}, \code{\link{makeDose}}).
 \code{qrbind}: fast version of rbind.data.frame
 
 \code{nowarnnum}: converts a variable to numeric and suppresses warnings
-
-\code{freqNum}: converts the frequency entity to numeric
-
-\code{parseFreq}: standardizes the frequency entity
 
 \code{most}: returns the mode
 
