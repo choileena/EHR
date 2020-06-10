@@ -29,15 +29,24 @@ freqNum <- function(x) {
 }
 
 parseFreq <- function(fv) {
+  ufv <- unique(fv)
+  useUnq <- length(ufv) != length(fv)
+  if(useUnq) {
+    mix <- match(fv, ufv)
+    ofv <- fv
+    fv <- ufv
+  }
   fv <- gsub('[[:space:]]', '', tolower(fv))
   fv[fv == ''] <- NA
   ix <- grep("with|w/|after|before", fv)
   if(length(ix)) {
     a <- parseFreq(sub('^(.*)(with|w/|after|before)(.*)$', '\\1', fv[ix]))
-    b <- parseFreq(sub('^(.*)(with|w/|after|before)(.*)$', '\\3', fv[ix]))
+    b0 <- sub('^(.*)(with|w/|after|before)(.*)$', '\\3', fv[ix])
+    b <- parseFreq(b0)
     c <- sub('(with|w/|after|before)', '', fv[ix])
-    ix1 <- a == b | b == 'daily'
-    ix2 <- a == 'daily'
+    # special case where b0 == 'meals', b could be 2 or 3
+    ix1 <- which(is.na(b) | a == b | b == 'daily' | (b0 == 'meals' & a == 'bid'))
+    ix2 <- which(is.na(a) | a == 'daily')
     c[ix1] <- a[ix1]
     c[ix2] <- b[ix2]
     fv[ix] <- c
@@ -122,5 +131,8 @@ parseFreq <- function(fv) {
   fv <- sub("^(a|p)m([0-9])*$", "\\1m", fv)
 
   fv[fv == ''] <- NA
+  if(useUnq) {
+    fv <- fv[match(ofv, ufv)]
+  }
   fv
 }
