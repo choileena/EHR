@@ -79,7 +79,7 @@ parseFreq <- function(fv) {
   fv <- sub("^daily(for|beginning).*", "1", fv)
   fv <- sub("^daytime", "1", fv)
   fv <- sub("^onam", "am", fv)
-  fv <- sub("(morning|breakfast|q([0-9]+)?am)", "am", fv)
+  fv <- sub("(morning|breakfast|brkfst|q([0-9]+)?am)", "am", fv)
   fv <- sub("(lunch|noon)", "noon", fv)
   fv <- sub("(evening|bedtime|q([0-9]+)?pm|q?hs|afternoon|night(ly)?|nighttime)$", "pm", fv)
   fv <- sub("dinner|supper$", "pm", fv)
@@ -117,14 +117,16 @@ parseFreq <- function(fv) {
   ix <- grep("([0-9]+)hours", fv)
   fv[ix] <- sprintf("%.2f", 24 / as.numeric(sub("([0-9]+)hours", "\\1", fv[ix])))
   fv <- sub("^(d([0-9]+)?|day)$", "1", fv)
-  fv <- sub("^am[/-]?pm$", "2", fv)
+  fv <- sub("^am[/-]?q?pm$", "bid", fv)
+  fv <- sub("^am[/-]?q?(noon|midday|12)[/-]?q?pm$", "tid", fv)
+  fv <- sub("^am[/-]?q?(noon|midday|12)$", "bid", fv)
   fv <- sub("^(hr|hour)$", "24", fv)
   fv <- sub("^o(a|p)m([0-9])*$", "0.5", fv)
   fv <- sub("^od$", "0.5", fv)
 
   fv[fv %in% c("0.5", "0.50")] <- "qod"
   fv[fv %in% c("1", "1.00")] <- "daily"
-  fv[fv %in% c("2", "2.00")] <- "bid"
+  fv[fv %in% c("2", "2.00", "dailybid")] <- "bid"
   fv[fv %in% c("3", "3.00")] <- "tid"
   fv[fv %in% c("4", "4.00")] <- "qid"
   fv <- sub("^([0-9.]+)$", "\\1x", fv)
