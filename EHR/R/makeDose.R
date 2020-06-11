@@ -49,7 +49,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   x[,'key1'] <- paste(grid, date, note, sep = '|')
   x[,'key2'] <- paste(grid, date, sep = '|')
   # ever a reason to preserver order?
-  x[,'rowOrder'] <- order(x[['key1']])
+  x[,'rowOrder'] <- order(x[,'key0'])
 
   reqCols <- c('strength.num','doseamt.num','freq')
 
@@ -116,39 +116,60 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   }
 
   cstrg <- sub('two', '2', tolower(x[,'strength']))
-  # if STR1/STR2, consider duplicate row with am/pm
-  ix <- grep("^[0-9.]+[ ]?/[ ]?[0-9.]+", cstrg)
+  # if STR1/STR2/STR3, consider duplicate row with am/noon/pm
+  ix3 <- grep("^[0-9.]+[ ]?/[ ]?[0-9.]+[ ]?/[ ]?[0-9.]+", cstrg)
   # exclude row with non-missing frequency
-  ix <- ix[is.na(x[ix, 'freq']) | nchar(x[ix, 'freq']) == 0]
-  if(length(ix)) {
-    newdat <- x[ix,]
-    csa <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)[^0-9.].*", "\\1", cstrg[ix])
-    csb <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)[^0-9.].*", "\\2", cstrg[ix])
-    cstrg[ix] <- csa
-    x[ix,'freq'] <- 'am'
+  ix3 <- ix3[is.na(x[ix3, 'freq']) | nchar(x[ix3, 'freq']) == 0]
+  if(length(ix3)) {
+    newdat3 <- x[ix3,]
+    newdat3p <- x[ix3,]
+    s1 <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)", "\\1", cstrg[ix3])
+    s2 <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)", "\\2", cstrg[ix3])
+    s3 <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)", "\\3", cstrg[ix3])
+    cstrg[ix3] <- s1
+    x[ix3,'freq'] <- 'am'
+  }
+  # if STR1/STR2, consider duplicate row with am/pm
+  ix2 <- setdiff(grep("^[0-9.]+[ ]?/[ ]?[0-9.]+", cstrg), ix3)
+  ix2 <- ix2[is.na(x[ix2, 'freq']) | nchar(x[ix2, 'freq']) == 0]
+  if(length(ix2)) {
+    newdat2 <- x[ix2,]
+    csa <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)", "\\1", cstrg[ix2])
+    csb <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)", "\\2", cstrg[ix2])
+    cstrg[ix2] <- csa
+    x[ix2,'freq'] <- 'am'
   }
   # if STR1-STR2, consider duplicate row with am/pm or average
   # or maybe just duplicate row
   dash_ix <- grep("^[0-9.]+[ ]?-[ ]?[0-9.]+", cstrg)
   if(length(dash_ix)) {
     dash_dat <- x[dash_ix,]
-    cs1 <- sub("^([0-9.]+)[ ]?-[ ]?([0-9.]+)[^0-9.].*", "\\1", cstrg[dash_ix])
-    cs2 <- sub("^([0-9.]+)[ ]?-[ ]?([0-9.]+)[^0-9.].*", "\\2", cstrg[dash_ix])
+    cs1 <- sub("^([0-9.]+)[ ]?-[ ]?([0-9.]+)([^0-9.].*|$)", "\\1", cstrg[dash_ix])
+    cs2 <- sub("^([0-9.]+)[ ]?-[ ]?([0-9.]+)([^0-9.].*|$)", "\\2", cstrg[dash_ix])
     cstrg[dash_ix] <- cs1
 #   cstrg[ix] <- sprintf("%.2f", (as.numeric(cs1) + as.numeric(cs2)) / 2)
   }
   cstrg <- sub('^([0-9.]+)[^0-9.].*', '\\1', cstrg)
   x[,'strength.num'] <- nowarnnum(cstrg)
-  if(length(ix)) {
-    newdat[,'strength.num'] <- nowarnnum(csb)
-    newdat[,'freq'] <- 'pm'
-    x <- rbind(x, newdat)
+  if(length(ix3)) {
+    newdat3[,'strength.num'] <- nowarnnum(s2)
+    newdat3[,'freq'] <- 'noon'
+    newdat3p[,'strength.num'] <- nowarnnum(s3)
+    newdat3p[,'freq'] <- 'pm'
+    x <- rbind(x, newdat3, newdat3p)
   }
+  if(length(ix2)) {
+    newdat2[,'strength.num'] <- nowarnnum(csb)
+    newdat2[,'freq'] <- 'pm'
+    x <- rbind(x, newdat2)
+  }
+  ignDupDashDat <- NULL
   if(length(dash_ix)) {
     # duplicate row may break freq
     # however it creates duplicate rowOrder
     dash_dat[,'strength.num'] <- nowarnnum(cs2)
     x <- rbind(x, dash_dat)
+    ignDupDashDat <- dash_dat[,'rowOrder']
   }
   cdose <- sub('[ ]*(cap|capsule|tablet|tab|pill)[s]?', '', tolower(x[,'dose']))
   cdose <- sub('one', 1, cdose)
@@ -167,6 +188,10 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
     cdose[ix] <- sprintf("%.2f", (as.numeric(cda) + as.numeric(cdb)) / 2)
   }
   x[,'doseamt.num'] <- nowarnnum(cdose)
+  if(length(ix3) | length(ix2) | length(dash_ix)) {
+    x <- reOrder(x)
+  }
+
   of <- x[,'freq']
   cfreq <- unique(of)
   cfreq1 <- parseFreq(cfreq)
@@ -287,25 +312,29 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
 
   # borrow strength - require unique w/in mention
   strkey <- unique(x[is.na(x[,'strength.num']),'key0'])
-  chkstr <- x[,'key0'] %in% strkey
-  x1 <- x[chkstr,]
-  x2 <- x[!chkstr,]
-  x1 <- do.call(qrbind, lapply(split(x1, x1[,'key0']), borrowVal, 'strength.num'))
-  x <- rbind(x1, x2)
-  # remove missing strength
-  x <- x[!is.na(x[,'strength.num']),]
-  x <- reOrder(x)
+  if(length(strkey)) {
+    chkstr <- x[,'key0'] %in% strkey
+    x1 <- x[chkstr,]
+    x2 <- x[!chkstr,]
+    x1 <- do.call(qrbind, lapply(split(x1, x1[,'key0']), borrowVal, 'strength.num'))
+    x <- rbind(x1, x2)
+    # remove missing strength
+    x <- x[!is.na(x[,'strength.num']),]
+    x <- reOrder(x)
+  }
 
   # borrow dose
   # first try unique within mention
   # otherwise, impute 1
   ## note this is done before DOSESTR is added back
   dosekey <- unique(x[is.na(x[,'doseamt.num']),'key0'])
-  chkdose <- x[,'key0'] %in% dosekey
-  x1 <- x[chkdose,]
-  x2 <- x[!chkdose,]
-  x1 <- do.call(qrbind, lapply(split(x1, x1[,'key0']), borrowVal, 'doseamt.num'))
-  x <- rbind(x1, x2)
+  if(length(dosekey)) {
+    chkdose <- x[,'key0'] %in% dosekey
+    x1 <- x[chkdose,]
+    x2 <- x[!chkdose,]
+    x1 <- do.call(qrbind, lapply(split(x1, x1[,'key0']), borrowVal, 'doseamt.num'))
+    x <- rbind(x1, x2)
+  }
   ix <- which(is.na(x[,'doseamt.num']))
   x[ix, 'doseamt.num'] <- 1
 
@@ -322,7 +351,9 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   # first check for am/noon/pm dose sequence within note
   # then mode within mention
   # otherwise, impute global mode
-  nodupx <- x[!duplicated(x[,'rowOrder']),]
+#   nodupx <- x[!duplicated(x[,'rowOrder']),]
+  # ignore rows created by dash (STR1-STR2)
+  nodupx <- x[!(x[,'rowOrder'] %in% ignDupDashDat & duplicated(x[,'rowOrder'])),]
   freq.mention.mode <- tapply(nodupx[,'freq'], nodupx[,'key0'], function(y) {
     yy <- most(y)
     # use global freq if no mode
