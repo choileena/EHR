@@ -176,6 +176,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   cdose <- sub('two', 2, cdose)
   cdose <- sub('three', 3, cdose)
   cdose <- sub('four', 4, cdose)
+  cdose <- sub('five', 5, cdose)
   cdose <- sub('half', 0.5, cdose, fixed = TRUE)
   cdose <- sub('1-2', 1.5, cdose, fixed = TRUE)
   cdose <- sub('1-1/2', 1.5, cdose, fixed = TRUE)
