@@ -21,7 +21,7 @@ Description: Process and analyze Electronic Health Record (EHR) data. Frequency 
     with likelihood ratio test; conventional logistic regression with Wald test.
 Depends: R (>= 2.10)
 License: GPL (>=3)
-Imports: stats, utils, logistf, data.table, methods
+Imports: stats, utils, logistf, data.table, methods, lubridate
 Suggests: 
     glmnet,
     medExtractR,

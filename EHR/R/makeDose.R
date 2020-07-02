@@ -62,12 +62,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
 
   if(useRte) {
     reqCols <- c(reqCols, 'route')
-    rte <- gsub('[. ]', '', tolower(x[,'route']))
-    rte[grep('skin', rte)] <- 'transdermal'
-    rte[grep('iv|intravenous', rte)] <- 'iv'
-    rte[grep('mouth|oral|po', rte)] <- 'orally'
-    rte[grep('subcut|sq', rte)] <- 'sq'
-    rte[nchar(rte) == 0] <- NA
+    rte <- stdzRoute(x[,'route'])
     x[,'route'] <- rte
     na.route <- most(rte)
     if(is.null(na.route)) {
@@ -78,25 +73,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
 
   if(useDur) {
     reqCols <- c(reqCols, 'duration')
-    dur <- gsub(' ', '', tolower(x[,'duration']))
-    dur <- sub('one', 1, dur)
-    dur <- sub('two', 2, dur)
-    dur <- sub('three', 3, dur)
-    dur <- sub('four', 4, dur)
-    dur <- sub('five', 5, dur)
-    dur <- sub('six', 6, dur)
-    dur <- sub('seven', 7, dur)
-    dur <- sub('eight', 8, dur)
-    dur <- sub('nine', 9, dur)
-    dur <- sub('ten', 10, dur)
-    dur <- sub('-?(hour|hr)s?', ' hour(s)', dur)
-    dur <- sub('-?days?', ' day(s)', dur)
-    dur <- sub('-?(week|wk)s?', ' week(s)', dur)
-    dur <- sub('-?(month|mth)s?', ' month(s)', dur)
-    dur <- sub('-?(year|yr)s?', ' year(s)', dur)
-    dur <- sub('^a ', '1 ', dur)
-    dur[nchar(dur) == 0] <- NA
-    x[,'duration'] <- dur
+    x[,'duration'] <- stdzDuration(x[,'duration'])
   }
 
   if(useDC) {
@@ -104,10 +81,34 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
     x[!is.na(x[,'dosechange']) & nchar(x[,'dosechange']) == 0,'dosechange'] <- NA
   }
 
+  # ignore duplicate dash data, by storing rowOrder in vector
+  ignDupDashDatDS <- numeric(0)
   if(useDS) {
     reqCols <- c(reqCols, 'dosestr.num')
-    cstrg <- sub('^([0-9.]+)[^0-9.].*', '\\1', sub('two', '2', tolower(x[,'dosestr'])))
-    x[,'dosestr.num'] <- nowarnnum(cstrg)
+    cstrg <- stdzStrength(x[,'dosestr'], x[,'freq'])
+    x[,'dosestr.num'] <- c(cstrg)
+    # add additional rows if necessary
+    if('addl_data' %in% names(attributes(cstrg))) {
+      addl <- attr(cstrg, 'addl_data')
+      ix <- which(lengths(addl) > 0)
+      added <- vector('list', length(ix))
+      ignDupDashDatDS <- numeric(length(ix))
+      for(i in seq_along(ix)) {
+        impdat <- addl[[ix[i]]]
+        newdat <- x[rep(ix[i], nrow(impdat)),]
+        newdat[,'dosestr.num'] <- impdat[,'str']
+        if('freq' %in% names(impdat)) {
+          newdat[,'freq'] <- impdat[,'freq']
+        } else {
+          ignDupDashDatDS[i] <- x[ix[i],'rowOrder']
+        }
+        added[[i]] <- newdat
+      }
+      # remove original row and add new rows
+      x <- do.call(rbind, c(x[-ix,], added))
+      x <- reOrder(x)
+      ignDupDashDatDS <- ignDupDashDatDS[ignDupDashDatDS > 0]
+    }
   }
 
   if(useLD) {
@@ -115,86 +116,38 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
     x[!is.na(x[,'lastdose']) & nchar(x[,'lastdose']) == 0,'lastdose'] <- NA
   }
 
-  cstrg <- sub('two', '2', tolower(x[,'strength']))
-  # if STR1/STR2/STR3, consider duplicate row with am/noon/pm
-  ix3 <- grep("^[0-9.]+[ ]?/[ ]?[0-9.]+[ ]?/[ ]?[0-9.]+", cstrg)
-  # exclude row with non-missing frequency
-  ix3 <- ix3[is.na(x[ix3, 'freq']) | nchar(x[ix3, 'freq']) == 0]
-  if(length(ix3)) {
-    newdat3 <- x[ix3,]
-    newdat3p <- x[ix3,]
-    s1 <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)", "\\1", cstrg[ix3])
-    s2 <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)", "\\2", cstrg[ix3])
-    s3 <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)", "\\3", cstrg[ix3])
-    cstrg[ix3] <- s1
-    x[ix3,'freq'] <- 'am'
-  }
-  # if STR1/STR2, consider duplicate row with am/pm
-  ix2 <- setdiff(grep("^[0-9.]+[ ]?/[ ]?[0-9.]+", cstrg), ix3)
-  ix2 <- ix2[is.na(x[ix2, 'freq']) | nchar(x[ix2, 'freq']) == 0]
-  if(length(ix2)) {
-    newdat2 <- x[ix2,]
-    csa <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)", "\\1", cstrg[ix2])
-    csb <- sub("^([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)", "\\2", cstrg[ix2])
-    cstrg[ix2] <- csa
-    x[ix2,'freq'] <- 'am'
-  }
-  # if STR1-STR2, consider duplicate row with am/pm or average
-  # or maybe just duplicate row
-  dash_ix <- grep("^[0-9.]+[ ]?-[ ]?[0-9.]+", cstrg)
-  if(length(dash_ix)) {
-    dash_dat <- x[dash_ix,]
-    cs1 <- sub("^([0-9.]+)[ ]?-[ ]?([0-9.]+)([^0-9.].*|$)", "\\1", cstrg[dash_ix])
-    cs2 <- sub("^([0-9.]+)[ ]?-[ ]?([0-9.]+)([^0-9.].*|$)", "\\2", cstrg[dash_ix])
-    cstrg[dash_ix] <- cs1
-#   cstrg[ix] <- sprintf("%.2f", (as.numeric(cs1) + as.numeric(cs2)) / 2)
-  }
-  cstrg <- sub('^([0-9.]+)[^0-9.].*', '\\1', cstrg)
-  x[,'strength.num'] <- nowarnnum(cstrg)
-  if(length(ix3)) {
-    newdat3[,'strength.num'] <- nowarnnum(s2)
-    newdat3[,'freq'] <- 'noon'
-    newdat3p[,'strength.num'] <- nowarnnum(s3)
-    newdat3p[,'freq'] <- 'pm'
-    x <- rbind(x, newdat3, newdat3p)
-  }
-  if(length(ix2)) {
-    newdat2[,'strength.num'] <- nowarnnum(csb)
-    newdat2[,'freq'] <- 'pm'
-    x <- rbind(x, newdat2)
-  }
-  ignDupDashDat <- NULL
-  if(length(dash_ix)) {
-    # duplicate row may break freq
-    # however it creates duplicate rowOrder
-    dash_dat[,'strength.num'] <- nowarnnum(cs2)
-    x <- rbind(x, dash_dat)
-    ignDupDashDat <- dash_dat[,'rowOrder']
-  }
-  cdose <- sub('[ ]*(cap|capsule|tablet|tab|pill)[s]?', '', tolower(x[,'dose']))
-  cdose <- sub('one', 1, cdose)
-  cdose <- sub('two', 2, cdose)
-  cdose <- sub('three', 3, cdose)
-  cdose <- sub('half', 0.5, cdose, fixed = TRUE)
-  cdose <- sub('1-2', 1.5, cdose, fixed = TRUE)
-  cdose <- sub('1-1/2', 1.5, cdose, fixed = TRUE)
-  cdose <- sub('1/2', 0.5, cdose, fixed = TRUE)
-  ix <- grep("[0-9][ ]?(to|-)[ ]?[0-9]", cdose)
-  # if DOSE1-DOSE2, take the average
-  # another option is to duplicate row and include both dose amounts
-  if(length(ix)) {
-    cda <- sub("([0-9.]+)[ ]?(to|-)[ ]?([0-9.]+)", "\\1", cdose[ix])
-    cdb <- sub("([0-9.]+)[ ]?(to|-)[ ]?([0-9.]+)", "\\3", cdose[ix])
-    cdose[ix] <- sprintf("%.2f", (as.numeric(cda) + as.numeric(cdb)) / 2)
-  }
-  x[,'doseamt.num'] <- nowarnnum(cdose)
-  if(length(ix3) | length(ix2) | length(dash_ix)) {
+  cstrg <- stdzStrength(x[,'strength'], x[,'freq'])
+  x[,'strength.num'] <- c(cstrg)
+  # ignore duplicate dash data, by storing rowOrder in vector
+  ignDupDashDat <- numeric(0)
+  # add additional rows if necessary
+  if('addl_data' %in% names(attributes(cstrg))) {
+    addl <- attr(cstrg, 'addl_data')
+    ix <- which(lengths(addl) > 0)
+    added <- vector('list', length(ix))
+    ignDupDashDat <- numeric(length(ix))
+    for(i in seq_along(ix)) {
+      impdat <- addl[[ix[i]]]
+      newdat <- x[rep(ix[i], nrow(impdat)),]
+      newdat[,'strength.num'] <- impdat[,'str']
+      if('freq' %in% names(impdat)) {
+        newdat[,'freq'] <- impdat[,'freq']
+      } else {
+        ignDupDashDat[i] <- x[ix[i],'rowOrder']
+      }
+      added[[i]] <- newdat
+    }
+    # remove original row and add new rows
+    x <- do.call(rbind, c(x[-ix,], added))
     x <- reOrder(x)
+    ignDupDashDat <- ignDupDashDat[ignDupDashDat > 0]
   }
+  ignDupDashDat <- sort(unique(c(ignDupDashDatDS, ignDupDashDat)))
+  x[,'doseamt.num'] <- stdzDose(x[,'dose'])
 
   of <- x[,'freq']
   cfreq <- unique(of)
-  cfreq1 <- parseFreq(cfreq)
+  cfreq1 <- stdzFreq(cfreq)
   ix <- match(of, cfreq)
   if(naFreq == 'most') {
 #     na.freq <- cfreq1[match(most(of), cfreq)]
@@ -205,7 +158,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
       na.freq <- 'bid'
     }
   } else {
-    na.freq <- parseFreq(naFreq)
+    na.freq <- stdzFreq(naFreq)
   }
   cfreq2 <- freqNum(cfreq1)
   # set freq to NA if freqNum failed

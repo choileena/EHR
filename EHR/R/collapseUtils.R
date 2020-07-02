@@ -80,6 +80,8 @@ most <- function(x) {
 }
 
 pairDay <- function(x) {
+  # x is data split by key1 (grid|date|note)
+  # if freq is unique, allow pm|am as sequence
   nr <- nrow(x)
   df <- x[['freq']]
   dv <- x[['dose.intake']] * x[['freq.num']]

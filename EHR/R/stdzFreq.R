@@ -1,15 +1,15 @@
-#' Internal functions to standardize frequency
+#' Convert Character Frequency to Numeric
 #'
-#' These internal functions aid the main functions when handling
-#' frequency values.
-#' 
-#' \code{freqNum}: converts the frequency entity to numeric
-#' 
-#' \code{parseFreq}: standardizes the frequency entity
+#' This function converts the frequency entity to numeric.
 #'
-#' @name freq-internal
-#' @aliases freqNum parseFreq
-NULL
+#' @param x character vector of extracted frequency values
+#'
+#' @return numeric vector
+#'
+#' @examples
+#' f <- stdzFreq(c('in the morning', 'four times a day', 'with meals'))
+#' freqNum(f)
+#' @export
 
 freqNum <- function(x) {
   x[x == 'qod'] <- '0.5'
@@ -28,7 +28,19 @@ freqNum <- function(x) {
   nowarnnum(x)
 }
 
-parseFreq <- function(fv) {
+#' Standardize Frequency Entity
+#'
+#' This function standardizes the frequency entity.
+#'
+#' @param x character vector of extracted frequency values
+#'
+#' @return character vector
+#'
+#' @examples
+#' stdzFreq(c('in the morning', 'four times a day', 'with meals'))
+#' @export
+
+stdzFreq <- function(fv) {
   ufv <- unique(fv)
   useUnq <- length(ufv) != length(fv)
   if(useUnq) {
@@ -39,9 +51,9 @@ parseFreq <- function(fv) {
   fv[fv == ''] <- NA
   ix <- grep("with|w/|after|before", fv)
   if(length(ix)) {
-    a <- parseFreq(sub('^(.*)(with|w/|after|before)(.*)$', '\\1', fv[ix]))
+    a <- stdzFreq(sub('^(.*)(with|w/|after|before)(.*)$', '\\1', fv[ix]))
     b0 <- sub('^(.*)(with|w/|after|before)(.*)$', '\\3', fv[ix])
-    b <- parseFreq(b0)
+    b <- stdzFreq(b0)
     c <- sub('(with|w/|after|before)', '', fv[ix])
     # special case where b0 == 'meals', b could be 2 or 3
     ix1 <- which(is.na(b) | a == b | b == 'daily' | (b0 == 'meals' & a == 'bid'))

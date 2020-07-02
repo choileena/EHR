@@ -1,0 +1,82 @@
+#' Standardize Strength Entity
+#'
+#' This function standardizes the strength entity.
+#'
+#' Some strength strings may include multiple values and additional
+#' interpretation may be needed. For example \sQuote{2-1} likely indicates
+#' a strength of 2 followed by a strength of 1. Thus a single element may need
+#' to be standarized into two elements. This can only happen if the frequency
+#' entity is missing. See the \sQuote{addl_data} attribute of the returned
+#' vector.
+#'
+#' @param str character vector of extracted strength values
+#' @param freq character vector of extracted frequency values
+#'
+#' @return numeric vector
+#'
+#' @examples
+#' stdzStrength(c('1.5', '1/2', '1/1/1'))
+#' stdzStrength(c('1.5', '1/2', '1/1/1'), c('am', 'bid', NA))
+#' stdzStrength(c('1.5', '1/2', '1/1/1'), FALSE)
+#' @export
+
+stdzStrength <- function(str, freq) {
+  cstrg <- tolower(str)
+  if(missing(freq)) {
+    noFreq <- TRUE
+  } else {
+    noFreq <- is.na(freq) | nchar(freq) == 0
+  }
+  # store additional values
+  addl <- vector('list', length(cstrg))
+  cstrg <- sub('one', '1', cstrg)
+  cstrg <- sub('two', '2', cstrg)
+  cstrg <- sub('three', '3', cstrg)
+  cstrg <- sub('four', '4', cstrg)
+  cstrg <- sub('five', '5', cstrg)
+  cstrg <- sub('six', '6', cstrg)
+  cstrg <- sub('seven', '7', cstrg)
+  cstrg <- sub('eight', '8', cstrg)
+  cstrg <- sub('nine', '9', cstrg)
+  cstrg <- sub('ten', '10', cstrg)
+
+  # if STR1/STR2/STR3, consider duplicate row with am/noon/pm
+  # exclude row with non-missing frequency
+  ix3 <- grepl("^[0-9.]+[ ]?/[ ]?[0-9.]+[ ]?/[ ]?[0-9.]+", cstrg) & noFreq
+  ix3 <- which(ix3)
+  if(length(ix3)) {
+    expr <- "^([0-9.]+)[ ]?/[ ]?([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)"
+    s1 <- nowarnnum(sub(expr, "\\1", cstrg[ix3]))
+    s2 <- nowarnnum(sub(expr, "\\2", cstrg[ix3]))
+    s3 <- nowarnnum(sub(expr, "\\3", cstrg[ix3]))
+    cstrg[ix3] <- s1
+    addl[[ix3]] <- data.frame(str = c(s1, s2, s3), freq = c('am','noon','pm'), stringsAsFactors = FALSE)
+  }
+  # if STR1/STR2, consider duplicate row with am/pm
+  ix2 <- grepl("^[0-9.]+[ ]?/[ ]?[0-9.]+", cstrg) & noFreq
+  ix2 <- setdiff(which(ix2), ix3)
+  if(length(ix2)) {
+    expr <- "^([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)"
+    csa <- nowarnnum(sub(expr, "\\1", cstrg[ix2]))
+    csb <- nowarnnum(sub(expr, "\\2", cstrg[ix2]))
+    cstrg[ix2] <- csa
+    addl[[ix2]] <- data.frame(str = c(csa, csb), freq = c('am','pm'), stringsAsFactors = FALSE)
+  }
+  # if STR1-STR2, consider duplicate row with am/pm or average
+  # or maybe just duplicate row
+  dash_ix <- grep("^[0-9.]+[ ]?-[ ]?[0-9.]+", cstrg)
+  if(length(dash_ix)) {
+    expr <- "^([0-9.]+)[ ]?-[ ]?([0-9.]+)([^0-9.].*|$)"
+    cs1 <- nowarnnum(sub(expr, "\\1", cstrg[dash_ix]))
+    cs2 <- nowarnnum(sub(expr, "\\2", cstrg[dash_ix]))
+    cstrg[dash_ix] <- cs1
+    addl[[dash_ix]] <- data.frame(str = c(cs1, cs2))
+  }
+  # keep until non-numeric
+  cstrg <- sub('^([0-9.]+)[^0-9.].*', '\\1', cstrg)
+  cstrg <- nowarnnum(cstrg)
+  if(any(lengths(addl) != 0)) {
+    attr(cstrg, 'addl_data') <- addl
+  }
+  cstrg
+}

@@ -10,8 +10,9 @@
 #'
 #' @docType package
 #'
-#' @importFrom utils data head
+#' @importFrom utils data head read.csv write.csv
 #' @importFrom logistf logistf.control logistpl.control
+#' @importFrom lubridate as.duration dhours dminutes
 #' @importFrom methods as
 #' @import stats
 #' @import data.table
