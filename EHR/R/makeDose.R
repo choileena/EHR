@@ -105,7 +105,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
         added[[i]] <- newdat
       }
       # remove original row and add new rows
-      x <- do.call(rbind, c(x[-ix,], added))
+      x <- rbind(x[-ix,], do.call(rbind, added))
       x <- reOrder(x)
       ignDupDashDatDS <- ignDupDashDatDS[ignDupDashDatDS > 0]
     }
@@ -138,7 +138,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
       added[[i]] <- newdat
     }
     # remove original row and add new rows
-    x <- do.call(rbind, c(x[-ix,], added))
+    x <- rbind(x[-ix,], do.call(rbind, added))
     x <- reOrder(x)
     ignDupDashDat <- ignDupDashDat[ignDupDashDat > 0]
   }
