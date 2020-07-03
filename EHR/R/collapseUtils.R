@@ -96,7 +96,7 @@ pairDay <- function(x) {
   aix <- which(df == 'am')
   pix <- which(df == 'pm')
   nix <- which(df == 'noon')
-  if(length(aix) == 1 & length(pix) == 1 & length(nix) == 0 & abs(aix - pix) == 1) {
+  if(length(aix) == 1 && length(pix) == 1 && length(nix) == 0 && abs(aix - pix) == 1) {
     ix <- sort(c(aix, pix))
     ds[ix] <- seq(2)
     dd <- dv
@@ -104,9 +104,9 @@ pairDay <- function(x) {
     return(cbind(ds, dd))
   }
   # special case, unique AM/NOON/PM that appear consecutively in any order
-  if(length(aix) == 1 & length(pix) == 1 & length(nix) == 1) {
+  if(length(aix) == 1 && length(pix) == 1 && length(nix) == 1) {
     ix <- sort(c(aix, pix, nix))
-    if(diff(ix) == c(1,1)) {
+    if(all(diff(ix) == c(1,1))) {
       ds[ix] <- seq(3)
       dd <- dv
       dd[ix] <- sum(dv[ix])

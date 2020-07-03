@@ -49,7 +49,7 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   x[,'key1'] <- paste(grid, date, note, sep = '|')
   x[,'key2'] <- paste(grid, date, sep = '|')
   # ever a reason to preserver order?
-  x[,'rowOrder'] <- order(x[,'key0'])
+  x[,'rowOrder'] <- order(x[['key1']], x[['drugname_start']])
 
   reqCols <- c('strength.num','doseamt.num','freq')
 

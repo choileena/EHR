@@ -26,9 +26,9 @@ expect_equal(stdzRoute(c('oral', 'po', 'subcut')), c('orally', 'orally', 'sq'))
 r1 <- c('skin', '', 'intravenous', 'mouth', 'subcut', NA, 'mouth', 'orally')
 expect_equal(stdzRoute(r1), c('transdermal', NA, 'iv', 'orally', 'sq', NA, 'orally', 'orally'))
 
-f <- stdzFreq(c('in the morning', 'four times a day', 'with meals'))
-expect_equal(f, c('am', 'qid', 'tid'))
-expect_equal(freqNum(f), c(1, 4, 3))
+f <- stdzFreq(c('in the morning', 'four times a day', 'with meals', 'in the afternoon'))
+expect_equal(f, c('am', 'qid', 'tid', 'pm'))
+expect_equal(freqNum(f), c(1, 4, 3, 1))
 
 f1 <- c('daily with meals', 'bid with meals', 'once', '@breakfast', 'once per day', 'every twelve hours', 'ampm')
 expect_equal(stdzFreq(f1), c('tid', 'bid', NA, 'am', 'daily', 'bid', 'bid'))

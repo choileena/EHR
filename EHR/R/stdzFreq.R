@@ -49,7 +49,8 @@ stdzFreq <- function(x) {
     fv <- ufv
   }
   fv[fv == ''] <- NA
-  ix <- grep("with|w/|after|before", fv)
+  # exclude "afternoon", possibly something like "withheld"?
+  ix <- grep("with|w/|after(?!noon)|before", fv, perl = TRUE)
   if(length(ix)) {
     a <- stdzFreq(sub('^(.*)(with|w/|after|before)(.*)$', '\\1', fv[ix]))
     b0 <- sub('^(.*)(with|w/|after|before)(.*)$', '\\3', fv[ix])
