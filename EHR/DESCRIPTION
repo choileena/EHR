@@ -1,6 +1,6 @@
 Package: EHR
-Version: 0.2-0
-Date: 2020-05-11
+Version: 0.2-1
+Date: 2020-07-03
 Title: Electronic Health Record (EHR) Data Processing and Analysis Tool
 Maintainer: Leena Choi <naturechoi@gmail.com>
 Authors@R: 

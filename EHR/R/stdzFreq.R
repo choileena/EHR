@@ -40,14 +40,14 @@ freqNum <- function(x) {
 #' stdzFreq(c('in the morning', 'four times a day', 'with meals'))
 #' @export
 
-stdzFreq <- function(fv) {
+stdzFreq <- function(x) {
+  fv <- gsub('[[:space:]]', '', tolower(x))
   ufv <- unique(fv)
   useUnq <- length(ufv) != length(fv)
   if(useUnq) {
     mix <- match(fv, ufv)
     fv <- ufv
   }
-  fv <- gsub('[[:space:]]', '', tolower(fv))
   fv[fv == ''] <- NA
   ix <- grep("with|w/|after|before", fv)
   if(length(ix)) {

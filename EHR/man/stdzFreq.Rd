@@ -4,7 +4,7 @@
 \alias{stdzFreq}
 \title{Standardize Frequency Entity}
 \usage{
-stdzFreq(fv)
+stdzFreq(x)
 }
 \arguments{
 \item{x}{character vector of extracted frequency values}

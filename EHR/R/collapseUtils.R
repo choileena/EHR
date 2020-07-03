@@ -81,7 +81,7 @@ most <- function(x) {
 
 pairDay <- function(x) {
   # x is data split by key1 (grid|date|note)
-  # if freq is unique, allow pm|am as sequence
+  # currently, only valid intaketimes are AM/NOON/PM
   nr <- nrow(x)
   df <- x[['freq']]
   dv <- x[['dose.intake']] * x[['freq.num']]
@@ -90,8 +90,30 @@ pairDay <- function(x) {
     return(cbind(NA, dv[1]))
   }
   cnt <- 1
-  ds <- numeric(nr)
-  dd <- numeric(nr)
+  ds <- rep(NA_real_, nr)
+  dd <- rep(NA_real_, nr)
+  # special case, unique AM/PM that appear consecutively in any order
+  aix <- which(df == 'am')
+  pix <- which(df == 'pm')
+  nix <- which(df == 'noon')
+  if(length(aix) == 1 & length(pix) == 1 & length(nix) == 0 & abs(aix - pix) == 1) {
+    ix <- sort(c(aix, pix))
+    ds[ix] <- seq(2)
+    dd <- dv
+    dd[ix] <- sum(dv[ix])
+    return(cbind(ds, dd))
+  }
+  # special case, unique AM/NOON/PM that appear consecutively in any order
+  if(length(aix) == 1 & length(pix) == 1 & length(nix) == 1) {
+    ix <- sort(c(aix, pix, nix))
+    if(diff(ix) == c(1,1)) {
+      ds[ix] <- seq(3)
+      dd <- dv
+      dd[ix] <- sum(dv[ix])
+      return(cbind(ds, dd))
+    }
+  }
+  # non-unique cases must appear in order (AM < NOON < PM)
   while(cnt < nr - 1) {
     if(df[cnt] == 'am' && df[cnt+1] == 'noon' && df[cnt+2] == 'pm') {
       ix <- c(cnt, cnt + 1, cnt + 2)
@@ -224,7 +246,7 @@ calcDailyDose <- function(x, useDC = FALSE) {
   x1 <- x[useday,]
   x2 <- x[!useday,]
   if(nrow(x2) > 0) {
-    x2[,'dose.seq'] <- NA
+    x2[,'dose.seq'] <- NA_real_
     x2[,'dose.daily'] <- x2[,'dose.intake'] * x2[,'freq.num']
   }
   if(nrow(x1) > 0) {
