@@ -50,7 +50,10 @@ stdzStrength <- function(str, freq) {
     s2 <- nowarnnum(sub(expr, "\\2", cstrg[ix3]))
     s3 <- nowarnnum(sub(expr, "\\3", cstrg[ix3]))
     cstrg[ix3] <- s1
-    addl[[ix3]] <- data.frame(str = c(s1, s2, s3), freq = c('am','noon','pm'), stringsAsFactors = FALSE)
+    for(i in seq_along(ix3)) {
+      df <- data.frame(str = c(s1[i], s2[i], s3[i]), freq = c('am','noon','pm'), stringsAsFactors = FALSE)
+      addl[[ix3[i]]] <- df
+    }
   }
   # if STR1/STR2, consider duplicate row with am/pm
   ix2 <- grepl("^[0-9.]+[ ]?/[ ]?[0-9.]+", cstrg) & noFreq
@@ -60,7 +63,10 @@ stdzStrength <- function(str, freq) {
     csa <- nowarnnum(sub(expr, "\\1", cstrg[ix2]))
     csb <- nowarnnum(sub(expr, "\\2", cstrg[ix2]))
     cstrg[ix2] <- csa
-    addl[[ix2]] <- data.frame(str = c(csa, csb), freq = c('am','pm'), stringsAsFactors = FALSE)
+    for(i in seq_along(ix2)) {
+      df <- data.frame(str = c(csa[i], csb[i]), freq = c('am','pm'), stringsAsFactors = FALSE)
+      addl[[ix2[i]]] <- df
+    }
   }
   # if STR1-STR2, consider duplicate row with am/pm or average
   # or maybe just duplicate row
@@ -70,6 +76,10 @@ stdzStrength <- function(str, freq) {
     cs1 <- nowarnnum(sub(expr, "\\1", cstrg[dash_ix]))
     cs2 <- nowarnnum(sub(expr, "\\2", cstrg[dash_ix]))
     cstrg[dash_ix] <- cs1
+    for(i in seq_along(dash_ix)) {
+      df <- data.frame(str = c(cs1[i], cs2[i]))
+      addl[[dash_ix[i]]] <- df
+    }
     addl[[dash_ix]] <- data.frame(str = c(cs1, cs2))
   }
   # keep until non-numeric
