@@ -80,7 +80,6 @@ stdzStrength <- function(str, freq) {
       df <- data.frame(str = c(cs1[i], cs2[i]))
       addl[[dash_ix[i]]] <- df
     }
-    addl[[dash_ix]] <- data.frame(str = c(cs1, cs2))
   }
   # keep until non-numeric
   cstrg <- sub('^([0-9.]+)[^0-9.].*', '\\1', cstrg)
