@@ -2,7 +2,7 @@ library(EHR)
 data(lam_mxr_parsed)
 data(lam_metadata)
 
-lam_build_out <- buildDose(lam_mxr_parsed)
+lam_build_out <- buildDose(lam_mxr_parsed, checkForRare = FALSE)
 lam_collapsed <- suppressWarnings(collapseDose(lam_build_out, lam_metadata, naFreq = 'most', 'xr|er'))
 expect_equal(names(lam_collapsed), c('note', 'date'))
 expect_equal(dim(lam_collapsed$note), c(9, 18))

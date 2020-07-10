@@ -18,6 +18,7 @@
 \alias{anchorByStrength}
 \alias{combineGroups}
 \alias{makeCombos}
+\alias{findRareValues}
 \title{Internal functions for buildDose process}
 \description{
 These internal functions aid the \code{\link{buildDose}} function and process.
@@ -68,5 +69,7 @@ number of extractions for each entity)
 \code{makeCombos}: takes all extracted entities and puts them into groups based on position and minimum cost of paths. 
 This is the highest level function within \code{\link{buildDose}}; it calls other helper functions including \code{combineGroups} 
 and \code{anchorByStrength}.
+
+\code{findRareValues}: find rare values for each column in a data.frame; rare defaults to less than two percent.
 }
 \keyword{internal}

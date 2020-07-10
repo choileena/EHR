@@ -11,7 +11,8 @@ buildDose(
   dist_method,
   na_penalty,
   neg_penalty,
-  greedy_threshold
+  greedy_threshold,
+  checkForRare = TRUE
 )
 }
 \arguments{
@@ -35,6 +36,8 @@ set the \sQuote{ehr.neg_penalty} option, which defaults to 0.5.}
 \item{greedy_threshold}{Threshold to use greedy matching; increasing this value too high could lead to the
 algorithm taking a long time to finish. Alternatively set the\cr
 \sQuote{ehr.greedy_threshold} option, which defaults to 1e8.}
+
+\item{checkForRare}{Indicate if rare values for each entity should be found and displayed.}
 }
 \value{
 A data.frame object that contains columns for filename (of the clinical note, inherited from the

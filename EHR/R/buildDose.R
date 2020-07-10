@@ -56,6 +56,7 @@
 #' @param greedy_threshold Threshold to use greedy matching; increasing this value too high could lead to the
 #' algorithm taking a long time to finish. Alternatively set the\cr
 #' \sQuote{ehr.greedy_threshold} option, which defaults to 1e8.
+#' @param checkForRare Indicate if rare values for each entity should be found and displayed.
 #'
 #' @return A data.frame object that contains columns for filename (of the clinical note, inherited from the
 #' parse output object \code{dat}), drugname, strength, dose, route, freq, duration, and drugname_start
@@ -66,7 +67,7 @@
 #' buildDose(lam_mxr_parsed)
 #' @export
 
-buildDose <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, neg_penalty, greedy_threshold) {
+buildDose <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, neg_penalty, greedy_threshold, checkForRare = TRUE) {
   if(!missing(dist_method) || !missing(na_penalty) || !missing(neg_penalty) || !missing(greedy_threshold)) {
     opt_name <- c('ehr.dist_method','ehr.na_penalty','ehr.neg_penalty','ehr.greedy_threshold')
     curopts <- options()[opt_name]
@@ -133,5 +134,12 @@ buildDose <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, 
   setnames(x4, 'drugname.A', 'drugname_start')
   x4 <- x4[order(filename, drugname_start)]
   class(x4) <- 'data.frame'
+  if(checkForRare) {
+    rare <- findRareValues(x4, colsToExclude = c('filename','drugname_start'))
+    if(nrow(rare)) {
+      warning("rare values found\n")
+      print(rare)
+    }
+  }
   x4
 }

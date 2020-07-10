@@ -48,10 +48,12 @@
 #' This is the highest level function within \code{\link{buildDose}}; it calls other helper functions including \code{combineGroups} 
 #' and \code{anchorByStrength}.
 #'
+#' \code{findRareValues}: find rare values for each column in a data.frame; rare defaults to less than two percent.
+#'
 #' @name build-internal
 #' @aliases tstrsplit2 convert entVal entStart entStop
 #' remainder getCombosIx getPaths getOpt getCosts findOptPath
-#' stdRoute grp anchorByStrength combineGroups makeCombos
+#' stdRoute grp anchorByStrength combineGroups makeCombos findRareValues
 #' @keywords internal
 NULL
 
@@ -602,4 +604,58 @@ makeCombos <- function(row, gap, preserve = NULL) {
     allGroups <- cbind(allGroups, xp)
   }
   unique(allGroups[,..xnames])
+}
+
+## question of interest ##
+# given `rep(1:10, 1:10)`, which values are significantly rare?
+#
+# function(tableObj, perc = 0.05, n = 1000) {
+#   if(exists(".Random.seed", envir = .GlobalEnv)) {
+#     save.seed <- get(".Random.seed", envir= .GlobalEnv)
+#     on.exit(assign(".Random.seed", save.seed, envir = .GlobalEnv))
+#   } else {
+#     on.exit(rm(".Random.seed", envir = .GlobalEnv))
+#   }
+#   zs <- function(x) {
+#     y <- c(scale(x))
+#     y[is.nan(y)] <- 0
+#     y
+#   }
+#   rowMeans(replicate(n, quantile(zs(sample(tableObj, replace=TRUE)), c(1,perc))))[-1]
+# }
+
+findRareValues <- function(dat, propThresh = 0.02, maxPerc = 0.5, colsToExclude = NULL) {
+  coi <- setdiff(names(dat), colsToExclude)
+  res <- vector('list', length(coi))
+  for(i in seq_along(coi)) {
+    var <- coi[i]
+    val <- gsub('[[:space:]]', '', tolower(dat[[var]]))
+#     to consider
+#     val <- gsub('[^a-zA-Z0-9.]+', '*', val)
+    val <- val[!is.na(val) & nchar(val) > 0]
+    nv <- length(val)
+    vtbl <- table(val)
+    percThresh <- NA
+    if(maxPerc < 0.05) {
+      percThresh <- quantile(vtbl, maxPerc)
+    } else {
+      ps <- quantile(vtbl, c(seq(100)/100, maxPerc))
+      ix <- which(ps < ps[101])
+      if(length(ix)) {
+        percThresh <- ps[max(ix)]
+      }
+    }
+#     if(median(vtbl) > 1) {
+    if(!is.na(percThresh)) {
+      th <- max(1, floor(min(nv * propThresh, percThresh)))
+      ix <- which(vtbl <= th)
+      if(length(ix)) {
+        ptbl <- proportions(vtbl)
+        res[[i]] <- cbind(var, as.data.frame(vtbl[ix, drop = FALSE], stringsAsFactors = FALSE), Prop = c(ptbl[ix, drop = FALSE]))
+      }
+    }
+  }
+  z <- do.call(rbind, res)
+  rownames(z) <- NULL
+  z
 }

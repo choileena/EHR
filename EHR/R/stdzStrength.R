@@ -39,6 +39,7 @@ stdzStrength <- function(str, freq) {
   cstrg <- sub('eight', '8', cstrg)
   cstrg <- sub('nine', '9', cstrg)
   cstrg <- sub('ten', '10', cstrg)
+  cstrg <- sub('([0-9])to([0-9])', '\\1-\\2', cstrg)
 
   # if STR1/STR2/STR3, consider duplicate row with am/noon/pm
   # exclude row with non-missing frequency
