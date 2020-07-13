@@ -6,18 +6,18 @@ expect_equal(c(s1), c(1.5, 1, 1))
 expect_true('addl_data' %in% names(attributes(s1)))
 expect_equal(attr(s1, 'addl_data'), list(NULL, o2, o3))
 
-s2 <- stdzStrength(c('1.5', '1/2', '1/1/1'), c('am', 'bid', NA))
+s2 <- stdzStrength(c('1.5', '1/2', '1/1/1'), c('am', 'daily', NA))
 expect_equal(c(s2), c(1.5, 1, 1))
 expect_true('addl_data' %in% names(attributes(s2)))
 expect_equal(attr(s2, 'addl_data'), list(NULL, NULL, o3))
 
 expect_equal(stdzStrength(c('1.5', '1/2', '1/1/1'), FALSE), c(1.5, 1, 1))
 
-s3 <- stdzStrength(c('1-2'))
+s3 <- stdzStrength(c('1-2', '1-2'), c('am', NA))
 o4 <- data.frame(str = c(1, 2))
-expect_equal(c(s3), c(1))
+expect_equal(c(s3), c(1, 1))
 expect_true('addl_data' %in% names(attributes(s3)))
-expect_equal(attr(s3, 'addl_data'), list(o4))
+expect_equal(attr(s3, 'addl_data'), list(o4, o2))
 
 s4 <- stdzStrength(c('five', 'one half', 'two hundred', '1 or 2', '5mg'))
 expect_equal(s4, c(5, 1, 2, 1, 5))

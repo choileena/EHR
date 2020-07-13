@@ -12,7 +12,7 @@ buildDose(
   na_penalty,
   neg_penalty,
   greedy_threshold,
-  checkForRare = TRUE
+  checkForRare = FALSE
 )
 }
 \arguments{

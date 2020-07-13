@@ -6,8 +6,8 @@
 #' interpretation may be needed. For example \sQuote{2-1} likely indicates
 #' a strength of 2 followed by a strength of 1. Thus a single element may need
 #' to be standarized into two elements. This can only happen if the frequency
-#' entity is missing. See the \sQuote{addl_data} attribute of the returned
-#' vector.
+#' entity is missing or in agreement (sQuote{bid} for example). See the
+#' \sQuote{addl_data} attribute of the returned vector.
 #'
 #' @param str character vector of extracted strength values
 #' @param freq character vector of extracted frequency values
@@ -16,7 +16,7 @@
 #'
 #' @examples
 #' stdzStrength(c('1.5', '1/2', '1/1/1'))
-#' stdzStrength(c('1.5', '1/2', '1/1/1'), c('am', 'bid', NA))
+#' stdzStrength(c('1.5', '1/2', '1/1/1'), c('am', 'daily', NA))
 #' stdzStrength(c('1.5', '1/2', '1/1/1'), FALSE)
 #' @export
 
@@ -24,6 +24,7 @@ stdzStrength <- function(str, freq) {
   cstrg <- tolower(str)
   if(missing(freq)) {
     noFreq <- TRUE
+    freq <- NA
   } else {
     noFreq <- is.na(freq) | nchar(freq) == 0
   }
@@ -42,11 +43,10 @@ stdzStrength <- function(str, freq) {
   cstrg <- sub('([0-9])to([0-9])', '\\1-\\2', cstrg)
 
   # if STR1/STR2/STR3, consider duplicate row with am/noon/pm
-  # exclude row with non-missing frequency
-  ix3 <- grepl("^[0-9.]+[ ]?/[ ]?[0-9.]+[ ]?/[ ]?[0-9.]+", cstrg) & noFreq
+  ix3 <- grepl("^[0-9.]+[ ]?[-/][ ]?[0-9.]+[ ]?[-/][ ]?[0-9.]+", cstrg) & (noFreq | freq == 'tid')
   ix3 <- which(ix3)
   if(length(ix3)) {
-    expr <- "^([0-9.]+)[ ]?/[ ]?([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)"
+    expr <- "^([0-9.]+)[ ]?[-/][ ]?([0-9.]+)[ ]?[-/][ ]?([0-9.]+)([^0-9.].*|$)"
     s1 <- nowarnnum(sub(expr, "\\1", cstrg[ix3]))
     s2 <- nowarnnum(sub(expr, "\\2", cstrg[ix3]))
     s3 <- nowarnnum(sub(expr, "\\3", cstrg[ix3]))
@@ -57,10 +57,10 @@ stdzStrength <- function(str, freq) {
     }
   }
   # if STR1/STR2, consider duplicate row with am/pm
-  ix2 <- grepl("^[0-9.]+[ ]?/[ ]?[0-9.]+", cstrg) & noFreq
+  ix2 <- grepl("^[0-9.]+[ ]?[-/][ ]?[0-9.]+", cstrg) & (noFreq | freq == 'bid')
   ix2 <- setdiff(which(ix2), ix3)
   if(length(ix2)) {
-    expr <- "^([0-9.]+)[ ]?/[ ]?([0-9.]+)([^0-9.].*|$)"
+    expr <- "^([0-9.]+)[ ]?[-/][ ]?([0-9.]+)([^0-9.].*|$)"
     csa <- nowarnnum(sub(expr, "\\1", cstrg[ix2]))
     csb <- nowarnnum(sub(expr, "\\2", cstrg[ix2]))
     cstrg[ix2] <- csa
@@ -72,6 +72,7 @@ stdzStrength <- function(str, freq) {
   # if STR1-STR2, consider duplicate row with am/pm or average
   # or maybe just duplicate row
   dash_ix <- grep("^[0-9.]+[ ]?-[ ]?[0-9.]+", cstrg)
+  dash_ix <- setdiff(dash_ix, union(ix3, ix2))
   if(length(dash_ix)) {
     expr <- "^([0-9.]+)[ ]?-[ ]?([0-9.]+)([^0-9.].*|$)"
     cs1 <- nowarnnum(sub(expr, "\\1", cstrg[dash_ix]))

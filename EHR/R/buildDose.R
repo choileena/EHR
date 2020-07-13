@@ -67,7 +67,7 @@
 #' buildDose(lam_mxr_parsed)
 #' @export
 
-buildDose <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, neg_penalty, greedy_threshold, checkForRare = TRUE) {
+buildDose <- function(dat, dn = NULL, preserve = NULL, dist_method, na_penalty, neg_penalty, greedy_threshold, checkForRare = FALSE) {
   if(!missing(dist_method) || !missing(na_penalty) || !missing(neg_penalty) || !missing(greedy_threshold)) {
     opt_name <- c('ehr.dist_method','ehr.na_penalty','ehr.neg_penalty','ehr.greedy_threshold')
     curopts <- options()[opt_name]

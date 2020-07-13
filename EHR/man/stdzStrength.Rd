@@ -22,11 +22,11 @@ Some strength strings may include multiple values and additional
 interpretation may be needed. For example \sQuote{2-1} likely indicates
 a strength of 2 followed by a strength of 1. Thus a single element may need
 to be standarized into two elements. This can only happen if the frequency
-entity is missing. See the \sQuote{addl_data} attribute of the returned
-vector.
+entity is missing or in agreement (sQuote{bid} for example). See the
+\sQuote{addl_data} attribute of the returned vector.
 }
 \examples{
 stdzStrength(c('1.5', '1/2', '1/1/1'))
-stdzStrength(c('1.5', '1/2', '1/1/1'), c('am', 'bid', NA))
+stdzStrength(c('1.5', '1/2', '1/1/1'), c('am', 'daily', NA))
 stdzStrength(c('1.5', '1/2', '1/1/1'), FALSE)
 }

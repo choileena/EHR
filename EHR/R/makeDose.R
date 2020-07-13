@@ -81,6 +81,27 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
     x[!is.na(x[,'dosechange']) & nchar(x[,'dosechange']) == 0,'dosechange'] <- NA
   }
 
+  of <- x[,'freq']
+  cfreq <- unique(of)
+  cfreq1 <- stdzFreq(cfreq)
+  ix <- match(of, cfreq)
+  if(naFreq == 'most') {
+#     na.freq <- cfreq1[match(most(of), cfreq)]
+    na.freq <- most(cfreq1[ix])
+    # possible there isn't a most-used frequency
+    if(is.null(na.freq)) {
+      warning('unable to calculate mode for frequency, naFreq set to "bid"', call. = FALSE)
+      na.freq <- 'bid'
+    }
+  } else {
+    na.freq <- stdzFreq(naFreq)
+  }
+  cfreq2 <- freqNum(cfreq1)
+  # set freq to NA if freqNum failed
+  cfreq1[is.na(cfreq2)] <- NA
+  cfreq2[is.na(cfreq2)] <- freqNum(na.freq)
+  x[,'freq'] <- cfreq1[ix]
+
   # ignore duplicate dash data, by storing rowOrder in vector
   ignDupDashDatDS <- numeric(0)
   if(useDS) {
@@ -144,27 +165,6 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   }
   ignDupDashDat <- sort(unique(c(ignDupDashDatDS, ignDupDashDat)))
   x[,'doseamt.num'] <- stdzDose(x[,'dose'])
-
-  of <- x[,'freq']
-  cfreq <- unique(of)
-  cfreq1 <- stdzFreq(cfreq)
-  ix <- match(of, cfreq)
-  if(naFreq == 'most') {
-#     na.freq <- cfreq1[match(most(of), cfreq)]
-    na.freq <- most(cfreq1[ix])
-    # possible there isn't a most-used frequency
-    if(is.null(na.freq)) {
-      warning('unable to calculate mode for frequency, naFreq set to "bid"', call. = FALSE)
-      na.freq <- 'bid'
-    }
-  } else {
-    na.freq <- stdzFreq(naFreq)
-  }
-  cfreq2 <- freqNum(cfreq1)
-  # set freq to NA if freqNum failed
-  cfreq1[is.na(cfreq2)] <- NA
-  cfreq2[is.na(cfreq2)] <- freqNum(na.freq)
-  x[,'freq'] <- cfreq1[ix]
 
   # remove rows with only drugname and/or route
   verCols <- setdiff(reqCols, 'route')
