@@ -12,7 +12,7 @@
 #'
 #' @importFrom utils data head read.csv write.csv
 #' @importFrom logistf logistf.control logistpl.control
-#' @importFrom lubridate as.duration dhours dminutes
+#' @importFrom lubridate as.duration dhours dminutes parse_date_time
 #' @importFrom methods as
 #' @import stats
 #' @import data.table
