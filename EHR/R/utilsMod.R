@@ -13,9 +13,13 @@
 #'
 #' code{resolveDoseDups_mod}: correct duplicated infusion and bolus doses
 #'
+#' code{processErx}: prepare e-prescription data
+#'
+#' code{processErxAddl}: additional processing, checking for connected observations
+#'
 #' @name mod-internal
 #' @aliases colflow_mod findMedFlowRow_mod flowData_mod concData_mod
-#' infusionData_mod resolveDoseDups_mod
+#' infusionData_mod resolveDoseDups_mod processErx processErxAddl
 #' @keywords internal
 NULL
 
@@ -470,4 +474,109 @@ writeCheckData <- function(dat, filename, msg, decor = TRUE, ...) {
   cat(msg)
   if(decor) cat(dtext)
   write.csv(dat, file = filename, row.names = FALSE, quote = FALSE, ...)
+}
+
+## This function assumes the E-prescription data has columns "ID", "RX_DOSE", "FREQUENCY", "ENTRY_DATE", "STRENGTH_AMOUNT", "DESCRIPTION".
+## It also assumes all of the prescriptions are for only one drug.
+## - For observations that are missing STRENGTH_AMOUNT, the strength in the DESCRIPTION can be used.
+## - Observations that are missing strength are removed.
+## - Frequency, dose, and strength are converted to numeric.
+## - Daily dose is calculated as strength\*dose\*freq if dose <25
+## - Daily dose is calculated as dose\*freq if dose>=25
+## - Data is ordered by ID and ENTRY_DATE.
+## - Duplicate daily doses on the same date for an ID are removed.
+
+processErx <- function(rx, description=TRUE, strength_exclude="\\s*mg|\\(.*\\)", dose_exclude="\\s*(cap|capsule|tablet|tab|pill)[s]?") {
+  str <- rx[,'STRENGTH_AMOUNT']
+  rx[,'DESCRIPTION'] <- tolower(rx[,'DESCRIPTION'])
+
+  ## If observations are missing STRENGTH_AMOUNT, use number from DESCRIPTION
+  if(description == TRUE) {
+    ix <- which(is.na(str) | str == '')
+    desc <- rx[ix,'DESCRIPTION']
+    m <- gregexpr("\\d+\\s*mg|\\d+\\.\\d+\\s*mg", desc)
+    calcstr <- regmatches(desc, m)
+    calcstr[lengths(calcstr) == 0] <- NA
+    mix <- lengths(calcstr) > 1
+    calcstr[mix] <- vapply(calcstr[mix], paste, character(1), collapse = ', ')
+    str[ix] <- unlist(calcstr)
+  }
+  str[grep("c\\(", str)] <- NA
+  str <- tolower(str)
+  str <- gsub(strength_exclude, '', str)
+  rx[,'strength'] <- nowarnnum(str)
+
+  ## Drop observations missing strength
+  rx <- rx[!is.na(rx[,'strength']),]
+
+  ## Get numeric frequency
+  freq <- unique(rx[,'FREQUENCY'])
+  freqstnd <- stdzFreq(freq)
+  freqnum <- freqNum(freqstnd)
+  ix <- match(rx[,'FREQUENCY'], freq)
+  rx[,'freq.standard'] <- freqstnd[ix]
+  rx[,'freq.num'] <- freqnum[ix]
+
+  ## Get numeric dose
+  dose <- tolower(rx[,'RX_DOSE'])
+  dose <- gsub(dose_exclude, "", dose)
+  rx[,'dose'] <- nowarnnum(dose)
+
+  ## Calculate daily dose
+  ## If dose is <25, consider it to be number of pills
+  ## If dose is >=25, consider it to be dose intake
+  dailydose <- rx[,'dose'] * rx[,'freq.num']
+  ix <- which(rx[,'dose'] < 25)
+  dailydose[ix] <- dailydose[ix] * rx[ix,'strength']
+  rx[,'daily.dose'] <- dailydose
+
+  ## Order by ID and date
+  rx <- rx[order(rx[,'ID'], rx[,'ENTRY_DATE']),]
+
+  ## Get rid of duplicate daily.dose on the same date for an ID
+  rx[,'date'] <- as.Date(rx[,'ENTRY_DATE'])
+  id_date_dose <- do.call(paste, c(rx[,c('ID','date','daily.dose')], sep = '|'))
+  rx <- rx[!duplicated(id_date_dose),]
+
+  rx
+}
+
+## This function takes the output from `processErx` and does some additional processing.
+## - The word "and" used to separate doses in RX_DOSE is changed to "+"
+## - If doses are separated by plus signs, commas, dashes, or slashes, and the number of doses matches the frequency, then the individual doses are added together and daily dose is calculated as strength*dose
+## - Units such as "mg" are removed from RX_DOSE and daily dose is calculated as dose*frequency in these cases
+
+processErxAddl <- function(processed) {
+  ## Change "and" in RX_DOSE to "+"
+  processed[,'RX_DOSE'] <- gsub("\\s+and\\s+", "+", processed[,'RX_DOSE'])
+  processed[,'num_doses'] <- NA
+  processed[,'num_freqs'] <- NA
+  processed[,'FREQUENCY'] <- tolower(processed[,'FREQUENCY'])
+  ## punctuation characters, plus | comma | hyphen | slash (PCHS)
+  pchs <- "\\+|\\,|-|/"
+  ix <- which(is.na(processed[,'daily.dose']) & grepl(pchs, processed[,'RX_DOSE']))
+  fix <- processed[ix,'FREQUENCY']
+  num_freqs <- rep(NA, length(ix))
+  ## If frequencies are separated by punctuation characters, get the number of frequencies. Otherwise, use the numeric frequency as number of frequencies.
+  hasSplitFreq <- grepl(pchs, fix) & grepl("am|pm|brkfst|lunch|dinner", fix)
+  num_freqs[!hasSplitFreq] <- processed[ix[!hasSplitFreq],'freq.num']
+  num_freqs[hasSplitFreq] <- lengths(strsplit(fix[hasSplitFreq], pchs))
+  ## If doses are separated by punctuation characters, get the number of doses
+  splitDose <- strsplit(processed[ix,'RX_DOSE'], pchs)
+  num_doses <- lengths(splitDose)
+  processed[ix,'num_doses'] <- num_doses
+  processed[ix,'num_freqs'] <- num_freqs
+  ## If the number of doses == number of frequencies, calculate daily dose as strength*dose.
+  nfix <- which(!is.na(num_freqs) & num_doses == num_freqs)
+  doses <- splitDose[nfix]
+  dose <- vapply(doses, function(i) sum(as.numeric(i), na.rm = TRUE), numeric(1))
+  processed[ix[nfix],'dose'] <- dose
+  processed[ix[nfix],'daily.dose'] <- dose * processed[ix[nfix],'strength']
+
+  ## Get rid of units (e.g., mg) in RX_DOSE
+  ix <- which(is.na(processed[,'daily.dose']) & grepl('mg', processed[,'RX_DOSE']))
+  dose <- as.numeric(sub('mg', '', processed[ix,'RX_DOSE']))
+  processed[ix,'dose'] <- dose
+  processed[ix,'daily.dose'] <- dose * processed[ix,'freq.num']
+  processed
 }
