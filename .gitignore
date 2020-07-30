@@ -1,4 +1,8 @@
 .DS_Store
 .Rproj.user
 *.Rproj
+<<<<<<< HEAD
 *.Rhistory
+=======
+*.Rhistory
+>>>>>>> f5338d5788d097438d19c4049824565706766616
