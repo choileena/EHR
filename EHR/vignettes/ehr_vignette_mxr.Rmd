@@ -21,7 +21,6 @@ The `EHR` package provides a modularized approach to performing pharmacokinetic/
 
 ```{r EHR_load}
 library(EHR)
-library(medExtractR)
 ```
 
 ## Extract-Med
@@ -31,10 +30,10 @@ The Extract-Med module uses a natural language processing (NLP) system called me
 
 ### Setup of `extractMed`  
 
-The function `extractMed` will run the Extract-Med module. In order to run the Extract-Med module with medExtractR, certain function arguments must be specified, including but not limited to:  
+The function `extractMed` will run the Extract-Med module. In order to run the Extract-Med module with medExtractR, certain function arguments must be specified, including:  
 
 - `note_fn`: The file name of the note on which to run the system. This can be either a single file name (e.g., `"clinical_note01.txt"`) or a vector or list of file names (e.g., `c("clinical_note01.txt", "clinical_note02.txt")` or `list("clinical_note01.txt", "clinical_note02.txt")`).  
-- `drugnames`: Names of the drugs for which we want to extract medication dosing information. This can include any way in which the drug name might be represented in the clinical note, such as generic name (e.g., `"lamotrigine"`), brand name (e.g., `"Lamictal"`), or an abbreviation (e.g., `"LTG"`). 
+- `drugnames`: Names of the drugs for which we want to extract medication dosing information. This can include any way in which the drug name might be represented in the clinical note, such as generic name (e.g., `"lamotrigine"`), brand name (e.g., `"Lamictal"`), or an abbreviation (e.g., `"LTG"`).  
 - `drgunit`: The unit of the drug(s) listed in `drugnames`, for example `"mg"`.  
 - `windowlength`: Length of the search window around each found drug name in which to search for dosing information. There is no default for this argument, requiring the user to carefully consider its value through tuning (see tuning section below).  
 - `max_edit_dist`: The maximum edit distance allowed when identifying `drugnames`. Maximum edit distance determines the difference between two strings, and is defined as the number of insertions, deletions, or substitutions required to change one string into the other. This allows us to capture misspellings in the drug names we are searching for, and its value should be carefully considered through tuning (see tuning section below).   
@@ -47,22 +46,22 @@ The function `extractMed` will run the Extract-Med module. In order to run the E
 Generally, the function call to `extractMed` is  
 
 ```{r, eval = FALSE}
-extractMed(note_fn, drugnames, drgunit, windowlength, max_edit_dist, ...))
+extractMed(note_fn, drugnames, drgunit, windowlength, max_edit_dist, ...)
 ```
 
 
 where `...` refers to additional arguments to medExtractR (see package documentation for details$^{3}$). Examples of additional arguments include  
 
-- `strength_sep`, where users can specify special characters to separate doses administered at different times of day. For example, consider the drug name *"lamotrigine"* and the phrase *"Patient is on lamotrigine 200-300"*, indicating that the patient takes 200 mg of the drug in the morning and 300 mg in the evening. Setting `strength_sep = c('-')` would allow `extractMed` to identify both *200* and *300* as "Dose" (i.e., dose given intake) since they are separated by the special character "-". Default value is `NULL`.  
+- `strength_sep`, where users can specify special characters to separate doses administered at different times of day. For example, consider the drug name *"lamotrigine"* and the phrase *"Patient is on lamotrigine 200-300"*, indicating that the patient takes 200 mg of the drug in the morning and 300 mg in the evening. Setting `strength_sep = c('-')` would allow `extractMed` to identify the expression *200-300* as "Dose" (i.e., dose given intake) since they are separated by the special character "-". The default value is `NULL`.  
 
 - `lastdose`, a logical input specifying whether or not the last dose time entity should be extracted. Default value is `FALSE`.
 
-As mentioned above, some arguments to `extractMed` should be specified through a tuning process. Below, we briefly describe the process by which a user could tune the medExtractR system (and by extension the `extractMed` module) using a validated gold standard dataset.
+As mentioned above, some arguments to `extractMed` should be specified through a tuning process. In a later section, we briefly describe the process by which a user could tune the medExtractR system (and by extension the `extractMed` function) using a validated gold standard dataset.
 
 
 ### Running `extractMed`
 
-Below, we demonstrate how to execute the `extractMed` module using sample notes for two drugs: tacrolimus (simpler prescription patterns, used to prevent rejection after organ transplant) and lamotrigine (more complex prescription patterns, used to treat epilepsy). The arguments specified for each drug here were determined based on training sets of 60 notes for each drug. Note that for tacrolimus we enter the file names as a list, and for lamotrigine we enter the file names as a character vector; either form of input is acceptable to the `extractMed` function and will produce the same output. We also specify `lastdose=TRUE` 
+Below, we demonstrate how to execute the Extract-Med module using sample notes for two drugs: tacrolimus (simpler prescription patterns, used to prevent rejection after organ transplant) and lamotrigine (more complex prescription patterns, used to treat epilepsy). The arguments specified for each drug here were determined based on training sets of 60 notes for each drug.$^{2}$ Note that for tacrolimus we enter the file names as a list, and for lamotrigine we enter the file names as a character vector; either form of input is acceptable to the `extractMed` function and will produce the same output. We also specify `lastdose=TRUE` for tacrolimus to extract information about time of last dose, and `strength_sep="-"` for lamotrigine. 
 
 ```{r mxr}
 # tacrolimus note file names
@@ -96,7 +95,8 @@ lam_mxr <- extractMed(lam_fn,
                                      "LTG", "LTG XR"),
                        drgunit = "mg",
                        windowlength = 130,
-                       max_edit_dist = 1)
+                       max_edit_dist = 1,
+                       strength_sep="-")
 ```
 
 
@@ -128,7 +128,7 @@ write.csv(lam_mxr, file='lam_mxr.csv', row.names=FALSE)
 
 ### Tuning the medExtractR system  
 
-In the previous section, we mentioned that parameters within the Extract-Med module should be tuned in order to ensure higher quality of extracted drug information. This section describes how we go about tuning  medExtractR, the NLP system underlying the Extract-Med module. 
+In a previous section, we mentioned that parameters within the Extract-Med module should be tuned in order to ensure higher quality of extracted drug information. This section describes how we go about tuning  medExtractR, the NLP system underlying the Extract-Med module. 
 
 In order to tune medExtractR, we recommend selecting a small set of tuning notes, from which the parameter values can be selected. Below, we describe this process with a set of three notes (note that these notes were chosen for the purpose of demonstration, and we recommend using tuning sets of at least 10 notes).
 
@@ -137,7 +137,7 @@ $$\text{Patient is taking } \textbf{lamotrigine} \text{ } \textit{300 mg} \text{
 
 bolded, italicized, and underlined phrases represent annotated drug names, dose (i.e., dose given intake), and intake times, respectively. These annotations are stored as a dataset.  
 
-First, we read in the annotation files for three example tuning notes, which can be generated using an annotation tool, such as the Brat Rapid Annotation Tool (BRAT) software.$^{4}$ By default, the output file from BRAT is tab delimited with 3 columns: an annotation identifier, the annotation itself, and a column with labelling information in the format "label startPosition stopPosition", as shown in the example below:
+First, we read in the annotation files for three example tuning notes, which can be generated using an annotation tool, such as the Brat Rapid Annotation Tool (BRAT) software.$^{4}$ By default, the output file from BRAT is tab delimited with 3 columns: an annotation identifier, a column with labelling information in the format "label startPosition stopPosition", and the annotation itself, as shown in the example below:
 
 ```{r, echo = FALSE}
 ann <- read.delim(system.file("mxr_tune", "ann_example.ann", package = "EHR"), 
@@ -184,10 +184,10 @@ tune_ann <- do.call(rbind, lapply(ann_filenames, function(fn){
 head(tune_ann)
 ```
 
-To select appropriate tuning parameters, we identify a range of possible values for each of the `windowlength` and `max_edit_dist` parameters. Here, we allow `windowlength` to vary from 30 to 70 characters in increments of 10, and `max_edit_dist` to take a value of 0, 1, or 2. We then obtain the `extractMed` results for each combination.
+To select appropriate tuning parameters, we identify a range of possible values for each of the `windowlength` and `max_edit_dist` parameters. Here, we allow `windowlength` to vary from 30 to 70 characters in increments of 10, and `max_edit_dist` to take a value of 0, 1, or 2. We then obtain the `extractMed` results for each combination. We set `progress=FALSE` to avoid printing the progress message for each combination of arguments.
 
 ```{r run_mxr, cache = TRUE}
-wind_len <- seq(30, 70, 10)
+wind_len <- seq(30, 120, 30)
 max_edit <- seq(0, 2, 1)
 tune_pick <- expand.grid("window_length" = wind_len, 
                          "max_edit_distance" = max_edit)
@@ -206,13 +206,12 @@ for(i in 1:nrow(tune_pick)){
                drgunit = "mg",
                windowlength = tune_pick$window_length[i],
                max_edit_dist = tune_pick$max_edit_distance[i],
-               lastdose = TRUE,
                progress = FALSE)
 }
 
 ```
 
-Finally, we determine which parameter combination yielded the highest performance, quantified by some metric. For our purpose, we used the F1-measure (F1), the harmonic mean of precision and recall.  Tuning parameters were selected based on which combination maximized F1 performance within the tuning set. The code below determines true positives as well as false positives and negatives, used to compute precision, recall, and F1.
+Finally, we determine which parameter combination yielded the highest performance, quantified by some metric. For our purpose, we used the F1-measure (F1), the harmonic mean of precision $\left(\frac{\text{true positives}}{\text{true positives + false positives}}\right)$ and recall $\left(\frac{\text{true positives}}{\text{true positives + false negatives}}\right)$.  Tuning parameters were selected based on which combination maximized F1 performance within the tuning set. The code below determines true positives as well as false positives and negatives, used to compute precision, recall, and F1.
 
 
 ```{r}
@@ -254,12 +253,13 @@ tune_pick$F1 <- sapply(mxr_tune, function(x){
 
 
 ggplot(tune_pick) + geom_point(aes(max_edit_distance, window_length, size = F1)) + 
+  scale_y_continuous(breaks=seq(30,120,30)) + 
   annotate("text", x = tune_pick$max_edit_distance+.2, y = tune_pick$window_length,
            label = round(tune_pick$F1, 2)) + 
   ggtitle("F1 for tuning parameter values")
 ```
 
-The plot shows that the highest F1 achieved was 1, and occurred for two different combinations of parameter values: a maximum edit distance of 2 and a window length of either 40 or 60 characters. The relatively small number of unique F1 values is likely the result of only using 3 tuning notes. In this case, we would typically err on the side of allowing a larger search window and decide to use a maximum edit distance of 2 and a window length of 60 characters.
+The plot shows that the highest F1 achieved was 1, and occurred for two different combinations of parameter values: a maximum edit distance of 2 and a window length of 60, 90, or 120 characters. The relatively small number of unique F1 values is likely the result of only using 3 tuning notes. In this case, we would typically err on the side of allowing a larger search window and decide to use a maximum edit distance of 2 and a window length of 120 characters. In a real-world tuning scenario and with a larger tuning set, we would also want to test longer window lengths since the best case scenario occurred at the longest window length we used.
 
 
 
@@ -288,7 +288,7 @@ parseCLAMP(filename)
 parseMedEx(filename)
 ```
 
-The `parseMedXN` function also has an argument specifying a regular expression pattern which indicates the start of each row (i.e., drug mention). In the example above, the `begText` argument identifies how the file names are structured for a set of clinical notes in a Vanderbilt University dataset (e.g., "ID111_2000-01-01_Note001" where ID111 is the patient ID, 2000-01-01 is the date of the note, and Note001 is the note ID). Thus, each row beginning with a file name in this format indicates a new drug mention.
+The `parseMedXN` function also has an argument specifying a regular expression pattern which indicates the start of each row (i.e., drug mention) in the raw MedXN output. In the example above, the `begText` argument identifies how the file names are structured for a set of clinical notes in a Vanderbilt University dataset (e.g., "ID111_2000-01-01_Note001" where ID111 is the patient ID, 2000-01-01 is the date of the note, and Note001 is the note ID). Thus, each row beginning with a file name in this format indicates a new drug mention.
 
 The parse functions output a standardized form of the data that includes a row for each drug mention and columns for all entities anchored to that drug mention.
 
@@ -315,13 +315,14 @@ message("MedXN output:\n")
 lam_mxn
 ```
 
+The output from all systems, once parsed, has the same structure as the example parsed MedXN output below.
 ```{r, warning = FALSE}
 (lam_mxn_parsed <- parseMedXN(lam_mxn_fn, begText = "^[ID0-9]+_[0-9-]+_[Note0-9]"))
 ```
 
 #### `buildDose`
 
-After the NLP output is parsed, the `buildDose` function is run to pair the parsed entities. The `buildDose` function arguments are as follows:
+After the NLP output is parsed, the `buildDose` function is run to pair the parsed entities. The main `buildDose` function arguments are as follows:
 
 - `dat`: standardized form of the data (i.e., output from one of the parse functions)
 - `dn`: argument to specify drug names of interest (generally not used with medExtractR since medExtractR is a targeted system and only includes the drug of interest in the raw output)
@@ -330,6 +331,12 @@ The general function call is:
 ```{r, eval = FALSE}
 buildDose(dat, dn = NULL)
 ```
+
+Other notable arguments that can be specified by `buildDose` include:  
+
+- `preserve`: columns which should be preserved in the final output, but not considered for pairing with other entities. The default is `NULL`, though for medExtractR the dose change entity is always preserved.
+- `dist_method`: which distance method calculation to use in cost calculation for pairing entities. For more details see the supplementary material in McNeer, e.al. (2020). The default from `getOption('ehr.dist_method')` is *minEntEnd*, or using the minimum distance between the end of one entity and beginning of the next).
+- `checkForRare`: a logical argument, indicates whether or not the output should return rare occurrences of entities (default is `FALSE`)
 
 The output of the `buildDose` function is a dataset with a column for each entity and a row for each pairing.
 
@@ -341,6 +348,13 @@ In our medExtractR example from above, the output of the `buildDose` function is
 (tac_part_i_out <- buildDose(tac_mxr_parsed))
 (lam_part_i_out <- buildDose(lam_mxr_parsed))
 ```
+
+
+If the `checkForRare` argument is set to `TRUE`, any extracted expressions with a proportion of occurrence less than 0.2 are returned as rare values. When rare values are identified, a warning is printed to notify the user. The `var` column indicates the entity (note that `dose` in this output refers to dose amount, while `dosestr` would indicate dose given intake) This can be used as a quick check for potentially inaccurate information and allow the user to remove incorrect extractions. Note that these values may still be correct extractions even though they are rare, as is the case for our output below.
+```{r}
+lam_checkForRare <- buildDose(lam_mxr_parsed, checkForRare=TRUE)
+```
+
 
 
 ### Part II
@@ -369,7 +383,7 @@ In this section, we cover how incorporation of the last dose entity should be ha
 
 The `processLastDose` function requires the following arguments:
 
-- `mxrData`: raw output from the medExtractR system  
+- `mxrData`: raw output from the `extractMed` function 
 - `noteMetaData`: note meta data for each file name in `mxrData`  
 - `labData`: a data frame containing lab dates and times associated with the file names within `mxrData`. This must contain at a minimum the columns `pid` and `date` (in the same format as `noteMetaData`), as well as `labtime`, a POSIXct variable indicating the date and time of a laboratory drug measurement  
 
@@ -380,12 +394,12 @@ data(tac_lab)
 tac_lab
 ```
 
-Within `processLastDose`, extracted times are converted to time expressions of the format "HH:MM:SS" and assigned a date based on the date of the corresponding note. When the last dose time is after 12pm, it is assumed to have been taken on the previous date. 
+Within `processLastDose`, extracted times are converted to time expressions of the format "HH:MM:SS" and assigned a date based on the date of the corresponding note. When the last dose time is after 12pm, it is assumed to have been taken on the previous date.
 ```{r}
 (tac_ld <- processLastDose(mxrData = tac_mxr, noteMetaData = tac_metadata, labData = tac_lab))
 ```
 
-The function output contains the processed and standardized last dose time (`lastdose`), the original extracted expression (`raw_time`), whether the raw expression was a time or duration (`time_type`), as well as position information for the last dose time (`ld_start`) for appropriate pairing with dosing information in `addLastDose`.
+The function output contains the processed and standardized last dose time (`lastdose`), the original extracted expression (`raw_time`), whether the raw expression was a time or duration (`time_type`), as well as position information for the last dose time (`ld_start`) for appropriate pairing with dosing information in `addLastDose`. The `labtime` column in the output above corresponds to the information provided in the `labData` argument.
 
 
 The `addLastDose` function requires the following arguments:
@@ -398,7 +412,7 @@ In the case where last dose information was extracted from clinical notes using 
 ```{r}
 (tac_part_i_out_lastdose <- addLastDose(buildData = tac_part_i_out, lastdoseData = tac_ld))
 ```
-
+Note that in the `lastdose` columns, we now have standardized datetime objects instead of the raw extracted expressions.
 
 
 #### `collapseDose`
@@ -416,7 +430,7 @@ The general function call is:
 collapseDose(x, noteMetaData, naFreq = 'most', ...)
 ```
 
-The main function underlying `collapseDose` is `makeDose`, which standardizes entities, imputes missing values, calculates dose intake and daily dose, removes redundancies, and generates the final dose data. Two `data.frames` are generated from the `makeDose` function, one with redundancies removed at the note level and one at the date level (see McNeer et al. for details). The `collapseDose` function serves as a wrapper to `makeDose` to ensure results are collated and formatted properly for analysis.
+The main function underlying `collapseDose` is `makeDose`, which standardizes entities, imputes missing values, calculates dose intake and daily dose, removes redundancies, and generates the final dose data. Two `data.frames` are generated from the `makeDose` function, one with redundancies removed at the note level and one at the date level (see McNeer et al. (2020) for details). The `collapseDose` function serves as a wrapper to `makeDose` to ensure results are collated and formatted properly for analysis.
 
 
 #### Running `collapseDose`
@@ -439,7 +453,7 @@ tac_part_ii$date
 ```
 
 
-Below, we demonstrate `collapseDose` using our lamotrigine example. We choose to separate extended release formulations of lamotrigine, usually denoted by "XR" or "ER":
+Below, we demonstrate `collapseDose` using our lamotrigine example. In the function call, we supply an additional argument `'xr|er'` to indicate that we want to separately consider extended release formulations of lamotrigine, (usually denoted by "XR" or "ER"). This prevents regular lamotrigine mentions from being collapsed with lamotrigine XR mentions, even if the dosage is identical.
 
 ```{r, warning = FALSE}
 data(lam_metadata)
