@@ -1,8 +1,6 @@
 T1	DrugName 789 796	Prograf
 T2	Dose 797 801	2 mg
 T3	Frequency 805 807	qd
-T4	DrugName 844 851	Prograf
-T5	LastDose 856 860	10PM
 T6	DrugName 1067 1074	PROGRAF
 T7	Strength 1075 1078	1MG
 T8	DoseAmt 1079 1080	2
