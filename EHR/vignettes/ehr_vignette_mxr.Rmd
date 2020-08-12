@@ -362,7 +362,6 @@ cat(findbreaks(lam_mxn, charlen = 90))
 The output from all systems, once parsed, has the same structure as the example parsed MedXN output below.
 
 ```{r, warning = FALSE}
-# (lam_mxn_parsed <- parseMedXN(lam_mxn_fn, begText = "^[ID0-9]+_[0-9-]+_[Note0-9]"))
 lam_mxn_parsed <- parseMedXN(lam_mxn_fn, begText = "^[ID0-9]+_[0-9-]+_[Note0-9]")
 ```
 
