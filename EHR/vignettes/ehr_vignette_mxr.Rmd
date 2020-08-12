@@ -15,6 +15,49 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 ```
 
+```{r niceroutput, echo = FALSE}
+findbreaks <- function(x, char = '\\|', charlen = 75) {
+  if(length(x) > 1) {
+    out <- vapply(x, findbreaks, character(1), char, charlen, USE.NAMES = FALSE)
+    return(paste(out, collapse = '\n'))
+  }
+  cur <- x
+  nbuf <- ceiling(nchar(x) / charlen)
+  strings <- character(nbuf)
+  i <- 1
+  while(nchar(cur) > charlen) {
+    loc <- c(gregexpr(char, cur)[[1]])
+    b <- loc[max(which(loc < charlen))]
+    strings[i] <- substr(cur, 1, b)
+    cur <- substring(cur, b + 1)
+    i <- i + 1
+  }
+  strings[i] <- cur
+  paste(c(strings[1], paste0('     ', strings[-1])), collapse = '\n')
+}
+
+breaktable <- function(df, brks) {
+  if(class(df)[1] != 'data.frame') {
+    df <- as.data.frame(df)
+  }
+  if(max(brks) != ncol(df)) {
+    brks <- sort(c(brks, ncol(df)))
+  }
+  lb <- length(brks)
+  res <- vector('list', lb * 2 - 1)
+  pos <- 1
+  for(i in seq(lb)) {
+    curdf <- df[, seq(pos, brks[i]), drop = FALSE]
+    curout <- capture.output(print(curdf))
+    if(i > 1) curout <- paste0('     ', curout)
+    res[[(i - 1) * 2 + 1]] <- curout
+    if(i < lb) res[[i * 2]] <- ''
+    pos <- brks[i] + 1
+  }
+  paste(do.call(c, res), collapse = '\n')
+}
+```
+
 # Introduction
 
 The `EHR` package provides a modularized approach to performing pharmacokinetic/pharmacodynamic (PK/PD) analyses using data from electronic health record (EHR) databases. This vignette describes the purpose of each module in the system, as outlined in Choi, et al.$^{1}$ The process starts with data extraction (*Extract-Med*), then moves on to data processing (*Pro-Med-NLP*), from which a final data set can be built.
@@ -184,7 +227,7 @@ tune_ann <- do.call(rbind, lapply(ann_filenames, function(fn){
 head(tune_ann)
 ```
 
-To select appropriate tuning parameters, we identify a range of possible values for each of the `windowlength` and `max_edit_dist` parameters. Here, we allow `windowlength` to vary from 30 to 70 characters in increments of 10, and `max_edit_dist` to take a value of 0, 1, or 2. We then obtain the `extractMed` results for each combination. We set `progress=FALSE` to avoid printing the progress message for each combination of arguments.
+To select appropriate tuning parameters, we identify a range of possible values for each of the `windowlength` and `max_edit_dist` parameters. Here, we allow `windowlength` to vary from 30 to 120 characters in increments of 30, and `max_edit_dist` to take a value of 0, 1, or 2. We then obtain the `extractMed` results for each combination. We set `progress=FALSE` to avoid printing the progress message for each combination of arguments.
 
 ```{r run_mxr, cache = TRUE}
 wind_len <- seq(30, 120, 30)
@@ -259,7 +302,7 @@ ggplot(tune_pick) + geom_point(aes(max_edit_distance, window_length, size = F1))
   ggtitle("F1 for tuning parameter values")
 ```
 
-The plot shows that the highest F1 achieved was 1, and occurred for two different combinations of parameter values: a maximum edit distance of 2 and a window length of 60, 90, or 120 characters. The relatively small number of unique F1 values is likely the result of only using 3 tuning notes. In this case, we would typically err on the side of allowing a larger search window and decide to use a maximum edit distance of 2 and a window length of 120 characters. In a real-world tuning scenario and with a larger tuning set, we would also want to test longer window lengths since the best case scenario occurred at the longest window length we used.
+The plot shows that the highest F1 achieved was 1, and occurred for three different combinations of parameter values: a maximum edit distance of 2 and a window length of 60, 90, or 120 characters. The relatively small number of unique F1 values is likely the result of only using 3 tuning notes. In this case, we would typically err on the side of allowing a larger search window and decide to use a maximum edit distance of 2 and a window length of 120 characters. In a real-world tuning scenario and with a larger tuning set, we would also want to test longer window lengths since the best case scenario occurred at the longest window length we used.
 
 
 
@@ -312,12 +355,18 @@ Below is an example using the `parseMedXN` function.
 lam_mxn <- scan(lam_mxn_fn, '', sep = '\n', quiet = TRUE)
 # Print output
 message("MedXN output:\n")
-lam_mxn
+#lam_mxn
+cat(findbreaks(lam_mxn, charlen = 90))
 ```
 
 The output from all systems, once parsed, has the same structure as the example parsed MedXN output below.
+
 ```{r, warning = FALSE}
-(lam_mxn_parsed <- parseMedXN(lam_mxn_fn, begText = "^[ID0-9]+_[0-9-]+_[Note0-9]"))
+lam_mxn_parsed <- parseMedXN(lam_mxn_fn, begText = "^[ID0-9]+_[0-9-]+_[Note0-9]")
+```
+
+```{r, echo = FALSE}
+cat(breaktable(lam_mxn_parsed, c(3,5)))
 ```
 
 #### `buildDose`
@@ -335,7 +384,7 @@ buildDose(dat, dn = NULL)
 Other notable arguments that can be specified by `buildDose` include:  
 
 - `preserve`: columns which should be preserved in the final output, but not considered for pairing with other entities. The default is `NULL`, though for medExtractR the dose change entity is always preserved.
-- `dist_method`: which distance method calculation to use in cost calculation for pairing entities. For more details see the supplementary material in McNeer, e.al. (2020). The default from `getOption('ehr.dist_method')` is *minEntEnd*, or using the minimum distance between the end of one entity and beginning of the next).
+- `dist_method`: which distance method calculation to use in cost calculation for pairing entities. For more details see the supplementary material in McNeer, et al. (2020). The default from `getOption('ehr.dist_method')` is *minEntEnd*, or using the minimum distance between the end of one entity and beginning of the next).
 - `checkForRare`: a logical argument, indicates whether or not the output should return rare occurrences of entities (default is `FALSE`)
 
 The output of the `buildDose` function is a dataset with a column for each entity and a row for each pairing.
