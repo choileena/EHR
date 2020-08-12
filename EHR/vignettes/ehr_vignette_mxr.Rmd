@@ -15,6 +15,49 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 ```
 
+```{r niceroutput, echo = FALSE}
+findbreaks <- function(x, char = '\\|', charlen = 75) {
+  if(length(x) > 1) {
+    out <- vapply(x, findbreaks, character(1), char, charlen, USE.NAMES = FALSE)
+    return(paste(out, collapse = '\n'))
+  }
+  cur <- x
+  nbuf <- ceiling(nchar(x) / charlen)
+  strings <- character(nbuf)
+  i <- 1
+  while(nchar(cur) > charlen) {
+    loc <- c(gregexpr(char, cur)[[1]])
+    b <- loc[max(which(loc < charlen))]
+    strings[i] <- substr(cur, 1, b)
+    cur <- substring(cur, b + 1)
+    i <- i + 1
+  }
+  strings[i] <- cur
+  paste(c(strings[1], paste0('     ', strings[-1])), collapse = '\n')
+}
+
+breaktable <- function(df, brks) {
+  if(class(df)[1] != 'data.frame') {
+    df <- as.data.frame(df)
+  }
+  if(max(brks) != ncol(df)) {
+    brks <- sort(c(brks, ncol(df)))
+  }
+  lb <- length(brks)
+  res <- vector('list', lb * 2 - 1)
+  pos <- 1
+  for(i in seq(lb)) {
+    curdf <- df[, seq(pos, brks[i]), drop = FALSE]
+    curout <- capture.output(print(curdf))
+    if(i > 1) curout <- paste0('     ', curout)
+    res[[(i - 1) * 2 + 1]] <- curout
+    if(i < lb) res[[i * 2]] <- ''
+    pos <- brks[i] + 1
+  }
+  paste(do.call(c, res), collapse = '\n')
+}
+```
+
 # Introduction
 
 The `EHR` package provides a modularized approach to performing pharmacokinetic/pharmacodynamic (PK/PD) analyses using data from electronic health record (EHR) databases. This vignette describes the purpose of each module in the system, as outlined in Choi, et al.$^{1}$ The process starts with data extraction (*Extract-Med*), then moves on to data processing (*Pro-Med-NLP*), from which a final data set can be built.
@@ -312,12 +355,19 @@ Below is an example using the `parseMedXN` function.
 lam_mxn <- scan(lam_mxn_fn, '', sep = '\n', quiet = TRUE)
 # Print output
 message("MedXN output:\n")
-lam_mxn
+#lam_mxn
+cat(findbreaks(lam_mxn, charlen = 90))
 ```
 
 The output from all systems, once parsed, has the same structure as the example parsed MedXN output below.
+
 ```{r, warning = FALSE}
-(lam_mxn_parsed <- parseMedXN(lam_mxn_fn, begText = "^[ID0-9]+_[0-9-]+_[Note0-9]"))
+# (lam_mxn_parsed <- parseMedXN(lam_mxn_fn, begText = "^[ID0-9]+_[0-9-]+_[Note0-9]"))
+lam_mxn_parsed <- parseMedXN(lam_mxn_fn, begText = "^[ID0-9]+_[0-9-]+_[Note0-9]")
+```
+
+```{r, echo = FALSE}
+cat(breaktable(lam_mxn_parsed, c(3,5)))
 ```
 
 #### `buildDose`
