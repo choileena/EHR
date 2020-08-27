@@ -70,11 +70,18 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
     cat(sprintf('The number of subjects in the PK data before merging with demographics: %s\n', length(unique(pkd$mod_id))))
   }
 
-  pkd[,'mod_id_visit'] <- conc[match(pkd[,'mod_id'], conc[,'mod_id']), 'mod_id_visit']
-
+  hasMIV <- 'mod_id_visit' %in% names(conc)
+  if(hasMIV) {
+    pkd[,'mod_id_visit'] <- conc[match(pkd[,'mod_id'], conc[,'mod_id']), 'mod_id_visit']
+  } else {
+    pkd[,'mod_id_visit'] <- pkd[,'mod_id']
+  }
   flow.weight <- info[!is.na(info[,'weight']), c('mod_id','infuse.time.real','weight')]
 
   tmp <- merge(pkd, flow.weight, by.x=c('mod_id','date'), by.y=c('mod_id','infuse.time.real'), all.x=TRUE)
+  if(!hasMIV) {
+    tmp[,'mod_id_visit'] <- tmp[,'mod_id']
+  }
 
   if(hasLabs) {
     for(i in seq_along(lab.dat)) {
