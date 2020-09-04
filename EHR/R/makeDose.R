@@ -192,6 +192,8 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
       x <- rbind(x1, x2)
     }
     x <- reOrder(x)
+    # code above converts lastdose to numeric - convert back to POSIXct
+    x <- as.POSIXct(x$lastdose, origin = '1970-01-01')
   }
 
   # borrow dosestr.num - require unique w/in mention
