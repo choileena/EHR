@@ -6,7 +6,7 @@
 #' interpretation may be needed. For example \sQuote{2-1} likely indicates
 #' a strength of 2 followed by a strength of 1. Thus a single element may need
 #' to be standarized into two elements. This can only happen if the frequency
-#' entity is missing or in agreement (sQuote{bid} for example). See the
+#' entity is missing or in agreement (\sQuote{bid} for example). See the
 #' \sQuote{addl_data} attribute of the returned vector.
 #'
 #' @param str character vector of extracted strength values

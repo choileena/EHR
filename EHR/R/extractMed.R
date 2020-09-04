@@ -42,6 +42,7 @@
 #' }
 #'
 #' @examples
+#' \donttest{
 #' tac_fn <- list(system.file("examples", "tacpid1_2008-06-26_note1_1.txt", package = "EHR"),
 #'                system.file("examples", "tacpid1_2008-06-26_note2_1.txt", package = "EHR"),
 #'                system.file("examples", "tacpid1_2008-12-16_note3_1.txt", package = "EHR"))
@@ -52,6 +53,7 @@
 #'            windowlength = 60,
 #'            max_edit_dist = 2,
 #'            lastdose=TRUE)
+#' }
 #' @export
 
 extractMed <- function(note_fn, drugnames, drgunit,
