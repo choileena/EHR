@@ -1,5 +1,5 @@
 ---
-title: "EHR Vignette"
+title: "EHR Vignette for *Extract-Med* and *Pro-Med-NLP*"
 date: '`r Sys.Date()`'
 output: pdf_document
 ---
@@ -9,6 +9,7 @@ output: pdf_document
 %\VignetteIndexEntry{EHR Vignette with medExtractR}
 %\VignetteEncoding{UTF-8}
 -->
+
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -60,7 +61,7 @@ breaktable <- function(df, brks) {
 
 # Introduction
 
-The `EHR` package provides a modularized approach to performing pharmacokinetic/pharmacodynamic (PK/PD) analyses using data from electronic health record (EHR) databases. This vignette describes the purpose of each module in the system, as outlined in Choi, et al.$^{1}$ The process starts with data extraction (*Extract-Med*), then moves on to data processing (*Pro-Med-NLP*), from which a final data set can be built.
+The `EHR` package provides several modules to perform diverse medication-related studies using data from electronic health record (EHR) databases. Especially, the package includes modules to perform pharmacokinetic/pharmacodynamic (PK/PD) analyses using EHRs, as outlined in Choi, et al.$^{1}$, and additional modules will be added in future. This vignette describes two modules in the system, when drug dosing information should be obtained from unstructured clinical notes. The process starts with data extraction (*Extract-Med*), then moves on to data processing (*Pro-Med-NLP*), from which a final data set can be built.
 
 ```{r EHR_load}
 library(EHR)
@@ -68,8 +69,7 @@ library(EHR)
 
 ## Extract-Med
 
-The Extract-Med module uses a natural language processing (NLP) system called medExtractR.$^{2}$ The medExtractR system is a medication extraction system that uses regular expressions and rule-based approaches to identify key dosing information including drug name, strength, dose amount, frequency or intake time, dose change, and last dose time. Function arguments can be specified to allow the user to tailor the medExtractR system to the particular drug or dataset of interest, improving the quality of extracted information.  
-
+The *Extract-Med* module uses a natural language processing (NLP) system called *medExtractR*.$^{2}$ The medExtractR system is a medication extraction system that uses regular expressions and rule-based approaches to identify key dosing information including drug name, strength, dose amount, frequency or intake time, dose change, and last dose time. Function arguments can be specified to allow the user to tailor the medExtractR system to the particular drug or dataset of interest, improving the quality of extracted information.  
 
 ### Setup of `extractMed`  
 
@@ -93,7 +93,7 @@ extractMed(note_fn, drugnames, drgunit, windowlength, max_edit_dist, ...)
 ```
 
 
-where `...` refers to additional arguments to medExtractR (see package documentation for details$^{3}$). Examples of additional arguments include  
+where `...` refers to additional arguments to *medExtractR* (see package documentation for details$^{3}$). Examples of additional arguments include:
 
 - `strength_sep`, where users can specify special characters to separate doses administered at different times of day. For example, consider the drug name *"lamotrigine"* and the phrase *"Patient is on lamotrigine 200-300"*, indicating that the patient takes 200 mg of the drug in the morning and 300 mg in the evening. Setting `strength_sep = c('-')` would allow `extractMed` to identify the expression *200-300* as "Dose" (i.e., dose given intake) since they are separated by the special character "-". The default value is `NULL`.  
 
@@ -153,10 +153,10 @@ The format of output from the Extract-Med module is a `data.frame` with 4 column
 ```{r, echo = FALSE}
 # Print output
 message("tacrolimus medExtractR output:\n")
-tac_mxr
+head(tac_mxr)
 
 message("lamotrigine medExtractR output:\n")
-lam_mxr
+head(lam_mxr)
 ```
 
 The lamotrigine results can be immediately put into the `parse` step of the Pro-Med-NLP module. For the tacrolimus output, we chose to also extract the last dose time entity by specifying `lastdose=TRUE`. The last dose time entity is extracted as raw character expressions from the clinical note, and must first be converted to a standardized datetime format, which is addressed in a later section (see "Handling `lastdose`" section). The output of `extractMed` must be saved as a CSV file, the filename of which will serve as the first input to the Pro-Med-NLP module.
@@ -309,7 +309,7 @@ The plot shows that the highest F1 achieved was 1, and occurred for three differ
 
 ## Pro-Med-NLP
 
-The Pro-Med-NLP module uses a post-processing algorithm to build longitudinal medication dose data from the raw output from an NLP system.$^{5}$ The post-processing algorithm is divided into two parts. Part I parses the raw output and pairs entities together, and Part II calculates dose intake and daily dose and removes redundant information.
+The *Pro-Med-NLP* module uses a dose data building algorithm to generate longitudinal medication dose data from the raw output of an NLP system.$^{5}$ The algorithm is divided into two parts. Part I parses the raw output and pairs entities together, and Part II calculates dose intake and daily dose and removes redundant information.
 
 ### Part I
 
@@ -399,7 +399,7 @@ In our medExtractR example from above, the output of the `buildDose` function is
 ```
 
 
-If the `checkForRare` argument is set to `TRUE`, any extracted expressions with a proportion of occurrence less than 0.2 are returned as rare values. When rare values are identified, a warning is printed to notify the user. The `var` column indicates the entity (note that `dose` in this output refers to dose amount, while `dosestr` would indicate dose given intake) This can be used as a quick check for potentially inaccurate information and allow the user to remove incorrect extractions. Note that these values may still be correct extractions even though they are rare, as is the case for our output below.
+If the `checkForRare` argument is set to `TRUE`, any extracted expressions with a proportion of occurrence less than 0.2 are returned as rare values. When rare values are identified, a warning is printed to notify the user. The `var` column indicates the entity (note that `dose` in this output refers to dose amount, while `dosestr` would indicate dose given intake). This can be used as a quick check for potentially inaccurate information and allow the user to remove incorrect extractions before applying the Pro-Med-NLP module as incorrect extractions would reduce accuracy of the dose building data. Note that these values may still be correct extractions even though they are rare, as is the case for our output below.
 ```{r}
 lam_checkForRare <- buildDose(lam_mxr_parsed, checkForRare=TRUE)
 ```
@@ -436,7 +436,7 @@ The `processLastDose` function requires the following arguments:
 - `noteMetaData`: note meta data for each file name in `mxrData`  
 - `labData`: a data frame containing lab dates and times associated with the file names within `mxrData`. This must contain at a minimum the columns `pid` and `date` (in the same format as `noteMetaData`), as well as `labtime`, a POSIXct variable indicating the date and time of a laboratory drug measurement  
 
-Extracted last dose times can fall into two categories: a time expression (e.g., "10am", "22:00", "7 last night") or a duration expression (e.g. "14 hour" level), where the "time" of last dose indicates the number of hours since the last dose was taken relative to the time of the clinical visit. In the latter case, the lab time (from the `labData` argument) is needed in order to convert the extracted duration expression into a datetime variable. Below is an example lab dataset for our sample tacrolimus data
+Extracted last dose times can fall into two categories: a time expression (e.g., "10am", "22:00", "7 last night") or a duration expression (e.g. "14 hour" level), where the "time" of last dose indicates the number of hours since the last dose was taken relative to the time of the clinical visit. In the latter case, the lab time (from the `labData` argument) is needed in order to convert the extracted duration expression into a datetime variable. Below is an example lab dataset for our sample tacrolimus data.
 
 ```{r}
 data(tac_lab)
