@@ -3,7 +3,7 @@ Version: 0.3-1
 Date: 2020-09-04
 Title: Electronic Health Record (EHR) Data Processing and Analysis Tool
 Maintainer: Leena Choi <naturechoi@gmail.com>
-Authors@R: 
+Authors@R:
     c(person("Leena", "Choi", role = c("aut", "cre"),
              email = "naturechoi@gmail.com"),
     person("Cole", "Beck", role = "aut",
@@ -12,7 +12,10 @@ Authors@R:
     person("Hannah", "Weeks", role = "aut",
            email = "hannah.l.weeks@vanderbilt.edu"),
     person("Elizabeth", "McNeer", role = "aut",
-           email = "elizabeth.mcneer@vumc.org"))
+           email = "elizabeth.mcneer@vumc.org"),
+    person("Nathan", "James", role = "aut",
+           email = "nathan.t.james@vanderbilt.edu",
+           comment = c(ORCID = "0000-0001-7079-9151")))
 Description: Process and analyze Electronic Health Record (EHR) data. The `EHR`
     package provides modules to perform diverse medication-related studies using
     data from EHR databases. Especially, the package includes modules to perform
@@ -24,12 +27,12 @@ Description: Process and analyze Electronic Health Record (EHR) data. The `EHR`
 Depends: R (>= 2.10)
 License: GPL (>=3)
 Imports: stats, utils, logistf, data.table, methods, lubridate
-Suggests: 
+Suggests:
     glmnet,
     medExtractR,
     knitr,
     rmarkdown,
     ggplot2
 NeedsCompilation: no
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 VignetteBuilder: knitr
