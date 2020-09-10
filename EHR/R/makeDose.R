@@ -190,6 +190,8 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
       # borrow if unique
       x1 <- do.call(qrbind, lapply(split(x1, x1[,'key2']), borrowVal, 'lastdose'))
       x <- rbind(x1, x2)
+      # convert back to POSIXct
+      x[,'lastdose'] <- as.POSIXct(as.numeric(x[,'lastdose']), origin = '1970-01-01')
     }
     x <- reOrder(x)
   }

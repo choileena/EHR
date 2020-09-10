@@ -1,0 +1,225 @@
+---
+title: "Dose Building Using Example Vanderbilt EHR Data"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{2. Dose Building Using Example Vanderbilt EHR Data}
+%\VignetteEncoding{UTF-8}
+-->
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(EHR)
+```
+
+```{r niceroutput, echo = FALSE}
+breaktable <- function(df, brks) {
+  if(class(df)[1] != 'data.frame') {
+    df <- as.data.frame(df)
+  }
+  if(max(brks) != ncol(df)) {
+    brks <- sort(c(brks, ncol(df)))
+  }
+  lb <- length(brks)
+  res <- vector('list', lb * 2 - 1)
+  pos <- 1
+  for(i in seq(lb)) {
+    curdf <- df[, seq(pos, brks[i]), drop = FALSE]
+    curout <- capture.output(print(curdf))
+    if(i > 1) curout <- paste0('     ', curout)
+    res[[(i - 1) * 2 + 1]] <- curout
+    if(i < lb) res[[i * 2]] <- ''
+    pos <- brks[i] + 1
+  }
+  paste(do.call(c, res), collapse = '\n')
+}
+```
+
+# Introduction
+
+We have provided the medExtractR output and gold standards for the tacrolimus and lamotrigine test sets used to develop the dose building algorithm detailed in this paper. This data comes from Vanderbilt's EHR system. In this vignette, we show how to access this data, how to implement the algorithm, and how to compare the algorithm output to the gold standard using the tacrolimus data. More details of the functions used in the algorithm can be found in our EHR vignette for Extract-Med and Pro-Med-NLP.
+
+## medExtractR Output
+
+Several rows of the medExtractR output for tacrolimus are shown below.
+```{r}
+tac_mxr_fn <- system.file("examples", "tac_mxr_out.csv", package = "EHR")
+tac_mxr <- read.csv(tac_mxr_fn, na = '')
+tac_mxr[c(135:139,163:167,283:289,343:346),]
+```
+
+## Part I
+
+The first step of Part I of our algorithm is parsing the raw NLP output. This results in a standardized form of the data that includes a row for each drug mention and columns for all entities anchored to that drug mention. Here, we use the `parseMedExtractR` function since we are using medExtractR output as an example.
+
+```{r}
+tac_mxr_parsed <- parseMedExtractR(tac_mxr_fn)
+```
+
+Below are the rows of the parsed output corresponding to the raw NLP output from above.
+
+```{r,echo=FALSE}
+cat(breaktable(tac_mxr_parsed[c(32,33,42,43,87,88,102),], c(3,7)))
+```
+
+Next, the parsed entities are paired using the `buildDose` function. This results in a dataset with a column for each entity and a row for each pairing.
+
+```{r}
+tac_mxr_part1_out <- buildDose(tac_mxr_parsed)
+```
+
+The output is shown below.
+
+```{r,echo=FALSE}
+tac_mxr_part1_out[c(51,52,55,56,104,105,106),]
+```
+
+### Comparing to Gold Standard
+
+We have provided the gold standard that we generated for part 1. Several rows are shown below.
+
+```{r}
+tac_gs_part1 <- read.csv(system.file("examples", "tac_gs_part1.csv", package = "EHR"),
+                         stringsAsFactors = FALSE, na = '')
+```
+
+```{r,echo=FALSE}
+tac_gs_part1[c(51:54,104,105,107),]
+```
+
+The following code compares the gold standard to the Part I output and provides the recall and precision measures.
+```{r}
+precall <- function(dat, gs) {
+  tp1 <- sum(dat %in% gs)
+  fp1 <- sum(!(dat %in% gs))
+  fn1 <- sum(!(gs %in% dat))
+  r1 <- c(tp1, tp1 + fn1)
+  p1 <- c(tp1, tp1 + fp1)
+  r <- rbind(r1,p1)
+  dimnames(r) <- list(c('recall','prec'), c('num','den'))
+  cbind(r, prop = round(r[,1] / r[,2], 2))
+}
+
+colsToCompare <- c('filename','drugname','strength','dose','route','freq',
+  'dosestr','dosechange','drugname_start')
+tac_mxr_part1_out <- tac_mxr_part1_out[,colsToCompare]
+tac_gs_part1 <- tac_gs_part1[,colsToCompare]
+
+tacxrrow <- do.call(paste, c(tac_mxr_part1_out, sep = '|'))
+gs.tacxrrow <- do.call(paste, c(tac_gs_part1, sep = '|'))
+
+precall(tacxrrow, gs.tacxrrow)
+```
+
+## Part II
+
+In part II of the algorithm, the final datasets are formed containing dose intake and daily dose, and redundancies are removed at the note and date level for each patient.
+
+This part of the algorithm requires more detailed meta data associated with each clinical note file. This is shown below using our example tacrolimus data.
+```{r}
+bmd <- function(x) {
+  fns <- strsplit(x, '_')
+  pid <- sapply(fns, `[`, 1)
+  date <- as.Date(sapply(fns, `[`, 2), format = '%Y-%m-%d')
+  note <- sapply(fns, `[`, 3)
+  data.frame(filename = x, pid, date, note, stringsAsFactors = FALSE)
+}
+tac_metadata <- bmd(tac_mxr_part1_out[['filename']])
+```
+
+```{r,echo=FALSE}
+tac_metadata[c(51,55,104,105),]
+```
+
+Below, a few rows of the note level and date level collapsing are shown for our example tacrolimus data.
+```{r,message=FALSE}
+tac_part2 <- collapseDose(tac_mxr_part1_out, tac_metadata, naFreq='most')
+```
+
+Note level:
+```{r,echo=FALSE}
+cat(breaktable(tac_part2$note[c(40,42,68,69),], c(7,12)))
+```
+
+Date level:
+```{r,echo=FALSE}
+cat(breaktable(tac_part2$date[c(29,42),], c(7,12)))
+```
+
+### Comparing to Gold Standard
+
+We have provided the gold standards that we generated for part 2.
+
+Note level:
+```{r}
+tac_gs_part2_note <- read.csv(
+  system.file("examples", "tac_gs_part2_note.csv", package = "EHR"),
+  stringsAsFactors = FALSE, na = ''
+)
+```
+
+```{r,echo=FALSE}
+tac_gs_part2_note[c(40,41,68,70),]
+```
+
+Date level:
+```{r}
+tac_gs_part2_date <- read.csv(
+  system.file("examples", "tac_gs_part2_date.csv", package = "EHR"),
+  stringsAsFactors = FALSE, na = ''
+)
+```
+
+```{r,echo=FALSE}
+tac_gs_part2_date[c(29,42),]
+```
+
+The following code compares the gold standard to the Part II output and provides the recall and precision measures for note level and date level collapsing for dose intake and daily dose. In order to replicate the results from this paper, we use the Part I gold standard as the input to `collapseDose`.
+```{r}
+precall <- function(dat, gs) {
+  tp1 <- sum(dat %in% gs)
+  fp1 <- sum(!(dat %in% gs))
+  fn1 <- sum(!(gs %in% dat))
+  r1 <- c(tp1, tp1 + fn1)
+  p1 <- c(tp1, tp1 + fp1)
+  r <- rbind(r1,p1)
+  dimnames(r) <- list(c('recall','prec'), c('num','den'))
+  cbind(r, prop = round(r[,1] / r[,2], 2))
+}
+
+metaData <- bmd(unique(tac_gs_part1$filename))
+tacxr <- collapseDose(tac_gs_part1, metaData, 'bid')
+tacxr.note <- tacxr[['note']]
+tacxr.date <- tacxr[['date']]
+
+tacxr.note$pid <- sub("_.*","",tacxr.note$filename)
+tacxr.date$pid <- sub("_.*","",tacxr.date$filename)
+tac_gs_part2_note$pid <- sub("_.*","",tac_gs_part2_note$filename)
+tac_gs_part2_date$pid <- sub("_.*","",tac_gs_part2_date$filename)
+
+tacxrrow.note.intake <- do.call(paste, c(tacxr.note[,c('pid','dose.intake',
+                                                       'dosechange')],sep = '|'))
+tacxrrow.note.daily <- do.call(paste, c(tacxr.note[,c('pid','intaketime','dose.daily',
+                                                      'dosechange')], sep = '|'))
+tacxrrow.date.intake <- do.call(paste, c(tacxr.date[,c('pid','dose.intake',
+                                                       'dosechange')], sep = '|'))
+tacxrrow.date.daily <- do.call(paste, c(tacxr.date[,c('pid','intaketime','dose.daily',
+                                                      'dosechange')], sep = '|'))
+
+gs.tacxrrow.note.intake <- do.call(paste, c(tac_gs_part2_note[,c('pid','doseintake',
+                                                                 'dosechange')], sep = '|'))
+gs.tacxrrow.note.daily <- do.call(paste, c(tac_gs_part2_note[,c('pid','intaketime','daily',
+                                                                'dosechange')], sep = '|'))
+gs.tacxrrow.date.intake <- do.call(paste, c(tac_gs_part2_date[,c('pid','doseintake',
+                                                                 'dosechange')], sep = '|'))
+gs.tacxrrow.date.daily <- do.call(paste, c(tac_gs_part2_date[,c('pid','intaketime','daily',
+                                                                'dosechange')], sep = '|'))
+
+precall(tacxrrow.note.intake, gs.tacxrrow.note.intake)
+precall(tacxrrow.note.daily, gs.tacxrrow.note.daily)
+precall(tacxrrow.date.intake, gs.tacxrrow.date.intake)
+precall(tacxrrow.date.daily, gs.tacxrrow.date.daily)
+```

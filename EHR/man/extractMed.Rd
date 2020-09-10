@@ -57,6 +57,7 @@ to extract drug dosing information, \code{extractMed} appends the file name to r
 they are appropriately labeled.
 }
 \examples{
+\donttest{
 tac_fn <- list(system.file("examples", "tacpid1_2008-06-26_note1_1.txt", package = "EHR"),
                system.file("examples", "tacpid1_2008-06-26_note2_1.txt", package = "EHR"),
                system.file("examples", "tacpid1_2008-12-16_note3_1.txt", package = "EHR"))
@@ -67,4 +68,5 @@ extractMed(tac_fn,
            windowlength = 60,
            max_edit_dist = 2,
            lastdose=TRUE)
+}
 }

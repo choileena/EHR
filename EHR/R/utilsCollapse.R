@@ -57,7 +57,8 @@ qrbind <- function(..., deparse.level=1) {
   }
   if(is.null(df)) return(NULL)
   cn <- colnames(df)
-  cl <- unlist(lapply(as.list(df, use.names = FALSE), class))
+  class1 <- function(x) class(x)[1]
+  cl <- unlist(lapply(as.list(df, use.names = FALSE), class1))
   cols <- lapply(seq_len(length(df)), function(i) {
     cols <- lapply(args, `[[`, cn[i])
     combined <- do.call(c, unname(cols))
