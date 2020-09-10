@@ -12,6 +12,8 @@
 #' @param data list of data.frames
 #' @param idcols list of character vectors, indicating ID columns
 #' found in each data set given in \sQuote{data}
+#' @param visit.id character sting indicating visit-level id variable (default is "subject_id")
+#' @param uniq.id character sting indicating subject-level id variable (default is "subject_mrn")
 #'
 #' @return crosswalk of ID columns and their de-identified versions
 #'
@@ -23,49 +25,54 @@
 #' }
 #' @export
 
-idCrosswalk <- function(data, idcols) {
+
+idCrosswalk <- function(data, idcols, visit.id="subject_id", uniq.id="subject_mrn") {
   dl <- length(data)
   il <- length(idcols)
   stopifnot(dl == il)
-  res <- vector('list', dl)
-  for(i in seq(dl)) {
-    df <- data[[i]][,idcols[[i]], drop = FALSE]
+  res <- vector("list", dl)
+  for (i in seq(dl)) {
+    df <- data[[i]][, idcols[[i]], drop = FALSE]
     res[[i]] <- unique(df)
   }
   red <- Reduce(function(x, y) merge(x, y, all = TRUE), res)
-  ix <- which(is.na(red[,'subject_id']))
-  red[ix,'subject_id'] <- ix * -1 + 0.1
-  red[,'subj'] <- trunc(red[,'subject_id'])
+  ix <- which(is.na(red[, visit.id]))
+  red[ix, visit.id] <- ix * -1 + 0.1
+  red[, "subj"] <- trunc(red[, visit.id])
   idBySubj <- function(x) unique(x[!is.na(x)])
-  # some MRNs are missing, but can be recovered by subj
-  meanIds <- tapply(red[,'subject_mrn'], red[,'subj'], idBySubj)
+  meanIds <- tapply(red[, uniq.id], red[, "subj"], idBySubj)
   idlen <- lengths(meanIds)
   meanIds[idlen == 0] <- NA
   meanIds <- unlist(meanIds)
   ix <- which(idlen > 1)
-  if(length(ix)) {
+  if (length(ix)) {
     badId <- names(ix)
-    print(unique(red[red[,'subj'] %in% badId,c('subj', 'subject_mrn')]))
-    stop('discrepancy with subject_id and subject_mrn must be fixed')
+    print(unique(red[red[, "subj"] %in% badId, c("subj", 
+                                                 uniq.id)]))
+    stop("discrepancy with visit.id and uniq.id must be fixed")
   }
-  red[,'subject_mrn'] <- meanIds[match(red[,'subj'], names(meanIds))]
-  red <- red[,c('subject_id', 'subject_mrn')]
-  ix <- which(is.na(red[,'subject_mrn']))
-  red[ix,'subject_mrn'] <- ix * -100.0
+  red[, uniq.id] <- meanIds[match(red[, "subj"], names(meanIds))]
+  red <- red[, c(visit.id, uniq.id)]
+  ix <- which(is.na(red[, uniq.id]))
+  red[ix, uniq.id] <- ix * -100
   red <- unique(red)
-  red <- red[order(red[,'subject_id'], red[,'subject_mrn']),]
-  dd <- duplicated(red[,'subject_mrn'])
+  red <- red[order(red[, visit.id], red[, uniq.id]), 
+             ]
+  dd <- duplicated(red[, uniq.id])
   ddcs <- cumsum(dd)
   ddncs <- cumsum(!dd)
-  red[,'mod_visit'] <- ddcs - ddcs[which(!dd)][ddncs] + 1
-  red[,'mod_id'] <- ddncs
-  red[,'mod_id_visit'] <- paste(ddncs, red[,'mod_visit'], sep = '.')
-  red[red[,'subject_id'] <= 0, 'subject_id'] <- NA
-  red[red[,'subject_mrn'] <= 0, 'subject_mrn'] <- NA
+  red[, "mod_visit"] <- ddcs - ddcs[which(!dd)][ddncs] + 1
+  red[, "mod_id"] <- ddncs
+  red[, "mod_id_visit"] <- paste(ddncs, red[, "mod_visit"], 
+                                 sep = ".")
+  red[red[, visit.id] <= 0, visit.id] <- NA
+  red[red[, uniq.id] <= 0, uniq.id] <- NA
   rownames(red) <- NULL
-  attr(red, 'deidentified_cols') <- c('mod_visit', 'mod_id', 'mod_id_visit')
+  attr(red, "deidentified_cols") <- c("mod_visit", "mod_id", 
+                                      "mod_id_visit")
   red
 }
+
 
 #' Pull Fake/Mod ID
 #'
@@ -75,17 +82,18 @@ idCrosswalk <- function(data, idcols) {
 #' @param xwalk a data.frame, providing linkage for each ID
 #' @param firstCols name of columns to put at front of output data set
 #' @param orderBy name of columns used to reorder data set
+#' @param uniq.id character sting indicating subject-level id variable (default is "subject_mrn")
 #'
 #' @return The modified data.frame
 #' 
 #' @export
 
-pullFakeId <- function(dat, xwalk, firstCols = NULL, orderBy = NULL) {
+pullFakeId <- function(dat, xwalk, firstCols = NULL, orderBy = NULL, uniq.id="subject_mrn") {
   cmn <- intersect(names(dat), names(xwalk))
-  # MRN may have multiple IDs; if it's the key, reduce
-  if(length(cmn) == 1 && cmn == 'subject_mrn') {
-    xwalk <- unique(xwalk[, c('subject_mrn','mod_id')])
-    xwalk <- xwalk[!is.na(xwalk[,'subject_mrn']),]
+  # uniq.id (MRN) may have multiple IDs; if it's the key, reduce
+  if(length(cmn) == 1 && cmn == uniq.id) {
+    xwalk <- unique(xwalk[, c(uniq.id,'mod_id')])
+    xwalk <- xwalk[!is.na(xwalk[,uniq.id]),]
   }
   if('deidentified_cols' %in% names(attributes(xwalk))) {
     toremove <- setdiff(names(xwalk), attr(xwalk, 'deidentified_cols'))
@@ -108,6 +116,7 @@ pullFakeId <- function(dat, xwalk, firstCols = NULL, orderBy = NULL) {
   }
   x
 }
+
 
 #' Pull Real ID
 #'

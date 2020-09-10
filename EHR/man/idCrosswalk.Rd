@@ -4,13 +4,17 @@
 \alias{idCrosswalk}
 \title{Create ID Crosswalk}
 \usage{
-idCrosswalk(data, idcols)
+idCrosswalk(data, idcols, visit.id = "subject_id", uniq.id = "subject_mrn")
 }
 \arguments{
 \item{data}{list of data.frames}
 
 \item{idcols}{list of character vectors, indicating ID columns
 found in each data set given in \sQuote{data}}
+
+\item{visit.id}{character sting indicating visit-level id variable (default is "subject_id")}
+
+\item{uniq.id}{character sting indicating subject-level id variable (default is "subject_mrn")}
 }
 \value{
 crosswalk of ID columns and their de-identified versions
