@@ -4,7 +4,13 @@
 \alias{pullFakeId}
 \title{Pull Fake/Mod ID}
 \usage{
-pullFakeId(dat, xwalk, firstCols = NULL, orderBy = NULL)
+pullFakeId(
+  dat,
+  xwalk,
+  firstCols = NULL,
+  orderBy = NULL,
+  uniq.id = "subject_mrn"
+)
 }
 \arguments{
 \item{dat}{a data.frame}
@@ -14,6 +20,8 @@ pullFakeId(dat, xwalk, firstCols = NULL, orderBy = NULL)
 \item{firstCols}{name of columns to put at front of output data set}
 
 \item{orderBy}{name of columns used to reorder data set}
+
+\item{uniq.id}{character sting indicating subject-level id variable (default is "subject_mrn")}
 }
 \value{
 The modified data.frame
