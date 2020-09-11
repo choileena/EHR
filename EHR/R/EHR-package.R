@@ -37,55 +37,13 @@
 #' Bioinformatics. 2018 Sep 1;34(17):2988-2996. doi: 10.1093/bioinformatics/bty306.
 #' }
 #'
-#' @importFrom utils data head read.csv write.csv
-#' @importFrom logistf logistf.control logistpl.control
-#' @importFrom lubridate as.duration dhours dminutes parse_date_time
+#' @importFrom utils data getFromNamespace head read.csv write.csv
 #' @importFrom methods as
+#' @importFrom lubridate as.duration dhours dminutes parse_date_time
 #' @import stats
 #' @import data.table
 #'
 #' @keywords EHR process PheWAS
-#' @examples
-#' data(dataPheWAS)
-#' demo.covariates <- c('id','exposure','age','race','gender')
-#' phenotypeList <- setdiff(colnames(dd), demo.covariates)
-#' tablePhenotype <- matrix(NA, ncol=4, nrow=length(phenotypeList), 
-#' dimnames=list(phenotypeList, c("n.nocase.nonexp", "n.case.nonexp", 
-#' "n.nocase.exp", "n.case.exp")))
-#' for(i in seq_along(phenotypeList)) {
-#'     tablePhenotype[i, ] <- zeroOneTable(dd[, 'exposure'], dd[, phenotypeList[i]])
-#' }
-#' 
-#' ## use small datasets to run this example
-#' data(dataPheWASsmall)
-#' ## make dd.base with subset of covariates from baseline data (dd.baseline.small)
-#' ## or select covariates with upper code as shown below
-#' upper.code.list <- unique(sub("[.][^.]*(.).*", "", colnames(dd.baseline.small)) )
-#' upper.code.list <- intersect(upper.code.list, colnames(dd.baseline.small))
-#' dd.base <- dd.baseline.small[, upper.code.list]
-#' ## perform regularized logistic regression to obtain propensity score (PS) 
-#' ## to adjust for potential confounders at baseline
-#' phenos <- setdiff(colnames(dd.base), c('id', 'exposure'))
-#' data.x <- as.matrix(dd.base[, phenos])
-#' glmnet.fit <- glmnet::cv.glmnet(x=data.x, y=dd.base[,'exposure'],
-#'                                 family="binomial", standardize=TRUE,
-#'                                 alpha=0.1)
-#' dd.base$PS <- c(predict(glmnet.fit, data.x, s='lambda.min'))
-#' data.ps <- dd.base[,c('id', 'PS')]
-#' dd.all.ps <- merge(data.ps, dd.small, by='id')  
-#' demographics <- c('age', 'race', 'gender')
-#' phenotypeList <- setdiff(colnames(dd.small), c('id','exposure','age','race','gender'))
-#' ## run with a subset of phenotypeList to get quicker results
-#' phenotypeList.sub <- sample(phenotypeList, 10)
-#' results.sub <- analysisPheWAS(method='firth', adjust='PS', Exposure='exposure',
-#'                                                 PS='PS', demographics=demographics, 
-#'                                                 phenotypes=phenotypeList.sub, data=dd.all.ps)
-#' ## run with the full list of phenotype outcomes (i.e., phenotypeList)
-#' \donttest{
-#'         results <- analysisPheWAS(method='firth', adjust='PS',Exposure='exposure',
-#'                           PS='PS', demographics=demographics,
-#'                           phenotypes=phenotypeList, data=dd.all.ps) 
-#' }
 "_PACKAGE"
 
 .onLoad <- function(libname, pkgname) {
