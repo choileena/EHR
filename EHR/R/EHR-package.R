@@ -39,7 +39,6 @@
 #'
 #' @importFrom utils data getFromNamespace head read.csv write.csv
 #' @importFrom methods as
-#' @importFrom lubridate as.duration dhours dminutes parse_date_time
 #' @import stats
 #' @import data.table
 #'
