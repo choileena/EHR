@@ -75,16 +75,6 @@ demo.data <- list(demo=demo, exclude=NULL)
 creat.data$date.time <- lubridate::ymd_hms(creat.data$date.time)
 ```
 
-*! NB: a crosswalk is necessary for run_Build_PK_IV() to work correctly*
-
-```{r simp-xwalk, cache=TRUE}
-mod_id <- demo[,c("mod_id", "mod_id_visit")]
-pat_id <- mod_id
-names(pat_id) <- c("patient_id","patient_visit_id")
-xwalk1 <- cbind(mod_id, pat_id)
-options(pkxwalk = 'xwalk1')
-```
-
 Using the four datasets, we can build a final PK dataset with the function `run_Build_PK_IV()`. Additional details for this function are provided in *Build-PK-IV* of the Example 2: Complete Data Processing and Building from Raw Extracted Data to PK Data section below.
 
 ```{r sim-build-pk-iv, cache=TRUE}
@@ -661,4 +651,4 @@ head(pk_dat)
 
 ## References  
 
-1. Choi L, Beck C, McNeer E, Weeks HL, Williams ML, James NT, Niu X, Abou‐Khalil BW, Birdwell KA, Roden DM, Stein CM. Development of a System for Post‐marketing Population Pharmacokinetic and Pharmacodynamic Studies using Real‐World Data from Electronic Health Records. Clinical Pharmacology & Therapeutics. 2020 Apr; 107(4): 934–943.  
+1. Choi L, Beck C, McNeer E, Weeks HL, Williams ML, James NT, Niu X, Abou-Khalil BW, Birdwell KA, Roden DM, Stein CM. Development of a System for Post-marketing Population Pharmacokinetic and Pharmacodynamic Studies using Real-World Data from Electronic Health Records. Clinical Pharmacology & Therapeutics. 2020 Apr; 107(4): 934-943.  
