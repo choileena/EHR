@@ -3,7 +3,7 @@
 \name{Logistf}
 \alias{Logistf}
 \title{Firth's penalized-likelihood logistic regression with more decimal places of
-p-value than \code{\link{logistf}} function in the R package \pkg{logistf}}
+p-value than \code{logistf} function in the R package \sQuote{logistf}}
 \usage{
 Logistf(
   formula = attr(data, "formula"),
@@ -69,12 +69,11 @@ compute for all variables.}
 \item{\dots}{Further arguments to be passed to logistf.}
 }
 \value{
-same as \code{\link{logistf}} except for providing more decimal places
-of p-value.
+same as \code{logistf} except for providing more decimal places of p-value.
 }
 \description{
-Adapted from \code{\link{logistf}} in the R package \pkg{logistf}, this is 
-the same as \code{\link{logistf}} except that it provides more decimal places 
+Adapted from \code{logistf} in the R package \sQuote{logistf}, this is 
+the same as \code{logistf} except that it provides more decimal places 
 of p-value that would be useful for Genome-Wide Association Study (GWAS) 
 or Phenome Wide Association Study (PheWAS).
 }
@@ -84,7 +83,7 @@ fit <- Logistf(X264.3 ~ exposure + age + race + gender, data=dd)
 summary(fit)
 }
 \references{
-same as those provided in the R package \pkg{logistf}.
+same as those provided in the R package \sQuote{logistf}.
 }
 \author{
 Leena Choi \email{naturechoi@gmail.com} and

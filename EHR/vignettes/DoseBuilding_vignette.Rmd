@@ -6,7 +6,7 @@ output: pdf_document
 
 <!--
 %\VignetteEngine{knitr::rmarkdown}
-%\VignetteIndexEntry{2. Dose Building Using Example Vanderbilt EHR Data}
+%\VignetteIndexEntry{3. Dose Building Using Example Vanderbilt EHR Data}
 %\VignetteEncoding{UTF-8}
 -->
 

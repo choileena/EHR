@@ -4,7 +4,13 @@ date: '`r Sys.Date()`'
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{2. EHR Vignette for Structured Data}
+%\VignetteEncoding{UTF-8}
+-->
+
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(EHR)
@@ -39,8 +45,8 @@ The data for example 1 includes a demographic file, a concentration file, an IV 
 
 ```{r simp-in, cache=TRUE}
 # define directories
-rawDataDir <- system.file(file.path("examples","str_ex1"), package="EHR")
-checkDir <- system.file(file.path("examples","str_ex1","check"), package="EHR")
+rawDataDir <- system.file("examples", "str_ex1", package="EHR")
+checkDir <- system.file("examples", "str_ex1", "checks", package="EHR")
 
 demo <- read.csv(file.path(rawDataDir,"Demographics_DATA_simple.csv"), stringsAsFactors = FALSE)
 head(demo)
@@ -104,9 +110,9 @@ head(simple_pk_dat,15)
 To begin example 2 we define three directories for the raw data, the processed data, and files used for interactive checking.
 
 ```{r ex2-dirs}
-rawDataDir <- system.file(file.path("examples","str_ex2"), package="EHR")
-dataDir <- system.file(file.path("examples","str_ex2"), package="EHR")
-checkDir <- system.file(file.path("examples","str_ex2","check"), package="EHR")
+rawDataDir <- system.file("examples", "str_ex2", package="EHR")
+dataDir <- system.file("examples", "str_ex2", package="EHR")
+checkDir <- system.file("examples", "str_ex2", "checks", package="EHR")
 ```
 
 ## Pre-Processing for Raw Extracted Data
