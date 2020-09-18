@@ -16,6 +16,41 @@ knitr::opts_chunk$set(echo = TRUE)
 library(EHR)
 library(lubridate)
 library(pkdata)
+options(stringsAsFactors = FALSE)
+```
+
+```{r niceroutput, echo = FALSE}
+findbreaks <- function(x, char = '[ /\\]', charlen = 75) {
+  if(length(x) > 1) {
+    out <- vapply(x, findbreaks, character(1), char, charlen, USE.NAMES = FALSE)
+    ix <- !grepl('\n[[:space:]]*$', out)
+    ix[length(ix)] <- FALSE
+    out[ix] <- paste0(out[ix], '\n')
+    return(paste(out, collapse = ''))
+  }
+  cur <- x
+  nbuf <- ceiling(nchar(x) / charlen)
+  if(nbuf == 1) {
+    return(cur)
+  }
+  strings <- character(nbuf)
+  i <- 1
+  while(nchar(cur) > charlen) {
+    loc <- c(gregexpr(char, cur)[[1]])
+    b <- loc[max(which(loc < charlen))]
+    strings[i] <- substr(cur, 1, b)
+    cur <- substring(cur, b + 1)
+    i <- i + 1
+  }
+  strings[i] <- cur
+  paste(c(strings[1], paste0('     ', strings[-1])), collapse = '\n')
+}
+
+co <- function(expr) {
+  txt <- capture.output(expr)
+  cat(findbreaks(txt))
+  cat("\n")
+}
 ```
 
 # Introduction
@@ -48,16 +83,16 @@ The data for example 1 includes a demographic file, a concentration file, an IV 
 rawDataDir <- system.file("examples", "str_ex1", package="EHR")
 checkDir <- system.file("examples", "str_ex1", "checks", package="EHR")
 
-demo <- read.csv(file.path(rawDataDir,"Demographics_DATA_simple.csv"), stringsAsFactors = FALSE)
+demo <- read.csv(file.path(rawDataDir,"Demographics_DATA_simple.csv"))
 head(demo)
 
-conc.data <- read.csv(file.path(rawDataDir,"Concentration_DATA_simple.csv"), stringsAsFactors = FALSE)
+conc.data <- read.csv(file.path(rawDataDir,"Concentration_DATA_simple.csv"))
 head(conc.data)
 
-ivdose.data <-read.csv(file.path(rawDataDir,"IVDose_DATA_simple.csv"), stringsAsFactors = FALSE)
+ivdose.data <- read.csv(file.path(rawDataDir,"IVDose_DATA_simple.csv"))
 head(ivdose.data)
 
-creat.data <- read.csv(file.path(rawDataDir,"Creatinine_DATA_simple.csv"), stringsAsFactors = FALSE)
+creat.data <- read.csv(file.path(rawDataDir,"Creatinine_DATA_simple.csv"))
 head(creat.data)
 ```
 
@@ -77,21 +112,43 @@ creat.data$date.time <- lubridate::ymd_hms(creat.data$date.time)
 
 Using the four datasets, we can build a final PK dataset with the function `run_Build_PK_IV()`. Additional details for this function are provided in *Build-PK-IV* of the Example 2: Complete Data Processing and Building from Raw Extracted Data to PK Data section below.
 
-```{r sim-build-pk-iv, cache=TRUE}
+```{r sim-build-pk-iv, eval = FALSE}
 simple_pk_dat <- run_Build_PK_IV(
-                          conc=conc.data,
-                          dose=ivdose.data,
-                          lab.dat = list(creat.data),
-                          lab.vars = c('creat'),
-                          demo.list=demo.data,
-                          demo.vars=c('weight', 'weight_demo', 'height', 'gender', 'ageatsurgery',
-                                      'stat_sts', 'cpb_sts', 'length_of_icu_stay'),
-                          demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',
-                                      'age', 'stat', 'cpb', 'loi'),
-                          pk.vars=c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event',
-                                    'other', 'multiple.record', 'date', 'mod_id'),
-                          drugname='fent',
-                          check.path=checkDir)
+    conc=conc.data,
+    dose=ivdose.data,
+    lab.dat = list(creat.data),
+    lab.vars = c('creat'),
+    demo.list=demo.data,
+    demo.vars=c('weight', 'weight_demo', 'height', 'gender', 'ageatsurgery',
+                'stat_sts', 'cpb_sts', 'length_of_icu_stay'),
+    demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',
+                'age', 'stat', 'cpb', 'loi'),
+    pk.vars=c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event',
+              'other', 'multiple.record', 'date', 'mod_id'),
+    drugname='fent',
+    check.path=checkDir)
+```
+
+```{r sim-build-pk-iv-fake, cache=TRUE, echo = FALSE}
+co({
+simple_pk_dat <- run_Build_PK_IV(
+    conc=conc.data,
+    dose=ivdose.data,
+    lab.dat = list(creat.data),
+    lab.vars = c('creat'),
+    demo.list=demo.data,
+    demo.vars=c('weight', 'weight_demo', 'height', 'gender', 'ageatsurgery',
+                'stat_sts', 'cpb_sts', 'length_of_icu_stay'),
+    demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',
+                'age', 'stat', 'cpb', 'loi'),
+    pk.vars=c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event',
+              'other', 'multiple.record', 'date', 'mod_id'),
+    drugname='fent',
+    check.path=checkDir)
+})
+```
+
+```{r sim-build-pk-iv-out}
 head(simple_pk_dat,15)
 ```
 
@@ -135,8 +192,8 @@ head(samp.raw)
 
 # transform data
 samp.in0 <- dataTransformation(samp.raw,
-                   rename = c('Study.ID' = 'subject_id'),
-                   modify = list(samp = expression(as.numeric(sub('Sample ', '', Event.Name)))))
+    rename = c('Study.ID' = 'subject_id'),
+    modify = list(samp = expression(as.numeric(sub('Sample ', '', Event.Name)))))
 head(samp.in0)
 ```
 
@@ -145,8 +202,8 @@ Equivalently, the function `readTransform()` can be used to read in and transfor
 ```{r samp-in2, cache=TRUE}
 # read in and transform data
 samp.in <- readTransform(file.path(rawDataDir, "SampleTimes_DATA.csv"),
-                         rename = c('Study.ID' = 'subject_id'),
-                         modify = list(samp = expression(as.numeric(sub('Sample ', '', Event.Name)))))
+    rename = c('Study.ID' = 'subject_id'),
+    modify = list(samp = expression(as.numeric(sub('Sample ', '', Event.Name)))))
 head(samp.in)
 ```
 
@@ -220,11 +277,13 @@ The example laboratory data consists of files Creatinine_DATA.csv and Albumin_DA
 
 ```{r labs-in, cache=TRUE}
 # Serum creatinine lab data
-creat.in <- readTransform(file.path(rawDataDir, "Creatinine_DATA.csv"), rename = c('Subject.uniq' = 'subject_uid'))
+creat.in <- readTransform(file.path(rawDataDir, "Creatinine_DATA.csv"),
+    rename = c('Subject.uniq' = 'subject_uid'))
 head(creat.in)
 
 # Albumin lab data
-alb.in <- readTransform(file.path(rawDataDir, "Albumin_DATA.csv"), rename = c('Subject.uniq' = 'subject_uid'))
+alb.in <- readTransform(file.path(rawDataDir, "Albumin_DATA.csv"),
+    rename = c('Subject.uniq' = 'subject_uid'))
 head(creat.in)
 ```
 
@@ -270,28 +329,34 @@ The `dat=` argument should contain the cleaned input data.frame from step (1) an
 
 ```{r mod-id-data, cache=TRUE}
 ## demographics data
-demo.cln <- pullFakeId(demo.in, mod.id, firstCols = c('mod_id', 'mod_visit', 'mod_id_visit'), uniq.id = 'subject_uid')
+demo.cln <- pullFakeId(demo.in, mod.id,
+    firstCols = c('mod_id', 'mod_visit', 'mod_id_visit'),
+    uniq.id = 'subject_uid')
 head(demo.cln)
 saveRDS(demo.cln, file=file.path(dataDir,"Fentanyl_demo_mod_id.rds"))
 
 ## drug level data
 # sampling times
-samp.cln <- pullFakeId(samp.in, mod.id, firstCols = c('mod_id', 'mod_visit', 'mod_id_visit', 'samp'), 
-                       orderBy = c('mod_id_visit','samp'),
-                       uniq.id = 'subject_uid')
+samp.cln <- pullFakeId(samp.in, mod.id,
+    firstCols = c('mod_id', 'mod_visit', 'mod_id_visit', 'samp'), 
+    orderBy = c('mod_id_visit','samp'),
+    uniq.id = 'subject_uid')
 head(samp.cln)
 saveRDS(samp.cln, file=file.path(dataDir,"Fentanyl_samp_mod_id.rds"))
 
 # sampling concentrations
-conc.cln <- pullFakeId(conc.in, mod.id, firstCols = c('record_id', 'mod_id', 'mod_visit', 'mod_id_visit', 'samp'),
-                       orderBy = 'record_id',
-                       uniq.id = 'subject_uid')
+conc.cln <- pullFakeId(conc.in, mod.id,
+    firstCols = c('record_id', 'mod_id', 'mod_visit', 'mod_id_visit', 'samp'),
+    orderBy = 'record_id',
+    uniq.id = 'subject_uid')
 head(conc.cln)
 saveRDS(conc.cln, file=file.path(dataDir,"Fentanyl_conc_mod_id.rds"))
 
 ## dosing data
 # flow
-flow.cln <- pullFakeId(flow.in, mod.id, firstCols = c('mod_id', 'mod_visit', 'mod_id_visit'),uniq.id = 'subject_uid')
+flow.cln <- pullFakeId(flow.in, mod.id,
+    firstCols = c('mod_id', 'mod_visit', 'mod_id_visit'),
+    uniq.id = 'subject_uid')
 head(flow.cln)
 saveRDS(flow.cln, file=file.path(dataDir,"Fentanyl_flow_mod_id.rds"))
 
@@ -337,9 +402,9 @@ exclude_val <- function(x, val=1) {
 }
 
 demo.out <- run_Demo(demo.path = file.path(dataDir, "Fentanyl_demo_mod_id.rds"),
-                     toexclude = expression(exclude_val(in_hospital_mortality) | exclude_val(add_ecmo)),
-                     demo.mod.list = list(length_of_icu_stay = 
-                                            expression(daysDiff(surgery_date, date_icu_dc))))
+    toexclude = expression(exclude_val(in_hospital_mortality) | exclude_val(add_ecmo)),
+    demo.mod.list = list(length_of_icu_stay = 
+                        expression(daysDiff(surgery_date, date_icu_dc))))
 
 head(demo.out$demo)
 demo.out$exclude
@@ -376,27 +441,55 @@ Part I handles IV dose data from 2 sources, Flow data generated by the infusion 
 
 The IV dose data can be processed by the `run_MedStrI` function using: 
 
-```{r Pro-Med-Str1, cache=TRUE, eval=TRUE}
+```{r Pro-Med-Str1, eval=FALSE}
 ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"), 
-                        flow.select = c('mod_id','mod_id_visit','Perform.Date','Final.Wt..kg.',
-                                        'Final.Rate..NFR.units.','Final.Units'),
-                        flow.rename = c('mod_id','mod_id_visit', 'Perform.Date', 'weight',
-                                        'rate', 'final.units'),
-                        flow.mod.list = list(
-                          date.time = expression(parse_dates(fixDates(Perform.Date))),
-                          unit = expression(sub('.*[ ]', '', rate)),
-                          rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', rate)))),
-                        medchk.path=file.path(rawDataDir, sprintf('medChecked-%s.csv', drugname)), 
-                        mar.path=file.path(dataDir,"Fentanyl_mar_mod_id.rds"),
-                        demo.list=demo.out,
-                        check.path=checkDir, 
-                        failflow_fn = 'FailFlow',
-                        failunit_fn = 'Unit',
-                        failnowgt_fn = 'NoWgt',
-                        infusion.unit = 'mcg/kg/hr',
-                        bolus.unit = 'mcg',
-                        bol.rate.thresh = Inf,
-                        drugname = drugname)
+    flow.select = c('mod_id','mod_id_visit','Perform.Date','Final.Wt..kg.',
+                    'Final.Rate..NFR.units.','Final.Units'),
+    flow.rename = c('mod_id','mod_id_visit', 'Perform.Date', 'weight',
+                    'rate', 'final.units'),
+    flow.mod.list = list(
+      date.time = expression(parse_dates(fixDates(Perform.Date))),
+      unit = expression(sub('.*[ ]', '', rate)),
+      rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', rate)))),
+    medchk.path=file.path(rawDataDir, sprintf('medChecked-%s.csv', drugname)), 
+    mar.path=file.path(dataDir,"Fentanyl_mar_mod_id.rds"),
+    demo.list=demo.out,
+    check.path=checkDir, 
+    failflow_fn = 'FailFlow',
+    failunit_fn = 'Unit',
+    failnowgt_fn = 'NoWgt',
+    infusion.unit = 'mcg/kg/hr',
+    bolus.unit = 'mcg',
+    bol.rate.thresh = Inf,
+    drugname = drugname)
+```
+
+```{r Pro-Med-Str1-fake, cache=TRUE, echo=FALSE}
+co({
+ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"), 
+    flow.select = c('mod_id','mod_id_visit','Perform.Date','Final.Wt..kg.',
+                    'Final.Rate..NFR.units.','Final.Units'),
+    flow.rename = c('mod_id','mod_id_visit', 'Perform.Date', 'weight',
+                    'rate', 'final.units'),
+    flow.mod.list = list(
+      date.time = expression(parse_dates(fixDates(Perform.Date))),
+      unit = expression(sub('.*[ ]', '', rate)),
+      rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', rate)))),
+    medchk.path=file.path(rawDataDir, sprintf('medChecked-%s.csv', drugname)), 
+    mar.path=file.path(dataDir,"Fentanyl_mar_mod_id.rds"),
+    demo.list=demo.out,
+    check.path=checkDir, 
+    failflow_fn = 'FailFlow',
+    failunit_fn = 'Unit',
+    failnowgt_fn = 'NoWgt',
+    infusion.unit = 'mcg/kg/hr',
+    bolus.unit = 'mcg',
+    bol.rate.thresh = Inf,
+    drugname = drugname)
+    })
+```
+
+```{r Pro-Med-Str1-out}
 head(ivdose.out)
 ```
 
@@ -439,8 +532,8 @@ The e-prescription data can be processed by the `run_MedStrII` function using:
 
 ```{r Pro-Med-Str2, cache=TRUE}
 eRX.out <- run_MedStrII(file.path(rawDataDir,"e-rx_DATA.csv"),
-             select = c('GRID','MED_NAME','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT','DESCRIPTION'),
-             rename = c('ID','MED_NAME','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT','DESCRIPTION'))
+    select = c('GRID','MED_NAME','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT','DESCRIPTION'),
+    rename = c('ID','MED_NAME','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT','DESCRIPTION'))
 
 eRX.out
 ```
@@ -473,20 +566,42 @@ The corrected file should replace 'fail' with 'fix', e.g. 'fixDuplicateConc-dex.
 
 The drug concentration data can be processed by the `run_DrugLevel` function using:
 
-```{r Pro-Drug-Level, cache=TRUE, eval=TRUE}
+```{r Pro-Drug-Level, eval=FALSE}
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
-                          conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
-                          conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
-                          conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
-                          samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
-			                    samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
-			                    check.path=checkDir,
-                          failmiss_fn = 'MissingConcDate-',
-                          multsets_fn = 'multipleSetsConc-',
-                          faildup_fn = 'DuplicateConc-',
-                          drugname=drugname,
-			                    LLOQ=LLOQ,
-                          demo.list=demo.out)
+    conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
+    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
+    conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
+    samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
+    samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
+    check.path=checkDir,
+    failmiss_fn = 'MissingConcDate-',
+    multsets_fn = 'multipleSetsConc-',
+    faildup_fn = 'DuplicateConc-',
+    drugname=drugname,
+    LLOQ=LLOQ,
+    demo.list=demo.out)
+head(conc.out)
+```
+
+```{r Pro-Drug-Level-fake, cache=TRUE, echo=FALSE}
+co({
+conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
+    conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
+    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
+    conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
+    samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
+    samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
+    check.path=checkDir,
+    failmiss_fn = 'MissingConcDate-',
+    multsets_fn = 'multipleSetsConc-',
+    faildup_fn = 'DuplicateConc-',
+    drugname=drugname,
+    LLOQ=LLOQ,
+    demo.list=demo.out)
+})
+```
+
+```{r Pro-Drug-Level-out}
 head(conc.out)
 ```
 
@@ -507,25 +622,43 @@ write.csv(fail.miss.conc.date, file.path(checkDir,"fixMissingConcDate-fent.csv")
 
 After providing the updated file, the same `run_DrugLevel()` function should be re-run. The output now contains an additional message below the warning saying "fixMissingConcDate-fent.csv read with failures replaced". The conc.out data.frame also contains 3 additional rows with the corrected data
 
-```{r Pro-Drug-Level-rerun, cache=TRUE, eval=TRUE}
+```{r Pro-Drug-Level-rerun, eval=FALSE}
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
-                          conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
-                          conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
-                          conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
-                          samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
-			                    samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
-			                    check.path=checkDir,
-                          failmiss_fn = 'MissingConcDate-',
-                          multsets_fn = 'multipleSetsConc-',
-                          faildup_fn = 'DuplicateConc-', 
-                          drugname=drugname,
-			                    LLOQ=LLOQ,
-                          demo.list=demo.out)
+    conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
+    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
+    conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
+    samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
+    samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
+    check.path=checkDir,
+    failmiss_fn = 'MissingConcDate-',
+    multsets_fn = 'multipleSetsConc-',
+    faildup_fn = 'DuplicateConc-', 
+    drugname=drugname,
+    LLOQ=LLOQ,
+    demo.list=demo.out)
+```
+
+```{r Pro-Drug-Level-rerun-fake, cache=TRUE, echo=FALSE}
+co({
+conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
+    conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
+    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
+    conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
+    samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
+    samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
+    check.path=checkDir,
+    failmiss_fn = 'MissingConcDate-',
+    multsets_fn = 'multipleSetsConc-',
+    faildup_fn = 'DuplicateConc-', 
+    drugname=drugname,
+    LLOQ=LLOQ,
+    demo.list=demo.out)
+})
 ```
 
 ```{r remove-fix, include=FALSE}
 # remove fix file, so running vignette produces warning with first run of run_DrugLevel()
-fx<-file.path(checkDir,"fixMissingConcDate-fent.csv")
+fx <- file.path(checkDir,"fixMissingConcDate-fent.csv")
 if (file.exists(fx)) file.remove(fx)
 
 # remove multiplesetsconc file
@@ -556,12 +689,12 @@ The Pro-Laboratory module processes laboratory data that can be merged with data
 
 ```{r Pro-Laboratory, cache=TRUE, eval=TRUE}
 creat.out <- run_Labs(lab.path=file.path(dataDir,"Fentanyl_creat_mod_id.rds"),
-                      lab.select = c('mod_id','date.time','creat'),
-                      lab.mod.list = list(date.time = expression(parse_dates(fixDates(paste(date, time))))))
+    lab.select = c('mod_id','date.time','creat'),
+    lab.mod.list = list(date.time = expression(parse_dates(fixDates(paste(date, time))))))
 
 alb.out <- run_Labs(lab.path=file.path(dataDir,"Fentanyl_alb_mod_id.rds"),
-                    lab.select = c('mod_id','date.time','alb'),
-                    lab.mod.list = list(date.time = expression(parse_dates(fixDates(paste(date, time))))))
+    lab.select = c('mod_id','date.time','alb'),
+    lab.mod.list = list(date.time = expression(parse_dates(fixDates(paste(date, time))))))
 
 lab.out <- list(creat.out, alb.out)
 
@@ -605,32 +738,56 @@ If demographic data is provided, the demographic variables named in `demo.vars` 
 
 PK data with IV dosing can be built by the `run_Build_PK_IV` function using: 
 
-```{r Build-PK-IV, cache=TRUE, eval=TRUE}
+```{r Build-PK-IV, eval=FALSE}
 pk_dat <- run_Build_PK_IV(conc=conc.out,
-                          dose=ivdose.out,
-                          demo.list=demo.out,
-                          demo.vars=c('weight', 'weight_demo', 'height', 'gender',
-                                      'ageatsurgery', 'stat_sts', 'cpb_sts',
-                                      'length_of_icu_stay'),
-                          demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',
-                                      'age', 'stat', 'cpb', 'loi'),
-                          lab.dat = lab.out,
-                          lab.vars = c('creat','alb'),
-                          pk.vars=c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event',
-                                    'other', 'multiple.record', 'date', 'mod_id'),
-                          drugname=drugname,
-                          check.path=checkDir,
-                          missdemo_fn='-missing-demo',
-                          faildupbol_fn='DuplicateBolus-',
-                          date.format="%m/%d/%y %H:%M:%S",
-                          date.tz="America/Chicago")
+    dose=ivdose.out,
+    demo.list=demo.out,
+    demo.vars=c('weight', 'weight_demo', 'height', 'gender',
+                'ageatsurgery', 'stat_sts', 'cpb_sts',
+                'length_of_icu_stay'),
+    demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',
+                'age', 'stat', 'cpb', 'loi'),
+    lab.dat = lab.out,
+    lab.vars = c('creat','alb'),
+    pk.vars=c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event',
+              'other', 'multiple.record', 'date', 'mod_id'),
+    drugname=drugname,
+    check.path=checkDir,
+    missdemo_fn='-missing-demo',
+    faildupbol_fn='DuplicateBolus-',
+    date.format="%m/%d/%y %H:%M:%S",
+    date.tz="America/Chicago")
+```
 
+```{r Build-PK-IV-fake, cache=TRUE, echo=FALSE}
+co({
+pk_dat <- run_Build_PK_IV(conc=conc.out,
+    dose=ivdose.out,
+    demo.list=demo.out,
+    demo.vars=c('weight', 'weight_demo', 'height', 'gender',
+                'ageatsurgery', 'stat_sts', 'cpb_sts',
+                'length_of_icu_stay'),
+    demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',
+                'age', 'stat', 'cpb', 'loi'),
+    lab.dat = lab.out,
+    lab.vars = c('creat','alb'),
+    pk.vars=c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event',
+              'other', 'multiple.record', 'date', 'mod_id'),
+    drugname=drugname,
+    check.path=checkDir,
+    missdemo_fn='-missing-demo',
+    faildupbol_fn='DuplicateBolus-',
+    date.format="%m/%d/%y %H:%M:%S",
+    date.tz="America/Chicago")
+})
+```
+
+```{r Build-PK-IV-out}
 # convert id back to original IDs
 pk_dat <- pullRealId(pk_dat)
 
 head(pk_dat)
 ```
-
 
 * The `run_Build_PK_IV` function arguments are as follows:
     + `conc`: concentration data output from run_DrugLevel (required)
