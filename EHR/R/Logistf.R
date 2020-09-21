@@ -1,11 +1,8 @@
-logistpl <- logistf:::logistpl
-logistf.fit <- logistf:::logistf.fit
-
 #' Firth's penalized-likelihood logistic regression with more decimal places of
-#' p-value than \code{\link{logistf}} function in the R package \pkg{logistf}
+#' p-value than \code{logistf} function in the R package \sQuote{logistf}
 #'
-#' Adapted from \code{\link{logistf}} in the R package \pkg{logistf}, this is 
-#' the same as \code{\link{logistf}} except that it provides more decimal places 
+#' Adapted from \code{logistf} in the R package \sQuote{logistf}, this is 
+#' the same as \code{logistf} except that it provides more decimal places 
 #' of p-value that would be useful for Genome-Wide Association Study (GWAS) 
 #' or Phenome Wide Association Study (PheWAS).
 #'
@@ -46,13 +43,12 @@ logistf.fit <- logistf:::logistf.fit
 #' @param \dots Further arguments to be passed to logistf.
 #'
 #' @return
-#' same as \code{\link{logistf}} except for providing more decimal places
-#' of p-value.
+#' same as \code{logistf} except for providing more decimal places of p-value.
 #'
 #' @templateVar author choibeck
 #' @template auth
 #'
-#' @references same as those provided in the R package \pkg{logistf}.
+#' @references same as those provided in the R package \sQuote{logistf}.
 #'
 #' @examples
 #' data(dataPheWAS)
@@ -65,11 +61,19 @@ function (formula = attr(data, "formula"), data = sys.parent(),
     pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, 
     init, weights, plconf = NULL, dataout = TRUE, ...) 
 {
+    if(!requireNamespace("logistf", quietly = TRUE)) {
+      stop("Logistf requires the logistf package, please install it.",
+        call. = FALSE)
+    }
+    ns <- loadNamespace('logistf')
+    logistpl <- getFromNamespace('logistpl', ns)
+    logistf.fit <- getFromNamespace('logistf.fit', ns)
+
     call <- match.call()
     if (missing(control)) 
-        control <- logistf.control()
+        control <- logistf::logistf.control()
     if (pl == TRUE & missing(plcontrol)) 
-        plcontrol <- logistpl.control()
+        plcontrol <- logistf::logistpl.control()
     mf <- match.call(expand.dots = FALSE)
     m <- match(c("formula", "data", "weights", "na.action", "offset"), 
         names(mf), 0L)

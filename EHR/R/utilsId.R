@@ -124,7 +124,8 @@ pullFakeId <- function(dat, xwalk, firstCols = NULL, orderBy = NULL, uniq.id="su
 #'
 #' @param dat a data.frame
 #' @param xwalk a data.frame, providing linkage for each ID; if NULL, the
-#' crosswalk will be pulled from the \sQuote{pkxwalk} option, or otherwise fail
+#' crosswalk will be pulled from the \sQuote{pkxwalk} option, or otherwise the
+#' unmodified data.frame.
 #'
 #' @return The modified data.frame
 #' 
@@ -136,7 +137,7 @@ pullRealId <- function(dat, xwalk = NULL) {
     if(!is.null(xwalkVar) && xwalkVar %in% ls(envir = .GlobalEnv)) {
       xwalk <- get(xwalkVar, envir = .GlobalEnv)
     } else {
-      stop('xwalk must be provided')
+      return(dat)
     }
   }
   xnames <- names(xwalk)

@@ -32,8 +32,8 @@
 #' @keywords internal
 NULL
 
-guessDateFormat <- pkdata::guessDateFormat
-parse_dates <- pkdata::parse_dates
+# guessDateFormat <- pkdata::guessDateFormat
+# parse_dates <- pkdata::parse_dates
 
 # guessDateFormat <- function(x) {
 #   x1 <- x
