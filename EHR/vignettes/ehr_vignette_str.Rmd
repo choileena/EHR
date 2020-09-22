@@ -103,13 +103,6 @@ names(conc.data)[1:2] <- names(demo)[1:2] <- c("mod_id", "mod_id_visit")
 names(creat.data)[1] <- names(ivdose.data)[1] <- "mod_id"
 ```
 
-Next, we perform a few modifications to the datasets before building the final PK data. The demographic data is formatted as a list with two named entries. The first - called 'demo' - is a data.frame containing the demographic data; the second - called 'exclude' - is a vector of visit IDs (`mod_id_visit`) to be excluded from the final data, if any. We use the `lubridate` function `ymd_hms()` to convert the character date.time variable in the creatinine lab data to POSIXct format. 
-
-```{r simp-mods, cache=TRUE}
-demo.data <- list(demo=demo, exclude=NULL)
-creat.data$date.time <- lubridate::ymd_hms(creat.data$date.time)
-```
-
 Using the four datasets, we can build a final PK dataset with the function `run_Build_PK_IV()`. Additional details for this function are provided in *Build-PK-IV* of the Example 2: Complete Data Processing and Building from Raw Extracted Data to PK Data section below.
 
 ```{r sim-build-pk-iv, eval = FALSE}
@@ -118,7 +111,7 @@ simple_pk_dat <- run_Build_PK_IV(
     dose=ivdose.data,
     lab.dat = list(creat.data),
     lab.vars = c('creat'),
-    demo.list=demo.data,
+    demo.list = demo,
     demo.vars=c('weight', 'weight_demo', 'height', 'gender', 'ageatsurgery',
                 'stat_sts', 'cpb_sts', 'length_of_icu_stay'),
     demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',
@@ -136,7 +129,7 @@ simple_pk_dat <- run_Build_PK_IV(
     dose=ivdose.data,
     lab.dat = list(creat.data),
     lab.vars = c('creat'),
-    demo.list=demo.data,
+    demo.list = demo,
     demo.vars=c('weight', 'weight_demo', 'height', 'gender', 'ageatsurgery',
                 'stat_sts', 'cpb_sts', 'length_of_icu_stay'),
     demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',

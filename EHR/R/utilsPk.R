@@ -176,6 +176,13 @@ merge_by_time <- function(x, y, select=c(), maxTime=168, x.id='id', y.id='study_
   }
   stopifnot(c(y.id, y.time, select) %in% colY)
   x[,setdiff(select, colX)] <- NA
+  # convert to date-time if necessary
+  if(!inherits(x[,x.time], 'POSIXt')) {
+    x[,x.time] <- parse_dates(x[,x.time])
+  }
+  if(!inherits(y[,y.time], 'POSIXt')) {
+    y[,y.time] <- parse_dates(y[,y.time])
+  }
   # merge by ID and closest date (within maxTime hours)
   uid <- unique(x[,x.id])
   res <- vector('list', length(uid))

@@ -4,7 +4,7 @@
 \alias{idCrosswalk}
 \title{Create ID Crosswalk}
 \usage{
-idCrosswalk(data, idcols, visit.id = "subject_id", uniq.id = "subject_mrn")
+idCrosswalk(data, idcols, visit.id = "subject_id", uniq.id = "subject_uid")
 }
 \arguments{
 \item{data}{list of data.frames}
@@ -14,26 +14,26 @@ found in each data set given in \sQuote{data}}
 
 \item{visit.id}{character sting indicating visit-level id variable (default is "subject_id")}
 
-\item{uniq.id}{character sting indicating subject-level id variable (default is "subject_mrn")}
+\item{uniq.id}{character sting indicating subject-level id variable (default is "subject_uid")}
 }
 \value{
 crosswalk of ID columns and their de-identified versions
 }
 \description{
 Link ID columns from multiple data sets. Currently restricted to
-\sQuote{subject_id} and \sQuote{subject_mrn}. De-identified columns
+\sQuote{subject_id} and \sQuote{subject_uid}. De-identified columns
 are created to make a crosswalk.
 }
 \details{
-\sQuote{subject_id} and \sQuote{subject_mrn} may occur multiple
+\sQuote{subject_id} and \sQuote{subject_uid} may occur multiple
 times, but should have a one-to-one linkage defined by at least
 one of the input data sets. A new visit number is generated for
-each repeated \sQuote{subject_mrn}.
+each repeated \sQuote{subject_uid}.
 }
 \examples{
 \donttest{
 data <-  list(demo_data, conc_data)
-idcols <-  list(c('subject_id', 'subject_mrn'), 'subject_id')
+idcols <-  list(c('subject_id', 'subject_uid'), 'subject_id')
 idCrosswalk(data, idcols)
 }
 }
