@@ -76,7 +76,7 @@ library(lubridate)
 
 # Example 1: Quick Data Building with Processed Datasets
 
-The data for example 1 includes a demographic file, a concentration file, an IV dosing file, and a lab file, which are all cleaned and formatted appropriately. We also define a directory for the raw data and a directory for interactive checking output files.
+The data for example 1 includes a demographic file, a concentration file, an intravenous (IV) dosing file, and a lab file, which are all cleaned and formatted appropriately. We also define a directory for the raw data and a directory for interactive checking output files.
 
 ```{r simp-in, cache=TRUE}
 # define directories
@@ -103,7 +103,7 @@ names(conc.data)[1:2] <- names(demo)[1:2] <- c("mod_id", "mod_id_visit")
 names(creat.data)[1] <- names(ivdose.data)[1] <- "mod_id"
 ```
 
-Using the four datasets, we can build a final PK dataset with the function `run_Build_PK_IV()`. Additional details for this function are provided in *Build-PK-IV* of the Example 2: Complete Data Processing and Building from Raw Extracted Data to PK Data section below.
+Using the four datasets, we can build a final PK dataset with the function `run_Build_PK_IV()`. Additional details for this function are provided below in the *Build-PK-IV* subsection of Example 2: Complete Data Processing and Building from Raw Extracted Data to PK Data.
 
 ```{r sim-build-pk-iv, eval = FALSE}
 simple_pk_dat <- run_Build_PK_IV(
@@ -159,13 +159,13 @@ checkDir <- system.file("examples", "str_ex2", "checks", package="EHR")
 
 The raw data for example 2 includes a demographic file for use with the *Pro-Demographic* module; two files for the *Pro-Drug Level* module; two dosing files for the *Pro-Med-Str* module; and two lab files for use with the *Pro-Laboratory* module.
 
-The structured datasets extracted by SQL must go through a pre-processing stage which creates new id variables and datasets that can be used by the data processing modules. The following annotated example demonstrates the three main steps of pre-processing: (1) Read and clean raw data, (2) merge raw data to create new id variables, (3) make new data for use with modules.
+The structured datasets extracted by SQL must go through a pre-processing stage which creates new ID variables and datasets that can be used by the data processing modules. The following annotated example demonstrates the three main steps of pre-processing: (1) Read and clean raw data, (2) merge raw data to create new ID variables, (3) make new data for use with modules.
 
-Each raw dataset should contain a subject visit id, a subject unique id, or both ids. In this example the subject visit id is called `subject_id` and the subject unique id is called `subject_uid`. The subject visit id is combination of subject and course -- e.g., `subject_id` 14.0 is the first course for subject 14, `subject_id` 14.1 is the second course for subject 14, etc.. `subject_uid` is a unique ID that is the same across all subject records -- the `subject_uid` 62734832 is associated with both `subject_id` 14.0 and `subject_id` 14.1.
+Each raw dataset should contain a subject unique ID, a subject visit ID, or both ids. In this example the subject unique ID is called `subject_uid` and the subject visit ID is called `subject_id`. The subject visit ID is a combination of subject and visit/course -- e.g., `subject_id` 14.0 is the first course for subject 14, `subject_id` 14.1 is the second course for subject 14, etc.. `subject_uid` is a unique ID that is the same for all subject records. The integer part of `subject_id` has a 1-to-1 correspondence with `subject_uid` -- for this example, `subject_uid` 62734832 is associated with both `subject_id` 14.0 and `subject_id` 14.1. If there is only a single visit/course per subject only the subject unique ID is needed.
 
 ### (1) Read and clean raw data
 
-The demographics data file contains both ID variables `subject_id` and `subject_uid`, in addition to demographic variables such as gender, date of birth, height, weight, etc. The demographics csv file is read in using the `readTransform()` function. 
+The demographics data file contains ID variables `subject_id` and `subject_uid`, in addition to demographic variables such as gender, date of birth, height, weight, etc. The Demographics_DATA.csv file is read in using the `readTransform()` function. 
 
 ```{r demo-in, cache=TRUE}
 # demographics data
@@ -175,7 +175,7 @@ head(demo.in)
 
 The example concentration data consists of two files SampleTimes_DATA.csv and SampleConcentration_DATA.csv containing the concentration sampling times and values, respectively.
 
-The sampling times data csv file can be read in with `read.csv()`. The function `dataTransformation()` is then used to rename the variable `Study.ID` to `subject_id` and to create a new variable called `samp` using the `modify=` argument. 
+The sampling times data csv file is read in with `read.csv()`. Then the function `dataTransformation()` is used to rename the variable `Study.ID` to `subject_id` and to create a new variable called `samp`, which indexes the sample number, using the `modify=` argument. 
 
 ```{r samp-in1, cache=TRUE}
 # concentration sampling times data
@@ -200,7 +200,7 @@ samp.in <- readTransform(file.path(rawDataDir, "SampleTimes_DATA.csv"),
 head(samp.in)
 ```
 
-The same steps can be used for the sample values data csv file. It is read in using `read.csv()`. Then using `dataTransformation` the `subject_id` variable is created from the `name` variable using a call to the helper function sampId() in the `modify=` argument.
+The same steps can be used for the sample values data csv file. It is read in using `read.csv()`. Then using `dataTransformation()` the `subject_id` variable is created from the `name` variable using a call to the helper function `sampId()` in the `modify=` argument.
 
 ```{r conc-in1, cache=TRUE}
 # concentration sample values data
@@ -247,7 +247,7 @@ conc.in <- readTransform(file.path(rawDataDir, "SampleConcentration_DATA.csv"),
 head(conc.in)
 ```
 
-The example drug dosing data consists of files FLOW_DATA.csv and MAR_DATA.csv containing two sources of dose information. The FLOW data csv file contains aliases for both ID variables; it is read in with the `readTransform()` function which renames the variables `Subject.Id` to `subject_id` and `Subject.Uniq.Id` to `subject_uid`. 
+The example drug dosing data consists of files FLOW_DATA.csv and MAR_DATA.csv containing two sources of IV dose information. The FLOW data csv file contains aliases for both ID variables; it is read in with the `readTransform()` function which renames the variables `Subject.Id` to `subject_id` and `Subject.Uniq.Id` to `subject_uid`. 
 
 ```{r flow-in, cache=TRUE}
 # FLOW dosing data
@@ -257,7 +257,7 @@ flow.in <- readTransform(file.path(rawDataDir, "FLOW_DATA.csv"),
 head(flow.in)
 ```
 
-The MAR data csv file contains several variables with a colon (:) character. To preserve the colon in the variable name, the data should be read in without checking for syntactically valid variable names. The data is read in using `read.csv()` with the argument `check.names = FALSE` and then passed to the `dataTransformation()` function which renames `Uniq.Id` to `subject_uid`.
+The MAR data csv file contains several variables with a colon (:) character. To preserve the colon in these variable names, the data can be read in without checking for syntactically valid `R` variable names. The data is read in using `read.csv()` with the argument `check.names = FALSE` and then passed to the `dataTransformation()` function which renames `Uniq.Id` to `subject_uid`.
 
 ```{r mar-in, cache=TRUE}
 # MAR dosing data
@@ -280,11 +280,11 @@ alb.in <- readTransform(file.path(rawDataDir, "Albumin_DATA.csv"),
 head(creat.in)
 ```
 
-### (2) Merge data to create new id variables
+### (2) Merge data to create new ID variables
 
 The function `idCrosswalk()` merges all of the cleaned input datasets and creates new IDs. The `data=` argument of this function accepts a list of input datasets and the `idcols=` argument accepts a list of vectors or character strings that identify the ID variables in the corresponding input dataset. 
 
-The output of `idCrosswalk()` is a crosswalk dataset between the original ID variables (`subject_id`, `subject_uid`) and the new ID variables (`mod_id`, `mod_visit`, and `mod_id_visit`). The new variable `mod_id_visit` has a 1-to-1 correspondence to variable `subject_id` and uniquely identifies each subjects' course; the new variable `mod_id` has a 1-to-1 correspondence to variable `subject_uid` and uniquely identifies each subject.
+The output of `idCrosswalk()` is a crosswalk dataset between the original ID variables (`subject_id`, `subject_uid`) and the new ID variables (`mod_id`, `mod_visit`, and `mod_id_visit`). The new variable `mod_id_visit` has a 1-to-1 correspondence to variable `subject_id` and uniquely identifies each subjects' visit/course; the new variable `mod_id` has a 1-to-1 correspondence to variable `subject_uid` and uniquely identifies each subject.
 
 ```{r merge-ids, cache=TRUE}
 # merge all ID datasets
@@ -312,13 +312,13 @@ mod.id
 
 ### (3) Make new data for use with modules
 
-The function `pullFakeId()` replaces the original IDs -- `subject_id` and `subject_uid` -- with new IDs -- `mod_id`, `mod_visit`, and `mod_id_visit` -- to create datasets which can be used by the data processing modules. Generally, the function call to `pullFakeId` is
+The function `pullFakeId()` replaces the original IDs -- `subject_id` and `subject_uid` -- with new IDs -- `mod_id`, `mod_visit`, and `mod_id_visit` -- to create datasets which can be used by the data processing modules. Generally, the function call to `pullFakeId()` is
 
 ```{r, eval = FALSE}
 pullFakeId(dat, xwalk, firstCols = NULL, orderBy = NULL)
 ```
 
-The `dat=` argument should contain the cleaned input data.frame from step (1) and the `xwalk=` argument should contain the crosswalk data.frame produced in step (2). Additional arguments `firstCols=` and `orderBy=` control which variables are in the first columns of the output and the sort order, respectively. The cleaned structured data are saved as R objects for use with the modules.
+The `dat=` argument should contain the cleaned input data.frame from pre-processing step (1) and the `xwalk=` argument should contain the crosswalk data.frame produced in step (2). Additional arguments `firstCols=` and `orderBy=` control which variables are in the first columns of the output and the sort order, respectively. The cleaned structured data are saved as `R` objects for use with the modules.
 
 ```{r mod-id-data, cache=TRUE}
 ## demographics data
@@ -369,7 +369,7 @@ saveRDS(creat.cln, file=file.path(dataDir,"Fentanyl_creat_mod_id.rds"))
 saveRDS(alb.cln, file=file.path(dataDir,"Fentanyl_alb_mod_id.rds"))
 ```
 
-Before running the modules, it is necessary to define several options and parameters. Using `options(pkxwalk =)` allows the modules to access the crosswalk file. We also create a `drugname` stub and define the lower limit of quantification (LLOQ) for the drug of interest.
+Before running the processing modules, it is necessary to define several options and parameters. Using `options(pkxwalk =)` allows the modules to access the crosswalk file. We also create a `drugname` stub and define the lower limit of quantification (LLOQ) for the drug of interest.
 
 ```{r mod-setup}
 # set crosswalk option 
@@ -384,15 +384,13 @@ LLOQ <- 0.05
 
 ## Pro-Demographic
 
-The Demographic module accepts the cleaned structured demographic dataset and a user-defined set of exclusion criteria and returns a formatted list with the demographic data and records meeting the exclusion criteria suitable for integration with the other modules.
+The *Pro-Demographic* module accepts the cleaned structured demographic dataset and a user-defined set of exclusion criteria and returns a formatted list with the demographic data and records meeting the exclusion criteria suitable for integration with the other modules. For this example, we exclude subjects with a value of 1 for `in_hospital_mortality` or `add_ecmo` and create a new variable called `length_of_icu_stay`.
 
-The demographic data can be processed by the `run_Demo` function using:
+The demographic data can be processed by the `run_Demo()` function using:
 
 ```{r Pro-Demographic, cache=TRUE, eval=TRUE}
 # helper function
-exclude_val <- function(x, val=1) {
-  !is.na(x) & x == val
-}
+exclude_val <- function(x, val=1) { !is.na(x) & x == val }
 
 demo.out <- run_Demo(demo.path = file.path(dataDir, "Fentanyl_demo_mod_id.rds"),
     toexclude = expression(exclude_val(in_hospital_mortality) | exclude_val(add_ecmo)),
@@ -414,11 +412,11 @@ See the `run_Demo()` function documentation for more details on the optional arg
 
 ## Pro-Med-Str
 
-The Pro-Med-Str module processes structured medication data. Part I handles intravenous (IV) dose data and Part II handles e-prescription data.
+The *Pro-Med-Str* module processes structured medication data. Part I handles IV dose data and Part II handles e-prescription data.
 
 ### Part I: IV dose data
 
-Part I handles IV dose data from 2 sources, Flow data and Medication Administration Records (MAR) data. The Flow data are patient flow sheets which at this institution record infusion rates and changes to all infusions for all inpatients outside of the operating room. The MAR data  record all bolus doses of medications and infusions administered in the operating room. The module is semi-interactive in the sense that it generates several files to check potential data errors and get feedback from an investigator. If corrected information ('fix' files) are provided, the module should be re-run to incorporate the corrections. The major functions of this module are:
+Part I handles IV dose data from two sources, Flow data and Medication Administration Records (MAR) data. The Flow data are patient flow sheets which at this institution record infusion rates and changes to all infusions for all inpatients outside of the operating room. The MAR data  record all bolus doses of medications and infusions administered in the operating room. The module is semi-interactive; it generates several files to check potential data errors and get feedback from an investigator. If corrected information ('fix' files) are provided, the module should be re-run to incorporate the corrections. The major functions of this module are:
 
 * Process and clean Flow data by selecting, renaming, and modifying variables with the `flow.select`, `flow.rename`, and `flow.mod.list` parameters, and remove duplicate records, including invalid duplicate rows with `final.units` of 0, rate missing, one rate or unit missing, one unit of 0, or additional discrepancy.
 
@@ -427,11 +425,11 @@ Part I handles IV dose data from 2 sources, Flow data and Medication Administrat
   
 * Check for records with a unit containing 'kg' (e.g., 'mcg/kg/hr') but missing weight in flow data. These records will result in a calculated rate of NA when producing standardized rates (see step below). If there are records with missing weight, a file listing these records will be produced using the `failnowgt_fn` stub appended with drugname. A 'fix' file can be added to correct these records.
 
-* Combine Flow and MAR infusion data and produce standardized rate (dose per unit time). Infusion rates with dose per weight per unit time (e.g., 'mcg/kg/hr') and dose per unit time ('mcg/hr') can both be handled. For infusion rates of dose per weight per unit time, weight is imputed using the closest available flow weight (if possible) and the rate is multiplied by weight to get dose per unit time. Infusion rates of dose per unit time are assumed to be formatted correctly.
+* Combine Flow and MAR infusion data and produce standardized rate (dose per unit time). Infusion rates with dose per weight per unit time (e.g., 'mcg/kg/hr') and dose per unit time ('mcg/hr') can both be handled. For infusion rates of dose per weight per unit time, weight is imputed using the closest available Flow weight (if possible) and the rate is multiplied by weight to get dose per unit time. Infusion rates of dose per unit time are assumed to be formatted correctly.
 
 * Merge infusion dose data and bolus dose data and conform doses. See the `pkdata::conformDoses()` documentation for additional details. 
 
-The IV dose data can be processed by the `run_MedStrI` function using: 
+The IV dose data can be processed by the `run_MedStrI()` function using: 
 
 ```{r Pro-Med-Str1, eval=FALSE}
 ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"), 
@@ -495,7 +493,7 @@ head(ivdose.out)
     + `demo.list`: (optional) file name for processed demographic file that is used to exclude subjects based on exclusion criteria 
     + `check.path`: file path where the generated files for data checking are stored, and the corresponding data files with fixed data exist
     + `failflow_fn`: filename stub for invalid duplicate rows in the Flow data with rate of 0 check file. The stub will be prepended with the string 'fail' to create a .csv with the invalida data. The corrected data with failures replaced should use the same filename stub prepended with the string 'fix'.
-         - e.g., if failflow_fn is 'FailFlow', the file 'failFailFlow.csv' with invalid duplicate rows will be created in the directory specified by `check.path`. The corrected version named 'fixFailFlow.csv' should be placed in the same directory.
+         - e.g., if `failflow_fn` is 'FailFlow', the file 'failFailFlow.csv' with invalid duplicate rows will be created in the directory specified by `check.path`. The corrected version named 'fixFailFlow.csv' should be placed in the same directory.
     + `failunit_fn`: filename stub for records with units other than those specified with `infusion.unit` and `bolus.unit`
     + `failnowgt_fn`: filename stub for records with missing weight in the Flow data and unit involving 'kg'
     + `infusion.unit`: string specifying units for infusion doses (default: 'mcg/kg/hr')
@@ -540,9 +538,9 @@ In the above example, daily dose was calculated for the first 5 patients by mult
 
 
 ## Pro-Drug Level
-Pro-Drug Level module processes drug concentration data that can be merged with medication dose data and other types of data. This module is semi-interactive in the sense that it generates several files while processing in order to check missing data and potential data errors, and get feedback from an investigator. If corrected information ('fix' files) are provided, the module should be re-run to incorporate the corrections. The major functions of this module are:
+Pro-Drug Level module processes drug concentration data that can be merged with medication dose data and other types of data. This module is semi-interactive; it generates several files while processing in order to check missing data and potential data errors, and get feedback from an investigator. If corrected information ('fix' files) are provided, the module should be re-run to incorporate the corrections. The major functions of this module are:
 
-* Combine drug concentration data with sampling time: This step is necessary only if the drug concentration data file does not contain the sampling time (i.e., when blood samples were drawn for drug concentration measurements). When this is the case, the sampling time should be obtained from a separate data file.
+* Combine drug concentration data with sampling time: This step is necessary only if the drug concentration data file does not contain the sampling time (i.e., the time when blood samples were drawn for drug concentration measurements). When this is the case, the sampling time should be obtained from a separate data file.
 
 * Check missing date/time for drug level measurements. If there are any missing dates, a file listing these records will be produced using the `failmiss_fn` stub appended with drugname. A 'fix' file can be added to correct these records. If no 'fix' file is provided, records with missing dates will be removed.
      + e.g., if `failmiss_fn` is 'MissingConcDate-', the file 'failMissingConcDate-dex.csv' will be created in the `check.path` directory. The file with corrected dates and times should replace 'fail' with 'fix' (e.g., 'fixMissingConcDate-dex.csv'), and be placed in the same `check.path` directory.
@@ -597,7 +595,7 @@ conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"
 head(conc.out)
 ```
 
-The output provided a warning message that 3 rows were missing concentration date. The file 'failMissingConcDate-fent.csv' contains the 3 records with missing values for the `date.time` variable.
+The output provides a message that 3 rows are missing concentration date. The file 'failMissingConcDate-fent.csv' contains the 3 records with missing values for the `date.time` variable.
 
 ```{r faildate,cache=TRUE}
 ( fail.miss.conc.date <- read.csv(file.path(checkDir,"failMissingConcDate-fent.csv")) )
@@ -612,7 +610,7 @@ fail.miss.conc.date
 write.csv(fail.miss.conc.date, file.path(checkDir,"fixMissingConcDate-fent.csv"))
 ```
 
-After providing the updated file, the same `run_DrugLevel()` function should be re-run. The output now contains an additional message below the warning saying "fixMissingConcDate-fent.csv read with failures replaced". The conc.out data.frame also contains 3 additional rows with the corrected data
+After providing the updated file, the same `run_DrugLevel()` function should be re-run. The output now contains an additional message below the first message saying "fixMissingConcDate-fent.csv read with failures replaced". The conc.out data.frame also contains 3 additional rows with the corrected data.
 
 ```{r Pro-Drug-Level-rerun, eval=FALSE}
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
@@ -700,12 +698,12 @@ str(lab.out)
 
 ## Build-PK-IV
 
-The Build-PK-IV module creates PK data for IV medications. Both dose data from the *Pro-Med-Str1* module and concentration data from the *Pro-DrugLevel* module are required. Demographic data from the *Pro-Demographic* module and laboratory data from the *Pro-Laboratory* module may optionally be included. The module is semi-interactive in the sense that it generates several files to check potential data errors, and get feedback from an investigator. If corrected information (‘fix’ files) are provided, the module should be re-run to incorporate the corrections. The major functions this module performs are:
+The Build-PK-IV module creates PK data for IV medications. Both dose data from the *Pro-Med-Str1* module and concentration data from the *Pro-DrugLevel* module are required. Demographic data from the *Pro-Demographic* module and laboratory data from the *Pro-Laboratory* module may optionally be included. The module is semi-interactive; it generates several files to check potential data errors, and get feedback from an investigator. If corrected information (‘fix’ files) are provided, the module should be re-run to incorporate the corrections. The major functions this module performs are:
 
-* Determine whether each IV dose is valid by comparing to concentration data. Doses outside the time frame window defined by concentration data (by default seven days before first concentration through last concentration) are dropped. See `pkdata::trimDoses` for more information.
+* Determine whether each IV dose is valid by comparing to concentration data. Doses outside the time frame window defined by concentration data (by default seven days before first concentration through last concentration) are dropped. See `pkdata::trimDoses()` for more information.
 
 * Resolve duplicate doses. A file with duplicate bolus dose records, if any, will be produced using the `faildupbol_fn` stub appended with drugname. A ‘fix’ file can be added to correct these records.
-     + e.g., if faildupbol_fn is 'DuplicateBolus-', the file 'failDuplicateBolus-fent.csv' will be created in the `check.path` directory. The corrected file should replace 'fail' with 'fix' (e.g., 'fixDuplicateBolus-fent.csv'), and include an additional variable called 'flag' with the value 'keep' for the records to be retained.
+     + e.g., if `faildupbol_fn` is 'DuplicateBolus-', the file 'failDuplicateBolus-fent.csv' will be created in the `check.path` directory. The corrected file should replace 'fail' with 'fix' (e.g., 'fixDuplicateBolus-fent.csv'), and include an additional variable called 'flag' with the value 'keep' for the records to be retained.
 
 * Add zero dose values after a gap.
 
@@ -713,10 +711,10 @@ The Build-PK-IV module creates PK data for IV medications. Both dose data from t
 
 * Combine dose and concentration data into PK data format.
 
-* If laboratory data is provided, merge onto PK data based on id and time.
+* If laboratory data is provided, merge onto PK data based on ID and time.
 
 * If demographic data is provided, merge onto PK data. Demographic weight is used to impute records with missing dose weight. In addition, subjects who meet the exclusion criteria and those with no demographic data are removed. A file showing the missingness frequency and percent for each variable is produced using the `missdemo_fn` stub appended wih drugname.
-     + e.g., if missdemo_fn is '-missing-demo', the file 'dex-missing-demo.csv' will be created in the `check.path` directory. 
+     + e.g., if `missdemo_fn` is '-missing-demo', the file 'dex-missing-demo.csv' will be created in the `check.path` directory. 
 
 * The final PK data includes ID and standard NONMEM formatted variables:
   + time - time of dosing or concentration event
@@ -774,6 +772,8 @@ pk_dat <- run_Build_PK_IV(conc=conc.out,
 })
 ```
 
+The function `pullRealId()` replaces the module IDs -- `mod_id`, `mod_visit`, and `mod_id_visit` -- with the original IDs -- `subject_id` and `subject_uid`.
+
 ```{r Build-PK-IV-out}
 # convert id back to original IDs
 pk_dat <- pullRealId(pk_dat)
@@ -790,7 +790,7 @@ head(pk_dat)
     + `lab.dat`: (optional) list containing processed laboratory files
     + `lab.vars`: (optional) vector containing names for laboratory files
     + `pk.vars`: PK variables to include
-    + `drugname`: drug name of interest (e.g., dex, fent)
+    + `drugname`: drug name stub (e.g., fent)
     + `check.path`: file path where the generated files for data checking are stored, and the corresponding data files with fixed data exist
     + `missdemo_fn`: filename stub for report of missingness frequency and percent for variables
     + `faildupbol_fn`: filename stub for duplicate bolus dose records
