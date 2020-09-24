@@ -44,9 +44,27 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
   hasDemo <- !is.null(demo.list)
   hasLabs <- !is.null(lab.dat)
   if(hasDemo) { # if using demographic data
-    dem <- demo.list$demo[,c('mod_id','surgery_date','time_fromor')]
-    dem[dem == ''] <- NA
-    info1 <- updateInterval_mod(info0, dem)
+    demoData <- NULL
+    demoExcl <- NULL
+    if(inherits(demo.list, 'data.frame')) {
+      demoData <- demo.list
+    } else {
+      if('demo' %in% names(demo.list)) {
+        demoData <- demo.list$demo
+      }
+      if('exclude' %in% names(demo.list)) {
+        demoExcl <- demo.list$exclude
+      }
+    }
+    if(is.null(demoData)) {
+      warning('Demographic data was provided in an unexpected format and will be ignored')
+      info1 <- info0
+      hasDemo <- FALSE
+    } else {
+      dem <- demoData[,c('mod_id','surgery_date','time_fromor')]
+      dem[dem == ''] <- NA
+      info1 <- updateInterval_mod(info0, dem)
+    }
   } else {
     info1 <- info0
   }
@@ -97,14 +115,14 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
   tmp[,'date'] <- as.character(datetime, format = date.format, tz = date.tz)
 
   if(hasDemo) {
-    tmp <- merge(tmp, demo.list$demo, by.x=c('mod_id_visit', 'mod_id'), by.y=c('mod_id_visit', 'mod_id'), all.x=TRUE)
+    tmp <- merge(tmp, demoData, by.x=c('mod_id_visit', 'mod_id'), by.y=c('mod_id_visit', 'mod_id'), all.x=TRUE)
     ix <- which(is.na(tmp[,'weight.x']))
     tmp[ix,'weight.x'] <- tmp[ix,'weight.y']
     names(tmp)[match(c('weight.x','weight.y'), names(tmp))] <- c('weight','weight_demo')
 
     # drop mod_id based on exclusion criteria
-    cat(sprintf('The number of subjects in the demographic file, who meet the exclusion criteria: %s\n', length(demo.list$exclude)))
-    tmp <- tmp[!(tmp[,'mod_id_visit'] %in% demo.list$exclude),]
+    cat(sprintf('The number of subjects in the demographic file, who meet the exclusion criteria: %s\n', length(demoExcl)))
+    tmp <- tmp[!(tmp[,'mod_id_visit'] %in% demoExcl),]
 
     #drop if mod_id is missing (i.e. no demographics for this visit)
     tmp <- tmp[!(is.na(tmp[,'mod_id'])),]

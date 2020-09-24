@@ -9,7 +9,7 @@ pullFakeId(
   xwalk,
   firstCols = NULL,
   orderBy = NULL,
-  uniq.id = "subject_mrn"
+  uniq.id = "subject_uid"
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ pullFakeId(
 
 \item{orderBy}{name of columns used to reorder data set}
 
-\item{uniq.id}{character sting indicating subject-level id variable (default is "subject_mrn")}
+\item{uniq.id}{character sting indicating subject-level id variable (default is "subject_uid")}
 }
 \value{
 The modified data.frame
