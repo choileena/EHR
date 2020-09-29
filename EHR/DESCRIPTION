@@ -5,7 +5,8 @@ Title: Electronic Health Record (EHR) Data Processing and Analysis Tool
 Maintainer: Leena Choi <naturechoi@gmail.com>
 Authors@R:
     c(person("Leena", "Choi", role = c("aut", "cre"),
-             email = "naturechoi@gmail.com"),
+             email = "naturechoi@gmail.com",
+             comment = c(ORCID = "0000-0002-2544-7090")),
     person("Cole", "Beck", role = "aut",
            email = "cole.beck@vumc.org",
            comment = c(ORCID = "0000-0002-6849-6255")),
@@ -16,7 +17,7 @@ Authors@R:
     person("Nathan", "James", role = "aut",
            email = "nathan.t.james@vanderbilt.edu",
            comment = c(ORCID = "0000-0001-7079-9151")))
-Description: Process and analyze Electronic Health Record (EHR) data. The `EHR`
+Description: Process and analyze electronic health record (EHR) data. The `EHR`
     package provides modules to perform diverse medication-related studies using
     data from EHR databases. Especially, the package includes modules to perform
     pharmacokinetic/pharmacodynamic (PK/PD) analyses using EHRs, as outlined in
