@@ -162,15 +162,38 @@ pullFakeId <- function(dat, xwalk, firstCols = NULL, orderBy = NULL, uniq.id="su
 #' Replace de-identified IDs with identified version pulled from a crosswalk.
 #'
 #' @param dat a data.frame
-#' @param xwalk a data.frame, providing linkage for each ID; if NULL, the
-#' crosswalk will be pulled from the \sQuote{pkxwalk} option, or otherwise the
+#' @param xwalk a data.frame providing linkage for each ID, e.g. output from \code{\link{idCrosswalk}}; 
+#' if NULL, the crosswalk will be pulled from the \sQuote{pkxwalk} option, or otherwise the
 #' unmodified data.frame.
+#' @param remove.mod.id logical, should the de-identified IDs -- mod_id, mod_visit, mod_id_visit -- 
+#' be removed (default=FALSE)
 #'
 #' @return The modified data.frame
 #' 
+#' @examples 
+#' \dontrun{
+#' demo_data_deident <- data.frame(mod_id=c(1,1,2,3),
+#'                                 mod_id_visit=c(1.1,1.2,2.1,3.1),
+#'                                 mod_visit=c(1,2,1,1),
+#'                                 gender=c(1,1,0,1),
+#'                                 weight=c(34,42,28,63),
+#'                                 height=c(142,148,120,167))
+#' 
+#' # crosswalk w/ same format as idCrosswalk() output
+#' xwalk <- data.frame(subj_id=c(4.1,4.2,5.1,6.1),
+#'                     pat_id=c(14872,14872,24308,37143),
+#'                     mod_visit=c(1,2,1,1),
+#'                     mod_id=c(1,1,2,3),
+#'                     mod_id_visit=c(1.1,1.2,2.1,3.1))
+#' 
+#' pullRealId(demo_data_deident, xwalk)
+#' pullRealId(demo_data_deident, xwalk, remove.mod.id=TRUE)
+#' }
+#' 
+#' 
 #' @export
 
-pullRealId <- function(dat, xwalk = NULL) {
+pullRealId <- function(dat, xwalk = NULL, remove.mod.id=FALSE) {
   if(is.null(xwalk)) {
     xwalkVar <- getOption('pkxwalk')
     if(!is.null(xwalkVar) && xwalkVar %in% ls(envir = .GlobalEnv)) {
@@ -194,5 +217,9 @@ pullRealId <- function(dat, xwalk = NULL) {
   if(length(ix) == nrow(dat)) {
     dat <- cbind(xw[ix,,drop = FALSE], dat)
   }
-  dat
+  
+  if(remove.mod.id){ 
+    dat <- dat[,!grepl('^mod_',names(dat))]
+  }
+dat
 }
