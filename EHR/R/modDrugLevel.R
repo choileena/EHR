@@ -20,6 +20,44 @@
 #'
 #' @return drug-level data set
 #'
+#' @examples
+#' \dontrun{
+#' # concentrations
+#' conc_data <- data.frame(mod_id = rep(1:3,each=4),
+#'                        mod_visit = rep(c(2,1,1),each=4),
+#'                        mod_id_visit = as.numeric(paste(rep(1:3,each=4),
+#'                                                       rep(c(2,1,1),each=4), sep=".")),
+#'                        samp = rep(1:4,times=3),
+#'                        drug_calc_conc=15*exp(-1*rep(1:4,times=3))+rnorm(12,0,0.1))
+#'
+#' saveRDS(conc_data,'conc_data.rds')
+#'
+#' # sample times
+#' build_date <- function(x) as.character(seq(x, length.out=4, by="1 hour"))
+#' dates <- unlist(lapply(rep(Sys.time(),3), build_date))
+#'
+#' samp_data <- data.frame(mod_id = rep(1:3,each=4),
+#'                        mod_visit = rep(c(2,1,1),each=4),
+#'                        mod_id_visit = as.numeric(paste(rep(1:3,each=4),
+#'                                                        rep(c(2,1,1),each=4), sep=".")),
+#'                        samp = rep(1:4,times=3),
+#'                        Sample.Collection.Date.and.Time = dates)
+#' 
+#' saveRDS(samp_data,'samp_data.rds')
+#' 
+#' run_DrugLevel(
+#'   conc.path='conc_data.rds',
+#'   conc.select=c('mod_id','mod_id_visit','samp','drug_calc_conc'),
+#'   conc.rename=c(drug_calc_conc= 'conc.level', samp='event'),
+#'   conc.mod.list = list(mod_id_event = expression(paste(mod_id_visit, event, sep = "_"))),
+#'   samp.path = 'samp_data.rds',
+#'   samp.mod.list = list(mod_id_event = expression(paste(mod_id_visit, samp, sep = "_"))),
+#'   check.path = tempdir(),
+#'   drugname = 'drugnm',
+#'   LLOQ = 0.05
+#' )
+#'}
+#'
 #' @export
 
 run_DrugLevel <- function(conc.path, conc.select, conc.rename,
