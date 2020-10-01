@@ -12,28 +12,38 @@ idCrosswalk(data, idcols, visit.id = "subject_id", uniq.id = "subject_uid")
 \item{idcols}{list of character vectors, indicating ID columns
 found in each data set given in \sQuote{data}}
 
-\item{visit.id}{character sting indicating visit-level id variable (default is "subject_id")}
+\item{visit.id}{character sting indicating visit-level ID variable (default is "subject_id")}
 
-\item{uniq.id}{character sting indicating subject-level id variable (default is "subject_uid")}
+\item{uniq.id}{character sting indicating subject-level ID variable (default is "subject_uid")}
 }
 \value{
 crosswalk of ID columns and their de-identified versions
 }
 \description{
-Link ID columns from multiple data sets. Currently restricted to
-\sQuote{subject_id} and \sQuote{subject_uid}. De-identified columns
+Link ID columns from multiple data sets. De-identified columns
 are created to make a crosswalk.
 }
 \details{
-\sQuote{subject_id} and \sQuote{subject_uid} may occur multiple
+\sQuote{visit.id} and \sQuote{uniq.id} may occur multiple
 times, but should have a one-to-one linkage defined by at least
 one of the input data sets. A new visit number is generated for
-each repeated \sQuote{subject_uid}.
+each repeated \sQuote{uniq.id}.
 }
 \examples{
-\donttest{
-data <-  list(demo_data, conc_data)
-idcols <-  list(c('subject_id', 'subject_uid'), 'subject_id')
-idCrosswalk(data, idcols)
+\dontrun{
+demo_data <- data.frame(subj_id=c(4.1,4.2,5.1,6.1),
+                        pat_id=c(14872,14872,24308,37143),
+                        gender=c(1,1,0,1),
+                        weight=c(34,42,28,63),
+                        height=c(142,148,120,167))
+
+conc_data <- data.frame(subj_id=rep((4:6)+0.1,each=5),
+                        event=rep(1:5,times=3),
+                        conc.level=15*exp(-1*rep(1:5,times=3))+rnorm(15,0,0.1))
+
+data <- list(demo_data, conc_data)
+idcols <- list(c('subj_id', 'pat_id'), 'subj_id')
+idCrosswalk(data, idcols, visit.id='subj_id', uniq.id='pat_id')
+
 }
 }

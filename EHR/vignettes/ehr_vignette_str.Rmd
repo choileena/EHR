@@ -55,7 +55,7 @@ co <- function(expr) {
 
 # Introduction
 
-The `EHR` package provides several modules to perform diverse medication-related studies using data from electronic health record (EHR) databases. Especially, the package includes modules to perform pharmacokinetic/pharmacodynamic (PK/PD) analyses using EHRs, as outlined in Choi, et al.$^{1}$, and additional modules will be added in future. This vignette describes four modules for processing data (*Pro-Demographic*, *Pro-Med-Str*, *Pro-Drug Level*, *Pro-Laboratory*) and one module for PK data building (*Build-PK-IV*) in the system, when data are typically obtained from a structured database.
+The `EHR` package provides several modules to perform diverse medication-related studies using data from electronic health record (EHR) databases. Especially, the package includes modules to perform pharmacokinetic/pharmacodynamic (PK/PD) analyses using EHRs, as outlined in Choi, et al.$^{1}$, and additional modules will be added in the future. This vignette describes four modules for processing data (*Pro-Demographic*, *Pro-Med-Str*, *Pro-Drug Level*, *Pro-Laboratory*) and one module for PK data building (*Build-PK-IV*) in the system, when data are typically obtained from a structured database.
 
 The process starts with structured data extracted by Structured Query Language (SQL) from EHRs or provided by a user, then moves through two phases: data processing which standardizes and combines the input data (*Pro-Med-Str*, *Pro-Drug Level*, etc.) and data building which creates the final PK/PD data (*Build-PK-IV*).
 
@@ -772,11 +772,11 @@ pk_dat <- run_Build_PK_IV(conc=conc.out,
 })
 ```
 
-The function `pullRealId()` replaces the module IDs -- `mod_id`, `mod_visit`, and `mod_id_visit` -- with the original IDs -- `subject_id` and `subject_uid`.
+The function `pullRealId()` appends the original IDs -- `subject_id` and `subject_uid` to the data. The parameter `remove.mod.id=TRUE` can be used to also remove any module IDs -- `mod_id`, `mod_visit`, and `mod_id_visit`. 
 
 ```{r Build-PK-IV-out}
 # convert id back to original IDs
-pk_dat <- pullRealId(pk_dat)
+pk_dat <- pullRealId(pk_dat, remove.mod.id=TRUE)
 
 head(pk_dat)
 ```

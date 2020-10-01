@@ -15,17 +15,39 @@ pullFakeId(
 \arguments{
 \item{dat}{a data.frame}
 
-\item{xwalk}{a data.frame, providing linkage for each ID}
+\item{xwalk}{a data.frame providing linkage for each ID, e.g. output from \code{\link{idCrosswalk}}}
 
 \item{firstCols}{name of columns to put at front of output data set}
 
-\item{orderBy}{name of columns used to reorder data set}
+\item{orderBy}{name of columns used to reorder output data set}
 
-\item{uniq.id}{character sting indicating subject-level id variable (default is "subject_uid")}
+\item{uniq.id}{character string indicating subject-level id variable (default is "subject_uid")}
 }
 \value{
 The modified data.frame
 }
 \description{
 Replace IDs with de-identified version pulled from a crosswalk.
+}
+\examples{
+\dontrun{
+demo_data <- data.frame(subj_id=c(4.1,4.2,5.1,6.1),
+                        pat_id=c(14872,14872,24308,37143),
+                        gender=c(1,1,0,1),
+                        weight=c(34,42,28,63),
+                        height=c(142,148,120,167))
+
+# crosswalk w/ same format as idCrosswalk() output
+xwalk <- data.frame(subj_id=c(4.1,4.2,5.1,6.1),
+                    pat_id=c(14872,14872,24308,37143),
+                    mod_visit=c(1,2,1,1),
+                    mod_id=c(1,1,2,3),
+                    mod_id_visit=c(1.1,1.2,2.1,3.1))
+
+demo_data_deident <- pullFakeId(demo_data, xwalk, 
+                                firstCols = c('mod_id','mod_id_visit','mod_visit'),
+                                uniq.id='pat_id')
+}
+
+
 }
