@@ -2,14 +2,19 @@
 #'
 #' This module will build PK IV data.
 #'
-#' @param conc concentration data, the output of \code{\link{run_DrugLevel}}
-#' @param dose dose data, the output of \code{\link{run_MedStrI}}
-#' @param lab.dat lab data, if available
+#' @param conc concentration data, the output of \code{\link{run_DrugLevel}} 
+#' or a correctly formatted data.frame
+#' @param dose dose data, the output of \code{\link{run_MedStrI}} or a
+#' correctly formatted data.frame
+#' @param lab.dat lab data, if available. the output from \code{\link{run_Labs}} or 
+#' a correctly formatted list
 #' @param lab.vars variables to include from lab data
-#' @param demo.list demographic information, if available
+#' @param demo.list demographic information, if available. the output from 
+#' \code{\link{run_Demo}} or a correctly formatted data.frame
 #' @param demo.vars variables to include from demographic data
 #' @param demo.abbr character vector used to rename/abbreviate demo variables
-#' @param pk.vars variables to include from PK data
+#' @param pk.vars variables to include from PK data. the variables 
+#' c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event') are required
 #' @param drugname drug of interest, included in filename of check files
 #' @param check.path path to \sQuote{check} directory, where check files are
 #' created
@@ -19,6 +24,33 @@
 #' @param date.tz output time zone for \sQuote{date} variable
 #'
 #' @return PK data set
+#'
+#' @examples 
+#' \dontrun{
+#' 
+#' # make fake data
+#' set.seed(6543)
+#' 
+#' build_date <- function(x) as.character(seq(x, length.out=5, by="1 hour"))
+#' dates <- unlist(lapply(rep(Sys.time(),3), build_date))
+#'
+#' plconc <- data.frame(mod_id = rep(1:3,each=5),
+#'                    mod_id_visit = rep(1:3,each=5)+0.1,
+#'                    event = rep(1:5,times=3),
+#'                    conc.level = 15*exp(-1*rep(1:5,times=3))+rnorm(15,0,0.1),
+#'                    date.time = dates)
+#'
+#' ivdose <- data.frame(mod_id = 1:3,
+#'                      date.dose = substr(dates[seq(1,15,by=5)],1,10),
+#'                      infuse.time.real = NA, infuse.time = NA, infuse.dose = NA,
+#'                      bolus.time = as.character(as.POSIXct(dates[seq(1,15,by=5)])-300),
+#'                      bolus.dose = 50,
+#'                      maxint = 0L,
+#'                      weight = 45)
+#' 
+#' run_Build_PK_IV(conc = plconc, dose = ivdose,
+#'                 pk.vars = c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event'))
+#'}
 #'
 #' @export
 

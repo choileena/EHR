@@ -2,7 +2,7 @@
 % Please edit documentation in R/modMedStr1.R
 \name{run_MedStrI}
 \alias{run_MedStrI}
-\title{Run Str Data}
+\title{Run Str Data I}
 \usage{
 run_MedStrI(
   flow.path,
@@ -32,11 +32,11 @@ run_MedStrI(
 \arguments{
 \item{flow.path}{filename of flow data (stored as RDS)}
 
-\item{flow.select}{columns to select}
+\item{flow.select}{existing column names to select for flow data}
 
 \item{flow.rename}{new column names for flow data}
 
-\item{flow.mod.list}{list of expressions, giving modifications to make}
+\item{flow.mod.list}{list of expressions, giving modifications to flow data}
 
 \item{medchk.path}{filename containing data set (stored as CSV); should have
 the column \sQuote{medname} with list of acceptable drug names used to filter
@@ -75,5 +75,54 @@ indicates weight is required}
 str data set
 }
 \description{
-This module will load and modify infusion and bolus data.
+This module will load and modify structured intravenous (IV) infusion and 
+bolus medication data.
+}
+\examples{
+\dontrun{
+# flow data for 'Fakedrug1'
+flow <- data.frame(mod_id=c(1,1,2,2,2),
+                   mod_id_visit=c(46723,46723,84935,84935,84935),
+                   record.date=c("7/5/2019 5:25","7/5/2019 6:01",
+                                 "9/4/2020 3:21", "9/4/2020 4:39",
+                                 "9/4/2020 5:32"),
+                   Final.Weight=c(6.75,6.75,4.5,4.5,4.5),
+                   Final.Rate=c(rep("1 mcg/kg/hr",2),
+                                rep("0.5 mcg/kg/hr",3)),
+                   Final.Units=c("3.375","6.5",
+                                 "2.25","2.25","2.25"))
+
+saveRDS(flow, 'flow.rds')
+
+# mar data for 4 fake drugs
+mar <- data.frame(mod_id=rep(1,5),
+                  Date=rep("2019-07-05",5),
+                  Time=c("07:12","07:31","08:47","09:16","10:22"),
+                  `med:mDrug`=c("Fakedrug2","Fakedrug1","Fakedrug2",
+                                "Fakedrug3","Fakedrug4"),
+                  `med:dosage`=c("30 mg","0.5 mcg","1 mg",
+                                 "20 mg","3 mcg/kg/min"),
+                  `med:route`=rep("IV",5),
+                  `med:given`=rep("Given",5),
+                  check.names=FALSE)
+                  
+saveRDS(mar, 'mar.rds')
+
+# medcheck file for drug of interest ('Fakedrug1')
+medcheck <- data.frame(medname="Fakedrug1",freq=4672)
+
+write.csv(medcheck, 'medcheck.csv')
+
+
+run_MedStrI(flow.path='flow.rds',
+            flow.select=c("mod_id","mod_id_visit","record.date",
+                          "Final.Weight", "Final.Rate","Final.Units"),
+            flow.rename = c("mod_id", "mod_id_visit", "Perform.Date",
+                            "weight", "rate","final.units"),
+            medchk.path='medcheck.csv',
+            mar.path='mar.rds',
+            check.path=tempdir(),
+            drugname='fakedrg1')
+}
+
 }

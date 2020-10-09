@@ -43,7 +43,7 @@ Bioinformatics. 2018 Sep 1;34(17):2988-2996. doi: 10.1093/bioinformatics/bty306.
 }
 }
 \author{
-\strong{Maintainer}: Leena Choi \email{naturechoi@gmail.com}
+\strong{Maintainer}: Leena Choi \email{naturechoi@gmail.com} (\href{https://orcid.org/0000-0002-2544-7090}{ORCID})
 
 Authors:
 \itemize{
