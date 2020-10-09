@@ -54,14 +54,19 @@ run_MedStrI <- function(flow.path,
   #### flow data
 
   # read and transform data
-  flow.in <- readRDS(flow.path)
-  flow1 <- dataTransformation(flow.in, 
-                              select = flow.select, 
-                              rename = flow.rename,
-                              modify = flow.mod.list)
+  if(!missing(flow.path)) {
+    flow.in <- readRDS(flow.path)
+    flow1 <- dataTransformation(flow.in,
+                                select = flow.select,
+                                rename = flow.rename,
+                                modify = flow.mod.list)
 
-  # clean flow data (remove duplicates, missing rate/unit, incorrect units)
-  medFlow <- flowData_mod(flow1, checkDir = check.path, failflow_filename = failflow_fn)
+    # clean flow data (remove duplicates, missing rate/unit, incorrect units)
+    medFlow <- flowData_mod(flow1, checkDir = check.path, failflow_filename = failflow_fn)
+  } else {
+    # no flow data, create mock with proper columns
+    medFlow <- data.frame(mod_id = NA, date.time = NA, final.units = NA, unit = NA, rate = NA, weight = NA)[FALSE,]
+  }
 
   #### MAR data
   mar.in <- readRDS(mar.path)
@@ -86,12 +91,28 @@ run_MedStrI <- function(flow.path,
   unitfn <- file.path(check.path, paste0('fail', failunit_fn,'-', drugname, '.csv'))
   unitfixfn <- sub('fail', 'fix', unitfn)
 
+  # demo data
+  hasDemo <- !is.null(demo.list)
+  if(hasDemo) { # if using demographic data
+    demoData <- NULL
+    if(inherits(demo.list, 'data.frame')) {
+      demoData <- demo.list
+    } else {
+      if('demo' %in% names(demo.list)) {
+        demoData <- demo.list$demo
+      }
+    }
+    if(is.null(demoData)) {
+      warning('Demographic data was provided in an unexpected format and will be ignored')
+      hasDemo <- FALSE
+    }
+  }
+
   if(nrow(dm) > 0) {
     # impute missing weight 
     lastid <- -1
-    hasDemo <- !is.null(demo.list)
     if(hasDemo) {
-      demo.ids <- demo.list[['demo']][,'mod_id']
+      demo.ids <- demoData[,'mod_id']
     }
     for(i in seq(nrow(dm))) {
       row <- dm[i, c('mod_id','date.time')]
@@ -102,12 +123,15 @@ run_MedStrI <- function(flow.path,
       }
       # try demo data (if provided)
       if(nrow(opt) == 0 && hasDemo) {
-        dlix <- demo.list[['demo']][demo.ids == row[[1]], c('dateplusdospccu', 'weight')]
+        dlix <- demoData[demo.ids == row[[1]], c('dateplusdospccu', 'weight')]
         opt <- data.frame(date.time = as.POSIXct(dlix[,1], format="%m/%d/%Y %H:%M"), weight = dlix[,2])
       }
       if(nrow(opt) > 0) {
         dm[i,'weight'] <- takeClosest(row[[2]], opt[[1]], opt[[2]])
         dm[i,'weight.date.time'] <- takeClosestTime(row[[2]], opt[[1]], opt[[2]])
+      } else {
+        dm[i,'weight'] <- NA
+        dm[i,'weight.date.time'] <- NA
       }
     }
 

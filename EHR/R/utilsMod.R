@@ -359,33 +359,32 @@ concData_mod <- function(dat, sampFile, lowerLimit, drugname, giveExample = TRUE
 
 infusionData_mod <- function(flow, mar, flowInt = 60, marInt = 15,
                              rateunit = 'mcg/hr', ratewgtunit = 'mcg/kg/hr') {
-  
+
   if(nrow(flow)){ # add check for >0 obs
     flow$maxint <- flowInt 
   }
-  
+
   if(nrow(mar)){ # add check for >0 obs
     mar$maxint <- marInt 
   }
-  
+
   i1 <- flow[!is.na(flow$rate),]
   i2 <- mar[!is.na(mar$rate),]
-  
+
   if(nrow(flow)>0 & nrow(mar)>0){
     infusionFile <- combine(i1, i2)
   } else if (nrow(flow)>0 & nrow(mar)==0) { #only have i1 dat
-    names(i1) <- c("mod_id", "date.time", "infuse.dose", "unit", 
-                   "rate", "weight", "maxint")
     infusionFile <- i1
   } else if (nrow(flow)==0 & nrow(mar)>0) { #only have i2 dat
     i2[, setdiff(names(i1), names(i2))] <- NA
     i2 <- i2[, names(i1)]
-    names(i2) <- c("mod_id", "date.time", "infuse.dose", "unit", 
-                   "rate", "weight", "maxint")
+    # no flow means no `maxint` in i1
+    i2[,'maxint'] <- marInt
     infusionFile <- i2
   } else {
     stop("No Flow or MAR dosing information")
   }
+  names(infusionFile) <- c("mod_id", "date.time", "infuse.dose", "unit", "rate", "weight", "maxint")
 
   ## separate records with unit==rateunit (don't impute weight or multiply rate by weight)
   infusionFile1 <- infusionFile[infusionFile[,'unit'] == rateunit,]

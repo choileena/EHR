@@ -38,8 +38,13 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
 
   info <- resolveDoseDups_mod(info, checkDir=check.path, drugname=drugname, faildupbol_filename=faildupbol_fn)
 
-  info0 <- addZeroDose(info, infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
-                      dateVar="date.dose", gapVar='maxint', useNext = FALSE)
+  if('maxint' %in% names(info)) {
+    info0 <- addZeroDose(info, infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
+                        dateVar="date.dose", gapVar='maxint', useNext = FALSE)
+  } else {
+    info0 <- info
+    info0[,'maxint'] <- 60
+  }
 
   hasDemo <- !is.null(demo.list)
   hasLabs <- !is.null(lab.dat)
