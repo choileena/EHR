@@ -64,6 +64,9 @@ stdzFreq <- function(x) {
     fv[ix] <- c
   }
   fv <- gsub("[,+.]", "", fv)
+  # dictionary replacement
+  fv[fv == 'onceday'] <- '1'
+  fv[fv == 'everyother'] <- 'qod'
   fv <- sub("and|[io]nthe", "", fv)
   fv <- sub("prn", "", fv)
   fv <- sub("weekly$", "perweekly", fv)
@@ -79,7 +82,7 @@ stdzFreq <- function(x) {
   # not sure about this rule
   fv <- sub("(at|@).*", "", fv)
   fv <- sub("(each|every|during)", "", fv)
-  fv <- sub("/day", "perday", fv)
+  fv <- sub("/d(ay)?", "perday", fv)
   fv <- sub("(cc|var)$", "", fv)
   fv <- sub("^q?(daily|perday|a[-]?day|onday)$", "1", fv)
   fv <- sub("([0-9]+)(h|hr|hrs|hour)$", "\\1hours", fv)
