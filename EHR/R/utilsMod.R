@@ -358,7 +358,7 @@ concData_mod <- function(dat, sampFile, lowerLimit, drugname, giveExample = TRUE
 }
 
 infusionData_mod <- function(flow, mar, flowInt = 60, marInt = 15,
-                             rateunit = 'mcg/hr', ratewgtunit = 'mcg/kg/hr') {
+                             rateunit = 'mcg/hr', ratewgtunit = 'mcg/kg/hr', addWgt = NULL) {
 
   if(nrow(flow)){ # add check for >0 obs
     flow$maxint <- flowInt 
@@ -371,20 +371,24 @@ infusionData_mod <- function(flow, mar, flowInt = 60, marInt = 15,
   i1 <- flow[!is.na(flow$rate),]
   i2 <- mar[!is.na(mar$rate),]
 
-  if(nrow(flow)>0 & nrow(mar)>0){
+  coi <- c("mod_id", "date.time", "infuse.dose", "unit", "rate", "weight", "maxint")
+  if(nrow(i1)>0 & nrow(i2)>0) {
     infusionFile <- combine(i1, i2)
-  } else if (nrow(flow)>0 & nrow(mar)==0) { #only have i1 dat
+  } else if (nrow(i1)>0 & nrow(i2)==0) { #only have i1 dat
     infusionFile <- i1
-  } else if (nrow(flow)==0 & nrow(mar)>0) { #only have i2 dat
+  } else if (nrow(i1)==0 & nrow(i2)>0) { #only have i2 dat
     i2[, setdiff(names(i1), names(i2))] <- NA
     i2 <- i2[, names(i1)]
     # no flow means no `maxint` in i1
     i2[,'maxint'] <- marInt
     infusionFile <- i2
   } else {
-    stop("No Flow or MAR dosing information")
+    warning("No Flow or MAR dosing information")
+    jnk <- as.data.frame(matrix(NA, 1, length(coi)))
+    names(jnk) <- coi
+    return(jnk[FALSE,])
   }
-  names(infusionFile) <- c("mod_id", "date.time", "infuse.dose", "unit", "rate", "weight", "maxint")
+  names(infusionFile) <- coi
 
   ## separate records with unit==rateunit (don't impute weight or multiply rate by weight)
   infusionFile1 <- infusionFile[infusionFile[,'unit'] == rateunit,]
@@ -392,16 +396,22 @@ infusionData_mod <- function(flow, mar, flowInt = 60, marInt = 15,
   ## separate records with unit==ratewgtunit --> impute weight and multiply rate by weight
   infusionFile2 <- infusionFile[infusionFile[,'unit'] == ratewgtunit,]
 
+  infFileWeight <- infusionFile[!is.na(infusionFile[,'weight']),c('mod_id','date.time','weight')]
+  # supplement with additional weight if available
+  if(!is.null(addWgt)) {
+    infFileWeight <- rbind(infFileWeight, addWgt[,c('mod_id','date.time','weight')])
+  }
+  infFileWeight <- split(infFileWeight[,c('date.time','weight')], infFileWeight[,'mod_id'])
+
   # impute missing weight
   ix <- which(is.na(infusionFile2[,'weight']))
-  lastid <- -1
+  wgtTimes <- infusionFile2[ix, 'date.time']
+  wgtLocate <- match(infusionFile2[ix, 'mod_id'], names(infFileWeight))
   for(i in seq_along(ix)) {
-    row <- infusionFile2[ix[i], c('mod_id','date.time')]
-    if(row[[1]] != lastid) {
-      opt <- infusionFile[infusionFile[,'mod_id'] == row[[1]], c('date.time','weight')]
-      lastid <- row[[1]]
+    if(!is.na(wgtLocate[i])) {
+      opt <- infFileWeight[[wgtLocate[i]]]
+      infusionFile2[ix[i],'weight'] <- takeClosest(wgtTimes[i], opt[[1]], opt[[2]])
     }
-    infusionFile2[ix[i],'weight'] <- takeClosest(row[[2]], opt[[1]], opt[[2]])
   }
   # multiply hourly rate per weight unit by weight to get hourly rate
   infusionFile2[,'rate'] <- infusionFile2[,'rate'] * infusionFile2[,'weight']
@@ -411,70 +421,95 @@ infusionData_mod <- function(flow, mar, flowInt = 60, marInt = 15,
 }
 
 resolveDoseDups_mod <- function(dat, checkDir, drugname, faildupbol_filename) {
-  dkey <- do.call(paste, c(dat[,c(1:5)], sep = '|'))
-  dupix <- !is.na(dat[,'infuse.time.real']) & duplicated(dkey)
-  if(any(dupix)) {
-    dat <- dat[!dupix,]
-    rownames(dat) <- NULL
-  }
-  cat(sprintf('%s duplicated rows\n', sum(dupix)))
-  
-  info.x <- dat[!is.na(dat[,'infuse.time.real']),] # remove missing time
-  key <- paste(info.x[,'mod_id'], info.x[,'infuse.time.real'], sep = '|')
-  dupkey <- duplicated(key)
-  if(any(dupkey)) {
-    info.x$key <- +dupkey
-    repflow <- unique(key[dupkey])
-    posdup <- unique(info.x[key %in% repflow, 'mod_id'])
-    dd <- info.x[info.x[,'mod_id'] %in% posdup,]
-    dd <- dd[order(dd[,'mod_id'], dd[,'infuse.time.real']),]
-    id.list <- unique(dd$mod_id)
-    dd.resolved <- NULL
-    for(i in id.list) {
-      ddd <- dd[dd$mod_id==i,]
-      ddd$remove <- 0
-      rn <- rownames(ddd[ddd[,'key']==1,])
-      if(length(rn) == 1 && ddd[nrow(ddd), 'key'] == 0) {
-        diffs <- abs(diff(ddd[as.character(as.numeric(rn)+c(-2,-1,0,1)), 'infuse.dose']))
-        if(diffs[3] < diffs[1]) {
-          ddd[as.character(as.numeric(rn)-1), 'remove'] <- 1 # row number 'rn' is correct dose, so remove rn-1
+  # check if infusion and bolus data are present
+  hasInf <- 'infuse.time.real' %in% names(dat)
+  hasBol <- 'bolus.time' %in% names(dat)
+  orderVars <- c('mod_id')
+
+  if(hasInf) {
+    coi <- c('mod_id','date.dose','infuse.time.real','infuse.time','infuse.dose')
+    dkey <- do.call(paste, c(dat[,coi], sep = '|'))
+    dupix <- !is.na(dat[,'infuse.time.real']) & duplicated(dkey)
+    if(any(dupix)) {
+      dat <- dat[!dupix,]
+      rownames(dat) <- NULL
+    }
+    cat(sprintf('%s duplicated rows\n', sum(dupix)))
+
+    info.x <- dat[!is.na(dat[,'infuse.time.real']),] # remove missing time
+    key <- paste(info.x[,'mod_id'], info.x[,'infuse.time.real'], sep = '|')
+    dupkey <- duplicated(key)
+    if(any(dupkey)) {
+      info.x$key <- +dupkey
+      repflow <- unique(key[dupkey])
+      posdup <- unique(info.x[key %in% repflow, 'mod_id'])
+      dd <- info.x[info.x[,'mod_id'] %in% posdup,]
+      dd <- dd[order(dd[,'mod_id'], dd[,'infuse.time.real']),]
+      id.list <- unique(dd$mod_id)
+      dd.resolved <- NULL
+      for(i in id.list) {
+        ddd <- dd[dd$mod_id==i,]
+        ddd$remove <- 0
+        rn <- rownames(ddd[ddd[,'key']==1,])
+        # "2nd row duplicate" case
+        if(length(rn) == 1 && match(rn, rownames(ddd)) == 2) {
+          if(which.max(abs(ddd[3,'infuse.dose'] - ddd[1:2,'infuse.dose'])) == 2) {
+            # rn is farther, remove it
+            ddd[as.character(as.numeric(rn)), 'remove'] <- 1
+          } else {
+            # rn is closer, remove 'rn-1'
+            ddd[as.character(as.numeric(rn)-1), 'remove'] <- 1
+          }
+        # "duplicate is not last row" case
+        } else if(length(rn) == 1 && ddd[nrow(ddd), 'key'] == 0) {
+          diffs <- abs(diff(ddd[as.character(as.numeric(rn)+c(-2,-1,0,1)), 'infuse.dose']))
+          if(diffs[3] < diffs[1]) {
+            ddd[as.character(as.numeric(rn)-1), 'remove'] <- 1 # row number 'rn' is correct dose, so remove rn-1
+          } else {
+            ddd[as.character(as.numeric(rn)), 'remove'] <- 1 # row number 'rn-1' is correct dose, so remove rn
+          }
         } else {
-          ddd[as.character(as.numeric(rn)), 'remove'] <- 1 # row number 'rn-1' is correct dose, so remove rn
+          ddd[rn, 'remove'] <- 1
         }
-      } else {
-        ddd[rn, 'remove'] <- 1
+        ddd <- ddd[ddd$remove==0, -ncol(ddd)]
+        dd.resolved <- rbind(dd.resolved, ddd)
       }
-      ddd <- ddd[ddd$remove==0, -ncol(ddd)]
-      dd.resolved <- rbind(dd.resolved, ddd)
+      dd.resolved[['key']] <- NULL
+      dat <- dat[!dat$mod_id %in% id.list, ]
+      dat <- rbind(dat, dd.resolved)
+      dat <- dat[order(dat[,'mod_id'], dat[,'infuse.time.real']),]
     }
-    dd.resolved[['key']] <- NULL
-    dat <- dat[!dat$mod_id %in% id.list, ]
-    dat <- rbind(dat, dd.resolved)
-    dat <- dat[order(dat[,'mod_id'], dat[,'infuse.time.real']),]
+    orderVars <- c(orderVars, 'infuse.time.real')
   }
+
   # check bolus dose as well
-  dkey <- do.call(paste, c(dat[,c('mod_id','bolus.time')], sep = '|'))
-  rnums <- which(dkey %in% dkey[!is.na(dat[,'bolus.time']) & duplicated(dkey)])
-  if(length(rnums)) {
-    needfix <- dat[rnums,]
-    needfix <- needfix[order(needfix[,'mod_id'], needfix[,'bolus.time']),]
-    needfix <- cbind(needfix, flag = 'keep')
-    nofix <- dat[-rnums,]
-    fn <- file.path(checkDir, paste0('fail', faildupbol_filename, drugname, '.csv'))
-    fixfn <- sub('fail', 'fix', fn)
-    msg <- sprintf('%s rows need review, see file %s AND create %s\n', length(rnums), fn, fixfn)
-    writeCheckData(needfix, fn, msg)
-    if(file.access(fixfn, 4) != -1) {
-      hasfix <- read.csv(fixfn, stringsAsFactors = FALSE)
-      hasfix <- hasfix[hasfix[,'flag'] == 'keep',]
-      if(nrow(hasfix)) {
-        pd <- nrow(dat)
-        dat <- rbind(nofix, hasfix[,names(nofix)])
-        cat(sprintf('file %s read, %s duplicates removed\n', fixfn, pd-nrow(dat)))
+  if(hasBol) {
+    dkey <- do.call(paste, c(dat[,c('mod_id','bolus.time')], sep = '|'))
+    rnums <- which(dkey %in% dkey[!is.na(dat[,'bolus.time']) & duplicated(dkey)])
+    if(length(rnums)) {
+      needfix <- dat[rnums,]
+      needfix <- needfix[order(needfix[,'mod_id'], needfix[,'bolus.time']),]
+      needfix <- cbind(needfix, flag = 'keep')
+      nofix <- dat[-rnums,]
+      fn <- file.path(checkDir, paste0('fail', faildupbol_filename, drugname, '.csv'))
+      fixfn <- sub('fail', 'fix', fn)
+      msg <- sprintf('%s rows need review, see file %s AND create %s\n', length(rnums), fn, fixfn)
+      writeCheckData(needfix, fn, msg)
+      if(file.access(fixfn, 4) != -1) {
+        hasfix <- read.csv(fixfn, stringsAsFactors = FALSE)
+        hasfix <- hasfix[hasfix[,'flag'] == 'keep',]
+        if(nrow(hasfix)) {
+          pd <- nrow(dat)
+          dat <- rbind(nofix, hasfix[,names(nofix)])
+          cat(sprintf('file %s read, %s duplicates removed\n', fixfn, pd-nrow(dat)))
+        }
       }
     }
+    orderVars <- c(orderVars, 'bolus.time')
   }
-  dat[order(dat[,'mod_id'], dat[,'infuse.time.real'], dat[,'bolus.time']),]
+
+  # re-order by id and time variables
+  dat[do.call(order, dat[,orderVars]),]
 }
 
 #' Write Check File as CSV

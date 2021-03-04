@@ -62,17 +62,37 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
                             date.format="%m/%d/%y %H:%M:%S",
                             date.tz="America/Chicago") {
   # trim Doses - determine whether each dose is valid by comparing to concentration data
-  info <- pkdata::trimDoses(doseData=dose, drugLevelData=conc, drugLevelID="mod_id",
-                          drugLevelTimeVar="date.time", drugLevelVar="conc.level",
-                          infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
-                          bolusDoseTimeVar="bolus.time", bolusDoseVar="bolus.dose",
-                          otherDoseTimeVar=NULL, otherDoseVar=NULL)
+#   info <- pkdata::trimDoses(doseData=dose, drugLevelData=conc, drugLevelID="mod_id",
+#                           drugLevelTimeVar="date.time", drugLevelVar="conc.level",
+#                           infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
+#                           bolusDoseTimeVar="bolus.time", bolusDoseVar="bolus.dose",
+#                           otherDoseTimeVar=NULL, otherDoseVar=NULL)
+  tdArgs <- list(doseData=dose, drugLevelData=conc, drugLevelID="mod_id",
+    drugLevelTimeVar="date.time", drugLevelVar="conc.level",
+    otherDoseTimeVar=NULL, otherDoseVar=NULL
+  )
+  hasInf <- 'infuse.dose' %in% names(dose)
+  hasBol <- 'bolus.dose' %in% names(dose)
+  if(hasInf) {
+    tdArgs$infusionDoseTimeVar <- 'infuse.time'
+    tdArgs$infusionDoseVar <- 'infuse.dose'
+  }
+  if(hasBol) {
+    tdArgs$bolusDoseTimeVar <- 'bolus.time'
+    tdArgs$bolusDoseVar <- 'bolus.dose'
+  }
+  info <- do.call(pkdata::trimDoses, tdArgs)
 
   info <- resolveDoseDups_mod(info, checkDir=check.path, drugname=drugname, faildupbol_filename=faildupbol_fn)
 
   if('maxint' %in% names(info)) {
-    info0 <- addZeroDose(info, infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
-                        dateVar="date.dose", gapVar='maxint', useNext = FALSE)
+    # skip if no infusion data
+    if(hasInf) {
+      info0 <- addZeroDose(info, infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
+                          dateVar="date.dose", gapVar='maxint', useNext = FALSE)
+    } else {
+      info0 <- info
+    }
   } else {
     info0 <- info
     info0[,'maxint'] <- 60
@@ -111,13 +131,26 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
   uids <- as.character(unique(conc[,'mod_id']))
   # ID needs to be in both data sets
   uids <- uids[uids %in% names(doseById)]
+  # default pkdata arguments
+  pkArgs <- list(doseIdVar = "mod_id", drugLevelVar="conc.level", intervalVar='maxint')
+  if(hasInf) {
+    pkArgs$infusionDoseTimeVar <- 'infuse.time'
+    pkArgs$infusionDoseVar <- 'infuse.dose'
+  }
+  if(hasBol) {
+    pkArgs$bolusDoseTimeVar <- 'bolus.time'
+    pkArgs$bolusDoseVar <- 'bolus.dose'
+  }
+
   pkd <- do.call(rbind, lapply(uids, function(i) {
-    dat1 <- doseById[[i]]
-    dat2 <- drugLevelById[[i]]
-    pk <- pkdata(dat1, dat2, doseIdVar = "mod_id", drugLevelVar="conc.level",
-                infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
-                bolusDoseTimeVar="bolus.time", bolusDoseVar="bolus.dose", intervalVar='maxint'
-    )
+#     dat1 <- doseById[[i]]
+#     dat2 <- drugLevelById[[i]]
+#     pk <- pkdata(dat1, dat2, doseIdVar = "mod_id", drugLevelVar="conc.level",
+#                 infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
+#                 bolusDoseTimeVar="bolus.time", bolusDoseVar="bolus.dose", intervalVar='maxint'
+#     )
+    datArgs <- list(doseData = doseById[[i]], drugLevelData = drugLevelById[[i]])
+    pk <- do.call(pkdata, c(datArgs, pkArgs))
   }))
 
   if(hasDemo) {
@@ -131,9 +164,15 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
   } else {
     pkd[,'mod_id_visit'] <- pkd[,'mod_id']
   }
-  flow.weight <- info[!is.na(info[,'weight']), c('mod_id','infuse.time.real','weight')]
 
-  tmp <- merge(pkd, flow.weight, by.x=c('mod_id','date'), by.y=c('mod_id','infuse.time.real'), all.x=TRUE)
+  if(hasInf) {
+    flow.weight <- info[!is.na(info[,'weight']), c('mod_id','infuse.time.real','weight')]
+    tmp <- merge(pkd, flow.weight, by.x=c('mod_id','date'), by.y=c('mod_id','infuse.time.real'), all.x=TRUE)
+  } else {
+    tmp <- pkd
+    tmp[,'weight'] <- NA_real_
+  }
+
   if(!hasMIV) {
     tmp[,'mod_id_visit'] <- tmp[,'mod_id']
   }

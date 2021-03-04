@@ -211,26 +211,42 @@ merge_by_time <- function(x, y, select=c(), maxTime=168, x.id='id', y.id='study_
 
 # combine infusion and bolus into one hourly dose file
 merge_inf_bolus <- function(inf.info, y) {
-  inf.info$date.dose <- format(inf.info$date.time, "%Y-%m-%d")
-  inf.info$infuse.time <- format(inf.info$date.time, "%H:%M")
-  inf.info$bolus.time <- NA
-  inf.info$bolus.dose <- NA
-  inf.info$given.dose <- inf.info$infuse.dose
-  inf.info$infuse.dose <- inf.info$rate
+  hasInfusion <- nrow(inf.info) > 0
+  hasBolus <- nrow(y) > 0
+  if(hasInfusion) {
+    inf.info$date.dose <- format(inf.info$date.time, "%Y-%m-%d")
+    inf.info$infuse.time <- format(inf.info$date.time, "%H:%M")
+    inf.info$bolus.time <- NA
+    inf.info$bolus.dose <- NA
+    inf.info$given.dose <- inf.info$infuse.dose
+    inf.info$infuse.dose <- inf.info$rate
+  }
 
-  names(y) <- c('mod_id', 'date.dose', 'bolus.time', 'bolus.dose', 'medroute')
-  bol.info <- y[!is.na(y$mod_id) & !is.na(y$date.dose) & !is.na(y$bolus.dose),]
-  bol.info$date.time <- parse_dates(paste(bol.info$date.dose, bol.info$bolus.time))
-  bol.info$date.dose <- format(bol.info$date.time, "%Y-%m-%d")
-  bol.info$bolus.time <- format(bol.info$date.time, '%H:%M')
-  bol.info$infuse.time <- NA
-  bol.info$infuse.dose <- NA
-  bol.info$given.dose <- NA
-  bol.info$maxint <- 0
-  bol.info$weight <- NA
+  if(hasBolus) {
+    names(y) <- c('mod_id', 'date.dose', 'bolus.time', 'bolus.dose', 'medroute')
+    bol.info <- y[!is.na(y$mod_id) & !is.na(y$date.dose) & !is.na(y$bolus.dose),]
+    bol.info$date.time <- parse_dates(paste(bol.info$date.dose, bol.info$bolus.time))
+    bol.info$date.dose <- format(bol.info$date.time, "%Y-%m-%d")
+    bol.info$bolus.time <- format(bol.info$date.time, '%H:%M')
+    bol.info$infuse.time <- NA
+    bol.info$infuse.dose <- NA
+    bol.info$given.dose <- NA
+    bol.info$maxint <- 0
+    bol.info$weight <- NA
+  }
 
   req.cols <- c('mod_id','date.dose','infuse.time','infuse.dose','given.dose','bolus.time','bolus.dose','date.time','maxint','weight')
-  dose.info <- rbind(inf.info[,req.cols], bol.info[,req.cols])
+  if(hasInfusion && hasBolus) {
+    dose.info <- rbind(inf.info[,req.cols], bol.info[,req.cols])
+  } else if(hasInfusion) {
+    dose.info <- inf.info[,req.cols]
+  } else if(hasBolus) {
+    dose.info <- bol.info[,req.cols]
+  } else {
+    jnk <- as.data.frame(matrix(NA, 1, length(req.cols)))
+    names(jnk) <- req.cols
+    dose.info <- jnk[FALSE,]
+  }
   dose.info <- dose.info[order(dose.info$mod_id, dose.info$date.time),]
   rownames(dose.info) <- NULL
   dose.info
