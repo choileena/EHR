@@ -26,6 +26,7 @@
 #' @param rateunit acceptable unit for hourly rate; defaults to \sQuote{mcg/hr}
 #' @param ratewgtunit acceptable unit for hourly rate by weight; defaults to \sQuote{mcg/kg/hr}
 #' @param weightunit acceptable unit for weight; defaults to \sQuote{kg}
+#' @param medGivenReq values for \sQuote{med:given} should equal \dQuote{Given} unless this is FALSE
 #' @param drugname drug of interest, included in filename of check files
 #'
 #' @return str data set
@@ -277,10 +278,5 @@ run_MedStrI <- function(flow.path = NULL,
     cdArgs$bolusDoseVar <- 'bolus.dose'
   }
   d1 <- do.call(pkdata::conformDoses, cdArgs)
-#   d1 <- pkdata::conformDoses(doseData=hourly, idVar="mod_id", dateVar="date.dose",
-#                             infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
-#                             bolusDoseTimeVar="bolus.time", bolusDoseVar="bolus.dose",
-#                             otherDoseTimeVar=NULL, otherDoseVar=NULL,
-#                             otherVars=c('given.dose','maxint','weight'))
   d1
 }

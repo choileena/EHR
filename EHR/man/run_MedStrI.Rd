@@ -5,7 +5,7 @@
 \title{Run Str Data I}
 \usage{
 run_MedStrI(
-  flow.path,
+  flow.path = NULL,
   flow.select = c("mod_id", "mod_id_visit", "Perform.Date", "Final.Wt..kg.",
     "Final.Rate..NFR.units.", "Final.Units"),
   flow.rename = c("mod_id", "mod_id_visit", "Perform.Date", "weight", "rate",
@@ -16,6 +16,7 @@ run_MedStrI(
   medchk.path,
   mar.path,
   demo.list = NULL,
+  missing.wgt.path = NULL,
   check.path,
   failflow_fn = "FailFlow",
   failunit_fn = "Unit",
@@ -26,6 +27,7 @@ run_MedStrI(
   rateunit = "mcg/hr",
   ratewgtunit = "mcg/kg/hr",
   weightunit = "kg",
+  medGivenReq = TRUE,
   drugname
 )
 }
@@ -46,6 +48,8 @@ MAR data}
 
 \item{demo.list}{demographic information; if available, missing weight may be
 imputed from demographics}
+
+\item{missing.wgt.path}{filename to additional weight data}
 
 \item{check.path}{path to \sQuote{check} directory, where check files are
 created}
@@ -68,6 +72,8 @@ indicates weight is required}
 \item{ratewgtunit}{acceptable unit for hourly rate by weight; defaults to \sQuote{mcg/kg/hr}}
 
 \item{weightunit}{acceptable unit for weight; defaults to \sQuote{kg}}
+
+\item{medGivenReq}{values for \sQuote{med:given} should equal \dQuote{Given} unless this is FALSE}
 
 \item{drugname}{drug of interest, included in filename of check files}
 }

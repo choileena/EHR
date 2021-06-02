@@ -62,11 +62,6 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
                             date.format="%m/%d/%y %H:%M:%S",
                             date.tz="America/Chicago") {
   # trim Doses - determine whether each dose is valid by comparing to concentration data
-#   info <- pkdata::trimDoses(doseData=dose, drugLevelData=conc, drugLevelID="mod_id",
-#                           drugLevelTimeVar="date.time", drugLevelVar="conc.level",
-#                           infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
-#                           bolusDoseTimeVar="bolus.time", bolusDoseVar="bolus.dose",
-#                           otherDoseTimeVar=NULL, otherDoseVar=NULL)
   tdArgs <- list(doseData=dose, drugLevelData=conc, drugLevelID="mod_id",
     drugLevelTimeVar="date.time", drugLevelVar="conc.level",
     otherDoseTimeVar=NULL, otherDoseVar=NULL
@@ -143,12 +138,6 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
   }
 
   pkd <- do.call(rbind, lapply(uids, function(i) {
-#     dat1 <- doseById[[i]]
-#     dat2 <- drugLevelById[[i]]
-#     pk <- pkdata(dat1, dat2, doseIdVar = "mod_id", drugLevelVar="conc.level",
-#                 infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
-#                 bolusDoseTimeVar="bolus.time", bolusDoseVar="bolus.dose", intervalVar='maxint'
-#     )
     datArgs <- list(doseData = doseById[[i]], drugLevelData = drugLevelById[[i]])
     pk <- do.call(pkdata, c(datArgs, pkArgs))
   }))
@@ -222,7 +211,6 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
       tmp[is.na(tmp[,'cpb_sts']), 'cpb_sts'] <- 0
     }
 
-    #demo.vars <- c('weight', 'weight_demo','height', 'creat', 'gender', 'ageatsurgery', 'stat_sts', 'cpb_sts', 'length_of_icu_stay')
     cat(sprintf('The list of final demographic variables: %s\n', paste(demo.vars, collapse = '\n')))
   }
 
