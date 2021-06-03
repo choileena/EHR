@@ -23,6 +23,7 @@ stdzDose <- function(x) {
     cdose <- udose
   }
   cdose <- sub('[ ]*(cap|capsule|tablet|tab|pill)[s]?', '', cdose)
+  cdose <- sub('(and )?one half', 0.5, cdose)
   cdose <- sub('one', 1, cdose)
   cdose <- sub('two', 2, cdose)
   cdose <- sub('three', 3, cdose)
@@ -37,6 +38,11 @@ stdzDose <- function(x) {
   cdose <- sub('1-2', 1.5, cdose, fixed = TRUE)
   cdose <- sub('1-1/2', 1.5, cdose, fixed = TRUE)
   cdose <- sub('1/2', 0.5, cdose, fixed = TRUE)
+  # 1 0.5 -> 1.5
+  ix <- grep("[0-9]+[ ]0.5", cdose)
+  if(length(ix)) {
+    cdose[ix] <- as.numeric(sub("([0-9]+)[ ]0.5", "\\1", cdose[ix])) + 0.5
+  }
   ix <- grep("[0-9][ ]?(to|-)[ ]?[0-9]", cdose)
   # if DOSE1-DOSE2, take the average
   # another option is to duplicate row and include both dose amounts

@@ -650,7 +650,7 @@ findRareValues <- function(dat, propThresh = 0.02, maxPerc = 0.5, colsToExclude 
       th <- max(1, floor(min(nv * propThresh, percThresh)))
       ix <- which(vtbl <= th)
       if(length(ix)) {
-        ptbl <- proportions(vtbl)
+        ptbl <- vtbl / sum(vtbl)
         res[[i]] <- cbind(var, as.data.frame(vtbl[ix, drop = FALSE], stringsAsFactors = FALSE), Prop = c(ptbl[ix, drop = FALSE]))
       }
     }
