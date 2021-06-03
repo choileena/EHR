@@ -38,15 +38,16 @@
 #'                    mod_id_visit = rep(1:3,each=5)+0.1,
 #'                    event = rep(1:5,times=3),
 #'                    conc.level = 15*exp(-1*rep(1:5,times=3))+rnorm(15,0,0.1),
-#'                    date.time = dates)
+#'                    date.time = as.POSIXct(dates))
 #'
 #' ivdose <- data.frame(mod_id = 1:3,
 #'                      date.dose = substr(dates[seq(1,15,by=5)],1,10),
 #'                      infuse.time.real = NA, infuse.time = NA, infuse.dose = NA,
-#'                      bolus.time = as.character(as.POSIXct(dates[seq(1,15,by=5)])-300),
-#'                      bolus.dose = 50,
+#'                      bolus.time = as.POSIXct(dates[seq(1,15,by=5)])-300,
+#'                      bolus.dose = 90,
 #'                      maxint = 0L,
 #'                      weight = 45)
+#' 
 #' 
 #' run_Build_PK_IV(conc = plconc, dose = ivdose,
 #'                 pk.vars = c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event'))
