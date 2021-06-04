@@ -38,3 +38,51 @@ data.frame
 \description{
 This module builds oral data for PK analysis.
 }
+\examples{
+{
+\dontrun{
+## Data Generating Function
+mkdat <- function() {
+ npat=3
+ visits <- floor(runif(npat, min=2, max=6))
+ id <- rep(1:npat, visits)
+ dt <- as.POSIXct(paste(as.Date(sort(sample(700, sum(visits))), origin = '19-01-01'), '10:00:00'), tz = 'UTC') + rnorm(sum(visits), 0, 1*60*60)
+ dose_morn <- sample(c(2.5,5,7.5,10), sum(visits), replace = TRUE)
+ conc <- round(rnorm(sum(visits), 1.5*dose_morn, 1),1)
+ ld <- dt - sample(10:16, sum(visits), replace = TRUE) * 3600
+ ld[rnorm(sum(visits)) < .3] <- NA
+ age <- rep(sample(40:75, npat), visits)
+ gender <- rep(sample(0:1, npat, replace=TRUE), visits)
+ weight <- rep(round(rnorm(npat, 180, 20)),visits)
+ hgb <- rep(rnorm(npat, 10, 2), visits)
+ data.frame(id, dt, dose_morn, conc, ld, age, gender, weight, hgb)
+}
+
+# Make raw data
+set.seed(30)
+dat<-mkdat()
+
+#Process data without last-dose times
+run_Build_PK_Oral(x = dat,
+                 idCol = "id",
+                 dtCol = "dt",
+                 doseCol = "dose_morn",
+                 concCol = "conc",
+                 ldCol = NULL,
+                 first_interval_hours = 336,
+                 imputeClosest = NULL)
+
+#Process data with last-dose times
+run_Build_PK_Oral(x = dat,
+                 idCol = "id",
+                 dtCol = "dt",
+                 doseCol = "dose_morn",
+                 concCol = "conc",
+                 ldCol = "ld",
+                 first_interval_hours = 336,
+                 imputeClosest = NULL)
+
+}
+}
+
+}
