@@ -67,10 +67,8 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 #' @param imputeClosest columns to impute with closest value
 #'
 #' @return data.frame
-#'
-#' @export
-
-#'\examples{
+#' 
+#'@examples{
 #'\dontrun{
 #'## Data Generating Function
 #'mkdat <- function() {
@@ -115,6 +113,8 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 #'
 #'}
 #'}
+#'
+#' @export
 
 run_Build_PK_Oral <- function(x, idCol = 'id', dtCol = 'dt', doseCol = 'dose', concCol = 'conc', ldCol = NULL,
                               first_interval_hours = 336, imputeClosest = NULL) {
