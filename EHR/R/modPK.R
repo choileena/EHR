@@ -1,6 +1,6 @@
-#' Build PK Data
+#' Build-PK-IV Module
 #'
-#' This module will build PK IV data.
+#' This module builds PK data for intravenously (IV) administered medications.
 #'
 #' @param conc concentration data, the output of \code{\link{run_DrugLevel}} 
 #' or a correctly formatted data.frame
