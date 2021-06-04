@@ -2,7 +2,7 @@
 % Please edit documentation in R/modPK.R
 \name{run_Build_PK_IV}
 \alias{run_Build_PK_IV}
-\title{Build PK Data}
+\title{Build-PK-IV Module}
 \usage{
 run_Build_PK_IV(
   conc,
@@ -60,7 +60,7 @@ created}
 PK data set
 }
 \description{
-This module will build PK IV data.
+This module builds PK data for intravenously (IV) administered medications.
 }
 \examples{
 \dontrun{

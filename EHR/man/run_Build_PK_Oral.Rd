@@ -2,7 +2,7 @@
 % Please edit documentation in R/pkDosingInterval.R
 \name{run_Build_PK_Oral}
 \alias{run_Build_PK_Oral}
-\title{PK oral data}
+\title{Build-PK-Oral Module}
 \usage{
 run_Build_PK_Oral(
   x,
@@ -28,15 +28,18 @@ run_Build_PK_Oral(
 
 \item{ldCol}{last-dose time column name}
 
-\item{first_interval_hours}{number of hours before first imputed time point}
+\item{first_interval_hours}{number of hours before the first concentration to start time=0; the default is 336 hours = 14 days}
 
-\item{imputeClosest}{columns to impute with closest value}
+\item{imputeClosest}{columns to impute missing data with closest value}
 }
 \value{
 data.frame
 }
 \description{
-This module builds oral data for PK analysis.
+This module builds PK data for orally administered medications.
+}
+\details{
+See EHR Vignette for Build-PK-Oral
 }
 \examples{
 \dontrun{
@@ -71,7 +74,7 @@ run_Build_PK_Oral(x = dat,
                   first_interval_hours = 336,
                   imputeClosest = NULL)
 
- #Process data with last-dose times
+#Process data with last-dose times
 run_Build_PK_Oral(x = dat, doseCol = "dose_morn", ldCol = "ld")
 }
 
