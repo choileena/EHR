@@ -17,7 +17,7 @@ Authors@R:
     person("Nathan", "James", role = "aut",
            email = "nathan.t.james@vanderbilt.edu",
            comment = c(ORCID = "0000-0001-7079-9151")),
-    person("EMichael", "Williams", role = "aut",
+    person("Michael", "Williams", role = "aut",
            email = "michael.l.williams@vanderbilt.edu"))
 Description: Process and analyze electronic health record (EHR) data. The 'EHR'
     package provides modules to perform diverse medication-related studies using
