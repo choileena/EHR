@@ -50,8 +50,8 @@ Authors:
   \item Cole Beck \email{cole.beck@vumc.org} (\href{https://orcid.org/0000-0002-6849-6255}{ORCID})
   \item Hannah Weeks \email{hannah.l.weeks@vanderbilt.edu} (\href{https://orcid.org/0000-0002-0262-6790}{ORCID})
   \item Elizabeth McNeer \email{elizabeth.mcneer@vumc.org}
-  \item Michael Williams \email{michael.l.williams@vanderbilt.edu}
   \item Nathan James \email{nathan.t.james@vanderbilt.edu} (\href{https://orcid.org/0000-0001-7079-9151}{ORCID})
+  \item Michael Williams \email{michael.l.williams@vanderbilt.edu}
 }
 
 }
