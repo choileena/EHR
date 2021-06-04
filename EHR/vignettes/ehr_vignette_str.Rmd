@@ -57,17 +57,13 @@ co <- function(expr) {
 
 The `EHR` package provides several modules to perform diverse medication-related studies using data from electronic health record (EHR) databases. Especially, the package includes modules to perform pharmacokinetic/pharmacodynamic (PK/PD) analyses using EHRs, as outlined in Choi, et al.$^{1}$, and additional modules will be added in the future. This vignette describes four modules for processing data (*Pro-Demographic*, *Pro-Med-Str*, *Pro-Drug Level*, *Pro-Laboratory*) and one module for PK data building (*Build-PK-IV*) in the system, when data are typically obtained from a structured database.
 
-The process starts with structured data extracted by Structured Query Language (SQL) from EHRs or provided by a user, then moves through two phases: data processing which standardizes and combines the input data (*Pro-Med-Str*, *Pro-Drug Level*, etc.) and data building which creates the final PK/PD data (*Build-PK-IV*).
+The process starts with structured data extracted by Structured Query Language (SQL) from EHRs or provided by a user, then moves through two phases: data processing which standardizes and combines the input data (*Pro-Med-Str*, *Pro-Drug Level*, etc.) and data building which creates the final PK data (*Build-PK-IV*).
 
 The vignette has two examples. The first example demonstrates how to build PK data quickly without using the data processing modules when cleaned data for concentration, drug dose, demographic and laboratory datasets are already available in an appropriate data form. The second example shows how to utilize several data processing modules to standardize and combine more complex datasets, and then finally build PK data using *Build-PK-IV*.
 
-To begin we load the `EHR` package, the `pkdata` package (which can be installed from github), and the `lubridate` package. 
+To begin we load the `EHR` package, the `pkdata` package, and the `lubridate` package. 
 
 ```{r load-lib-dir, eval=FALSE}
-# to install pkdata package
-# library(devtools)
-# install_github("couthcommander/pkdata")
-
 # load EHR package and dependencies
 library(EHR)
 library(pkdata)
@@ -76,7 +72,7 @@ library(lubridate)
 
 # Example 1: Quick Data Building with Processed Datasets
 
-The data for example 1 includes a demographic file, a concentration file, an intravenous (IV) dosing file, and a lab file, which are all cleaned and formatted appropriately. We also define a directory for the raw data and a directory for interactive checking output files.
+The data for example 1 includes a demographic file, a concentration file, an intravenous (IV) dosing file, and a laboratory file, which are all cleaned and formatted appropriately. We also define a directory for the raw data and a directory for interactive checking output files.
 
 ```{r simp-in, cache=TRUE}
 # define directories
@@ -96,7 +92,7 @@ creat.data <- read.csv(file.path(rawDataDir,"Creatinine_DATA_simple.csv"))
 head(creat.data)
 ```
 
-The `EHR` package modules use a standardized naming convention for patient identification (ID) variables. We rename the unique patient-level ID from `patient_id` to `mod_id` and the visit-level ID from `patient_visit_id` to `mod_id_visit`.
+The `EHR` package modules use a standardized naming convention for patient identification (ID) variables. We rename the unique patient-level ID from `patient_id` to `mod_id` and the visit-level ID from `patient_visit_id` to `mod_id_visit`. If there is only a single visit/course per subject the unique patient-level ID and visit-level ID can be the same, however both `mod_id` and `mod_id_visit` should be defined.
 
 ```{r simp-rename, cache=TRUE}
 names(conc.data)[1:2] <- names(demo)[1:2] <- c("mod_id", "mod_id_visit")
