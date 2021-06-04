@@ -30,7 +30,8 @@ run_Build_PK_Oral(
 
 \item{first_interval_hours}{number of hours before the first concentration to start time=0; the default is 336 hours = 14 days}
 
-\item{imputeClosest}{columns to impute missing data with closest value}
+\item{imputeClosest}{columns to impute missing data with next observation propagated backward; this is in addition to
+all covariates receving imputation using last observation carried forward}
 }
 \value{
 data.frame
@@ -48,7 +49,9 @@ mkdat <- function() {
   npat <- 3
   visits <- floor(runif(npat, min=2, max=6))
   id <- rep(1:npat, visits)
-  dt <- as.POSIXct(paste(as.Date(sort(sample(700, sum(visits))), origin = '19-01-01'), '10:00:00'), tz = 'UTC') + rnorm(sum(visits), 0, 1*60*60)
+  dt_samp <- as.Date(sort(sample(700, sum(visits))), origin = '2019-01-01')
+  tm_samp <- as.POSIXct(paste(dt_samp, '10:00:00'), tz = 'UTC')
+  dt <- tm_samp + rnorm(sum(visits), 0, 1*60*60)
   dose_morn <- sample(c(2.5,5,7.5,10), sum(visits), replace = TRUE)
   conc <- round(rnorm(sum(visits), 1.5*dose_morn, 1),1)
   ld <- dt - sample(10:16, sum(visits), replace = TRUE) * 3600
