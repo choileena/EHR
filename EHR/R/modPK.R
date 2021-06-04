@@ -23,6 +23,8 @@
 #' @param date.format output format for \sQuote{date} variable
 #' @param date.tz output time zone for \sQuote{date} variable
 #'
+#' @details See EHR Vignette for Structured Data
+#'
 #' @return PK data set
 #'
 #' @examples 
