@@ -53,9 +53,9 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
   newdat
 }
 
-#' PK oral data
+#' Build-PK-Oral Module
 #'
-#' This module builds oral data for PK analysis.
+#' This module builds PK data for orally administered medications.
 #'
 #' @param x data.frame
 #' @param idCol data.frame id column name
@@ -63,8 +63,10 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 #' @param doseCol dose column name
 #' @param concCol concentration column name
 #' @param ldCol last-dose time column name
-#' @param first_interval_hours number of hours before first imputed time point
-#' @param imputeClosest columns to impute with closest value
+#' @param first_interval_hours number of hours before the first concentration to start time=0; the default is 336 hours = 14 days
+#' @param imputeClosest columns to impute missing data with closest value
+#'
+#' @details See EHR Vignette for Build-PK-Oral
 #'
 #' @return data.frame
 #'
@@ -101,7 +103,7 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 #'                   first_interval_hours = 336,
 #'                   imputeClosest = NULL)
 #' 
-#'  #Process data with last-dose times
+#' #Process data with last-dose times
 #' run_Build_PK_Oral(x = dat, doseCol = "dose_morn", ldCol = "ld")
 #' }
 #'

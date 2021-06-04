@@ -55,19 +55,15 @@ co <- function(expr) {
 
 # Introduction
 
-The `EHR` package provides several modules to perform diverse medication-related studies using data from electronic health record (EHR) databases. Especially, the package includes modules to perform pharmacokinetic/pharmacodynamic (PK/PD) analyses using EHRs, as outlined in Choi, et al.$^{1}$, and additional modules will be added in the future. This vignette describes four modules for processing data (*Pro-Demographic*, *Pro-Med-Str*, *Pro-Drug Level*, *Pro-Laboratory*) and one module for PK data building (*Build-PK-IV*) in the system, when data are typically obtained from a structured database.
+The `EHR` package provides several modules to perform diverse medication-related studies using data from electronic health record (EHR) databases. Especially, the package includes modules to perform pharmacokinetic/pharmacodynamic (PK/PD) analyses using EHRs, as outlined in Choi *et al.*$^{1}$, and additional modules will be added in the future. This vignette describes four modules for processing data (*Pro-Demographic*, *Pro-Med-Str*, *Pro-Drug Level*, *Pro-Laboratory*) and one module for PK data building (*Build-PK-IV*) in the system, when data are typically obtained from a structured database.
 
-The process starts with structured data extracted by Structured Query Language (SQL) from EHRs or provided by a user, then moves through two phases: data processing which standardizes and combines the input data (*Pro-Med-Str*, *Pro-Drug Level*, etc.) and data building which creates the final PK/PD data (*Build-PK-IV*).
+The process starts with structured data extracted by Structured Query Language (SQL) from EHRs or provided by a user, then moves through two phases: data processing which standardizes and combines the input data (*Pro-Med-Str*, *Pro-Drug Level*, etc.) and data building which creates the final PK data (*Build-PK-IV*).
 
 The vignette has two examples. The first example demonstrates how to build PK data quickly without using the data processing modules when cleaned data for concentration, drug dose, demographic and laboratory datasets are already available in an appropriate data form. The second example shows how to utilize several data processing modules to standardize and combine more complex datasets, and then finally build PK data using *Build-PK-IV*.
 
-To begin we load the `EHR` package, the `pkdata` package (which can be installed from github), and the `lubridate` package. 
+To begin we load the `EHR` package, the `pkdata` package, and the `lubridate` package. 
 
 ```{r load-lib-dir, eval=FALSE}
-# to install pkdata package
-# library(devtools)
-# install_github("couthcommander/pkdata")
-
 # load EHR package and dependencies
 library(EHR)
 library(pkdata)
@@ -76,7 +72,7 @@ library(lubridate)
 
 # Example 1: Quick Data Building with Processed Datasets
 
-The data for example 1 includes a demographic file, a concentration file, an intravenous (IV) dosing file, and a lab file, which are all cleaned and formatted appropriately. We also define a directory for the raw data and a directory for interactive checking output files.
+The data for example 1 includes a demographic file, a concentration file, an intravenous (IV) dosing file, and a laboratory file, which are all cleaned and formatted appropriately. We also define a directory for the raw data and a directory for interactive checking output files.
 
 ```{r simp-in, cache=TRUE}
 # define directories
@@ -96,7 +92,7 @@ creat.data <- read.csv(file.path(rawDataDir,"Creatinine_DATA_simple.csv"))
 head(creat.data)
 ```
 
-The `EHR` package modules use a standardized naming convention for patient identification (ID) variables. We rename the unique patient-level ID from `patient_id` to `mod_id` and the visit-level ID from `patient_visit_id` to `mod_id_visit`.
+The `EHR` package modules use a standardized naming convention for patient identification (ID) variables. We rename the unique patient-level ID from `patient_id` to `mod_id` and the visit-level ID from `patient_visit_id` to `mod_id_visit`. If there is only a single visit/course per subject the unique patient-level ID and visit-level ID can be the same, however both `mod_id` and `mod_id_visit` should be defined.
 
 ```{r simp-rename, cache=TRUE}
 names(conc.data)[1:2] <- names(demo)[1:2] <- c("mod_id", "mod_id_visit")
@@ -159,9 +155,9 @@ checkDir <- system.file("examples", "str_ex2", "checks", package="EHR")
 
 The raw data for example 2 includes a demographic file for use with the *Pro-Demographic* module; two files for the *Pro-Drug Level* module; two dosing files for the *Pro-Med-Str* module; and two lab files for use with the *Pro-Laboratory* module.
 
-The structured datasets extracted by SQL must go through a pre-processing stage which creates new ID variables and datasets that can be used by the data processing modules. The following annotated example demonstrates the three main steps of pre-processing: (1) Read and clean raw data, (2) merge raw data to create new ID variables, (3) make new data for use with modules.
+The structured datasets extracted by SQL must go through a pre-processing stage which creates new ID variables and datasets that can be used by the data processing modules. The following annotated example demonstrates the three main steps of pre-processing: (1) read and clean raw data; (2) merge raw data to create new ID variables; (3) make new data for use with modules.
 
-Each raw dataset should contain a subject unique ID, a subject visit ID, or both ids. In this example the subject unique ID is called `subject_uid` and the subject visit ID is called `subject_id`. The subject visit ID is a combination of subject and visit/course -- e.g., `subject_id` 14.0 is the first course for subject 14, `subject_id` 14.1 is the second course for subject 14, etc.. `subject_uid` is a unique ID that is the same for all subject records. The integer part of `subject_id` has a 1-to-1 correspondence with `subject_uid` -- for this example, `subject_uid` 62734832 is associated with both `subject_id` 14.0 and `subject_id` 14.1. If there is only a single visit/course per subject only the subject unique ID is needed.
+Each raw dataset should contain a subject unique ID, a subject visit ID, or both ids. In this example the subject unique ID is called `subject_uid` and the subject visit ID is called `subject_id`. The subject visit ID is a combination of subject and visit/course -- e.g., `subject_id` 14.0 is the first course for subject 14, `subject_id` 14.1 is the second course for subject 14, and so on. `subject_uid` is a unique ID that is the same for all subject records. The integer part of `subject_id` has a 1-to-1 correspondence with `subject_uid` -- for this example, `subject_uid` 62734832 is associated with both `subject_id` 14.0 and `subject_id` 14.1. If there is only a single visit/course per subject only the subject unique ID is needed.
 
 ### (1) Read and clean raw data
 
@@ -173,7 +169,7 @@ demo.in <- readTransform(file.path(rawDataDir, "Demographics_DATA.csv"))
 head(demo.in)
 ```
 
-The example concentration data consists of two files SampleTimes_DATA.csv and SampleConcentration_DATA.csv containing the concentration sampling times and values, respectively.
+The example concentration data consists of two files, SampleTimes_DATA.csv and SampleConcentration_DATA.csv containing the concentration sampling times and values, respectively.
 
 The sampling times data csv file is read in with `read.csv()`. Then the function `dataTransformation()` is used to rename the variable `Study.ID` to `subject_id` and to create a new variable called `samp`, which indexes the sample number, using the `modify=` argument. 
 
@@ -403,8 +399,8 @@ demo.out$exclude
 
 * The `run_Demo` function arguments are as follows:
     + `demo.path`: file path where cleaned demographic data exist
-    + `toexclude`: (optional) A set of user-defined expressions to set exclusion rules to be applied to the demographic dataset within the module
-    + `demo.mod.list`: (optional) A list of user defined expressions to set modification rules within the module
+    + `toexclude`: (optional) a set of user-defined expressions to set exclusion rules to be applied to the demographic dataset within the module
+    + `demo.mod.list`: (optional) a list of user defined expressions to set modification rules within the module
 
 See the `run_Demo()` function documentation for more details on the optional arguments.
 
