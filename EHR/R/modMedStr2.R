@@ -6,6 +6,8 @@
 #' @param select columns to select
 #' @param rename new column names
 #'
+#' @details See EHR Vignette for Structured Data
+#'
 #' @return str data set
 #'
 #' @examples
