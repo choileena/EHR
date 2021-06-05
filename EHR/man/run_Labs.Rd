@@ -20,6 +20,9 @@ lab data set
 \description{
 This module will load and modify laboratory data.
 }
+\details{
+See EHR Vignette for Structured Data
+}
 \examples{
 \dontrun{
 lab_data <- data.frame(mod_id=rep(1:3,each=3),

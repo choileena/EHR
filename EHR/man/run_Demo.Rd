@@ -22,6 +22,9 @@ list with two components
 \description{
 This module will load and modify demographic data.
 }
+\details{
+See EHR Vignette for Structured Data
+}
 \examples{
 set.seed(2525)
 dateSeq <- seq(as.Date('2019/01/01'), as.Date('2020/01/01'), by="day")

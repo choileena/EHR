@@ -25,6 +25,9 @@ str data set
 \description{
 This module will load and modify structured e-prescription data.
 }
+\details{
+See EHR Vignette for Structured Data
+}
 \examples{
 \dontrun{
 erx_data <- data.frame(GRID=paste0("ID",c(1,1,2,2,2,2)),

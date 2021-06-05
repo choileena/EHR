@@ -62,6 +62,9 @@ PK data set
 \description{
 This module builds PK data for intravenously (IV) administered medications.
 }
+\details{
+See EHR Vignette for Structured Data
+}
 \examples{
 \dontrun{
 
