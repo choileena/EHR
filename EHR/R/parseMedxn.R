@@ -23,6 +23,8 @@
 #' @param begText A regular expression that would indicate the beginning of a new
 #' observation (i.e., extracted clinical note).
 #'
+#' @details See Vignette for Dose Building Using Example Vanderbilt EHR Data
+#'
 #' @return A data.table object with columns for filename, drugname, strength, dose, route,
 #' freq, and duration. The filename contains the file name corresponding to the clinical
 #' note. Each of the entity columns are of the format
