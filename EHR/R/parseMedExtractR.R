@@ -17,7 +17,7 @@
 #' one exception to this is the dose change entity, which can occur before the drug name
 #' (see Weeks, et al. 2020 for details). 
 #'
-#' See Vignette for Dose Building Using Example Vanderbilt EHR Data.
+#' See EHR Vignette for Extract-Med and Pro-Med-NLP as well as Dose Building Using Example Vanderbilt EHR Data for details.
 #'
 #' @param filename File name for a single file containing medExtractR output.
 #'
