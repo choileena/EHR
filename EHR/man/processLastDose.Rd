@@ -31,6 +31,9 @@ been taken one day previous to the note's date. For any duration extractions (e.
 the last dose time is calculated from the labtime by extracting the appropriate number of hours. The
 final dataset is returned with last dose time formatted into a POSIXct variable.
 }
+\details{
+See EHR Vignette for Extract-Med and Pro-Med-NLP for details
+}
 \examples{
 tac_mxr <- read.csv(system.file("examples", "tac_mxr.csv", package = "EHR"))
 data(tac_metadata)

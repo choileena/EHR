@@ -33,6 +33,8 @@ entity, extracted expression, and start:stop position of the extraction. To perf
 this initial parsing, entities are paired with the closest preceding drug name. The
 one exception to this is the dose change entity, which can occur before the drug name
 (see Weeks, et al. 2020 for details).
+
+See Vignette for Dose Building Using Example Vanderbilt EHR Data
 }
 \examples{
 mxr_output <- system.file("examples", "lam_mxr.csv", package = "EHR")
