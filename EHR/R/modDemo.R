@@ -7,7 +7,7 @@
 #' the observation should be excluded
 #' @param demo.mod.list list of expressions, giving modifications to make
 #'
-#' @details See EHR Vignette for Structured Data
+#' @details See EHR Vignette for Structured Data.
 #'
 #' @return list with two components
 #'   \item{demo}{demographic data}
