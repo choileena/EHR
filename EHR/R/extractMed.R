@@ -14,7 +14,9 @@
 #' time or frequency of dose, dose change keywords (e.g., 'increase' or 'decrease'), and time of
 #' last dose. After applying \code{\link[medExtractR]{medExtractR}}
 #' to extract drug dosing information, \code{extractMed} appends the file name to results to ensure
-#' they are appropriately labeled. See EHR Vignette for for Extract-Med and Pro-Med-NLP. For more details, see Weeks, et al. 2020. 
+#' they are appropriately labeled. 
+#'
+#' See EHR Vignette for for Extract-Med and Pro-Med-NLP. For more details, see Weeks, et al. 2020. 
 #'
 #' @param note_fn File name(s) for the text file(s) containing the clinical notes. Can be
 #' a character string for an individual note, or a vector or list of file names for
