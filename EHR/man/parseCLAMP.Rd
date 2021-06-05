@@ -30,4 +30,6 @@ backticks.
 
 CLAMP output files anchor extractions to a specific drug name extraction through
 semantic relations.
+
+See Vignette for Dose Building Using Example Vanderbilt EHR Data
 }

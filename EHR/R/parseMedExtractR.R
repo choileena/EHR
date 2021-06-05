@@ -15,7 +15,9 @@
 #' entity, extracted expression, and start:stop position of the extraction. To perform
 #' this initial parsing, entities are paired with the closest preceding drug name. The
 #' one exception to this is the dose change entity, which can occur before the drug name
-#' (see Weeks, et al. 2020 for details).
+#' (see Weeks, et al. 2020 for details). 
+#'
+#' See EHR Vignette for Extract-Med and Pro-Med-NLP as well as Dose Building Using Example Vanderbilt EHR Data for details.
 #'
 #' @param filename File name for a single file containing medExtractR output.
 #'

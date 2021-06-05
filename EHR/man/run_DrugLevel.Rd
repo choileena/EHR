@@ -56,6 +56,9 @@ drug-level data set
 \description{
 This module will load and modify drug-level data.
 }
+\details{
+See EHR Vignette for Structured Data
+}
 \examples{
 \dontrun{
 # concentrations

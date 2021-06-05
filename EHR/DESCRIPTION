@@ -1,6 +1,6 @@
 Package: EHR
 Version: 0.4-0
-Date: 2020-09-14
+Date: 2021-06-04
 Title: Electronic Health Record (EHR) Data Processing and Analysis Tool
 Maintainer: Leena Choi <naturechoi@gmail.com>
 Authors@R:
@@ -11,12 +11,15 @@ Authors@R:
            email = "cole.beck@vumc.org",
            comment = c(ORCID = "0000-0002-6849-6255")),
     person("Hannah", "Weeks", role = "aut",
-           email = "hannah.l.weeks@vanderbilt.edu"),
+           email = "hannah.l.weeks@vanderbilt.edu",
+           comment = c(ORCID = "0000-0002-0262-6790")),
     person("Elizabeth", "McNeer", role = "aut",
            email = "elizabeth.mcneer@vumc.org"),
     person("Nathan", "James", role = "aut",
            email = "nathan.t.james@vanderbilt.edu",
-           comment = c(ORCID = "0000-0001-7079-9151")))
+           comment = c(ORCID = "0000-0001-7079-9151")),
+    person("Michael", "Williams", role = "aut",
+           email = "michael.l.williams@vanderbilt.edu"))
 Description: Process and analyze electronic health record (EHR) data. The 'EHR'
     package provides modules to perform diverse medication-related studies using
     data from EHR databases. Especially, the package includes modules to perform

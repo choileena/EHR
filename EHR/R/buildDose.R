@@ -38,9 +38,8 @@
 #'  threshold puts an upper bound on the number of entity pairings to prevent the function from stalling in such cases.
 #' }
 #' If none of the optional arguments are specified, then the \code{buildDose} process uses the default option values specified in the EHR
-#' package documentation.
-#'
-#' For additional details, see McNeer, et al. 2020.
+#' package documentation. 
+#' See EHR Vignette for Extract-Med and Pro-Med-NLP as well as Dose Building Using Example Vanderbilt EHR Data for details. For additional details, see McNeer, et al. 2020.
 #'
 #' @param dat data.table object from the output of \code{\link{parseMedExtractR}},
 #' \code{\link{parseMedXN}}, \code{\link{parseMedEx}}, or \code{\link{parseCLAMP}}
@@ -59,7 +58,7 @@
 #' @param checkForRare Indicate if rare values for each entity should be found and displayed.
 #'
 #' @return A data.frame object that contains columns for filename (of the clinical note, inherited from the
-#' parse output object \code{dat}), drugname, strength, dose, route, freq, duration, and drugname_start
+#' parse output object \code{dat}), drugname, strength, dose, route, freq, duration, and drugname_start.
 #'
 #' @examples
 #' data(lam_mxr_parsed)

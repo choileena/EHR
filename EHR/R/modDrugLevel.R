@@ -18,6 +18,8 @@
 #' @param demo.list demographic information; if available, concentration records
 #' must have a valid demo record
 #'
+#' @details See EHR Vignette for Structured Data.
+#'
 #' @return drug-level data set
 #'
 #' @examples

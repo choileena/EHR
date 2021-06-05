@@ -18,7 +18,9 @@
 #' time should be kept. First, we give preference to an explicit time expression (e.g., "10:30pm")
 #' over a duration expression (e.g., "14 hour level"). Then, we pair last dose times with drug regimens
 #' based on minimum distance between last dose time start position and drug name start position.
-#'
+#' 
+#' See EHR Vignette for Extract-Med and Pro-Med-NLP for details.
+#' 
 #' @param buildData data.frame, output of \code{\link{buildDose}} function.
 #' @param lastdoseData data.frame with columns filename, ld_start, lastdose, raw_time, time_type
 #'

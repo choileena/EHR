@@ -19,6 +19,8 @@
 #' the argument \code{begText} to be a regular expression used to identify the lines where output
 #' for a new clinical note begins.
 #'
+#' See EHR Vignette for Extract-Med and Pro-Med-NLP as well as Dose Building Using Example Vanderbilt EHR Data for details.
+#'
 #' @param filename File name for single file containing MedXN output.
 #' @param begText A regular expression that would indicate the beginning of a new
 #' observation (i.e., extracted clinical note).

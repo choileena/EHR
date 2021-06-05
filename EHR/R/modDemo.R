@@ -7,17 +7,21 @@
 #' the observation should be excluded
 #' @param demo.mod.list list of expressions, giving modifications to make
 #'
+#' @details See EHR Vignette for Structured Data.
+#'
 #' @return list with two components
 #'   \item{demo}{demographic data}
 #'   \item{exclude}{vector of excluded visit IDs}
 #'
 #' @examples 
 #' set.seed(2525)
+#' dateSeq <- seq(as.Date('2019/01/01'), as.Date('2020/01/01'), by="day")
 #' demo <- data.frame(mod_id_visit = 1:10,
 #'                    weight.lbs = rnorm(10,160,20),
 #'                    age = rnorm(10, 50, 10),
-#'                    enroll.date = sample(seq(as.Date('2019/01/01'), as.Date('2020/01/01'), by="day"), 10))
-#' saveRDS(demo, 'ex.rds')
+#'                    enroll.date = sample(dateSeq, 10))
+#' tmpfile <- paste0(tempfile(), '.rds')
+#' saveRDS(demo, file = tmpfile)
 #'
 #' # exclusion functions
 #' exclude_wt <- function(x) x < 150
@@ -28,8 +32,10 @@
 #' # make demographic data that:
 #' # (1) excludes ids with weight.lbs < 150, age > 60, or enroll.date before 2019/04/01
 #' # (2) creates new 'highrisk' variable for subjects with weight.lbs>170 and age>55
-#' out <- run_Demo(demo.path = "ex.rds",
-#'                toexclude = expression(exclude_wt(weight.lbs)|exclude_age(age)|exclude_enroll(enroll.date)),
+#' out <- run_Demo(demo.path = tmpfile,
+#'                toexclude = expression(
+#'                  exclude_wt(weight.lbs)|exclude_age(age)|exclude_enroll(enroll.date)
+#'                ),
 #'                demo.mod.list = list(highrisk = expression(ind.risk(weight.lbs, age))))
 #' 
 #' out

@@ -55,6 +55,8 @@ time or frequency of dose, dose change keywords (e.g., 'increase' or 'decrease')
 last dose. For more details, see Weeks, et al. 2020. After applying \code{\link[medExtractR]{medExtractR}}
 to extract drug dosing information, \code{extractMed} appends the file name to results to ensure
 they are appropriately labeled.
+
+See EHR Vignette for for Extract-Med and Pro-Med-NLP
 }
 \examples{
 \donttest{

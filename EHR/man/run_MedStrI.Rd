@@ -84,6 +84,9 @@ str data set
 This module will load and modify structured intravenous (IV) infusion and 
 bolus medication data.
 }
+\details{
+See EHR Vignette for Structured Data
+}
 \examples{
 \dontrun{
 # flow data for 'Fakedrug1'

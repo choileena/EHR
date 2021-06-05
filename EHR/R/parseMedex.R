@@ -13,6 +13,8 @@
 #'
 #' MedEx output files anchor extractions to a specific drug name extraction.
 #'
+#' See EHR Vignette for Extract-Med and Pro-Med-NLP as well as Dose Building Using Example Vanderbilt EHR Data for details.
+#'
 #' @param filename File name for a single file containing MedEx output.
 #'
 #' @return A data.table object with columns for filename, drugname, strength, dose, route,

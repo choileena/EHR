@@ -9,6 +9,8 @@
 #' the last dose time is calculated from the labtime by extracting the appropriate number of hours. The
 #' final dataset is returned with last dose time formatted into a POSIXct variable.
 #'
+#' See EHR Vignette for Extract-Med and Pro-Med-NLP for details.
+#'
 #' @param mxrData data.frame containing output from the \code{\link[medExtractR]{medExtractR}} system
 #' @param noteMetaData data.frame with meta data (\code{pid} (patient ID) and \code{date}) for
 #' the file names contained within \code{mxrData}

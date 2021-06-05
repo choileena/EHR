@@ -1,6 +1,6 @@
-#' Build PK Data
+#' Build-PK-IV Module
 #'
-#' This module will build PK IV data.
+#' This module builds PK data for intravenously (IV) administered medications.
 #'
 #' @param conc concentration data, the output of \code{\link{run_DrugLevel}} 
 #' or a correctly formatted data.frame
@@ -22,6 +22,8 @@
 #' @param faildupbol_fn filename for duplicate bolus data
 #' @param date.format output format for \sQuote{date} variable
 #' @param date.tz output time zone for \sQuote{date} variable
+#'
+#' @details See EHR Vignette for Structured Data.
 #'
 #' @return PK data set
 #'

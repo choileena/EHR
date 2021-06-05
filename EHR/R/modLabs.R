@@ -7,6 +7,8 @@
 #' @param lab.mod.list list of expressions giving modifications to make;
 #'  passed to \code{\link{dataTransformation}}
 #'
+#' @details See EHR Vignette for Structured Data.
+#'
 #' @return lab data set
 #'
 #' @examples 
