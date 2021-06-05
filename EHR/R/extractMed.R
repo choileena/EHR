@@ -29,6 +29,8 @@
 #' @param ... Additional arguments to \code{\link[medExtractR]{medExtractR}}, for example
 #' \code{lastdose=TRUE} to extract time of last dose (see \pkg{medExtractR} package documentation for details)
 #'
+#' @details See EHR Vignette for for Extract-Med and Pro-Med-NLP
+#'
 #' @return A data.frame with the extracted dosing information, labeled with file name as an identifier \cr
 #' Sample output:\cr
 #' \tabular{rrrr}{
