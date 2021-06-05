@@ -58,10 +58,10 @@
 #' \sQuote{ehr.greedy_threshold} option, which defaults to 1e8.
 #' @param checkForRare Indicate if rare values for each entity should be found and displayed.
 #'
-#' @details See Vignette for Dose Building Using Example Vanderbilt EHR Data
+#' @details See EHR Vignette for Extract-Med and Pro-Med-NLP as well as Dose Building Using Example Vanderbilt EHR Data for details.
 #'
 #' @return A data.frame object that contains columns for filename (of the clinical note, inherited from the
-#' parse output object \code{dat}), drugname, strength, dose, route, freq, duration, and drugname_start
+#' parse output object \code{dat}), drugname, strength, dose, route, freq, duration, and drugname_start.
 #'
 #' @examples
 #' data(lam_mxr_parsed)
