@@ -67,7 +67,7 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 #' @param imputeClosest columns to impute missing data with next observation propagated backward; this is in addition to
 #' all covariates receving imputation using last observation carried forward
 #'
-#' @details See EHR Vignette for Build-PK-Oral
+#' @details See EHR Vignette for Build-PK-Oral.
 #'
 #' @return data.frame
 #'
