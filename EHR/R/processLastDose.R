@@ -9,6 +9,8 @@
 #' the last dose time is calculated from the labtime by extracting the appropriate number of hours. The
 #' final dataset is returned with last dose time formatted into a POSIXct variable.
 #'
+#' See EHR Vignette for Extract-Med and Pro-Med-NLP for details.
+#'
 #' @param mxrData data.frame containing output from the \code{\link[medExtractR]{medExtractR}} system
 #' @param noteMetaData data.frame with meta data (\code{pid} (patient ID) and \code{date}) for
 #' the file names contained within \code{mxrData}
@@ -16,8 +18,6 @@
 #' within \code{mxrData}. Must contain columns \code{pid} and \code{date}, as well as \code{labtime}.
 #' The \code{date} column must be in the same format as \code{date} in \code{noteMetaData}, and
 #' \code{labtime} must be a POSIXct
-#'
-#' @details See EHR Vignette for Extract-Med and Pro-Med-NLP for details
 #'
 #' @return data.frame with identifying information (e.g., filename, etc) as well as processed
 #' and standardized last dose times as a POSIXct column
