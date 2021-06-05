@@ -29,7 +29,7 @@
 #' @param medGivenReq values for \sQuote{med:given} should equal \dQuote{Given} unless this is FALSE
 #' @param drugname drug of interest, included in filename of check files
 #'
-#' @details See EHR Vignette for Structured Data
+#' @details See EHR Vignette for Structured Data.
 #'
 #' @return str data set
 #'
