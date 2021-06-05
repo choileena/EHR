@@ -52,11 +52,11 @@ identifies dosing data for drug(s) of interest, specified by the \code{drugnames
 using rule-based and dictionary-based approaches. Relevant dosing entities include medication
 strength (identified using the \code{unit} argument), dose amount, dose given intake, intake
 time or frequency of dose, dose change keywords (e.g., 'increase' or 'decrease'), and time of
-last dose. For more details, see Weeks, et al. 2020. After applying \code{\link[medExtractR]{medExtractR}}
+last dose. After applying \code{\link[medExtractR]{medExtractR}}
 to extract drug dosing information, \code{extractMed} appends the file name to results to ensure
-they are appropriately labeled.
+they are appropriately labeled. 
 
-See EHR Vignette for for Extract-Med and Pro-Med-NLP
+See EHR Vignette for for Extract-Med and Pro-Med-NLP. For more details, see Weeks, et al. 2020.
 }
 \examples{
 \donttest{

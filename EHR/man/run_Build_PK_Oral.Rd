@@ -40,7 +40,7 @@ data.frame
 This module builds PK data for orally administered medications.
 }
 \details{
-See EHR Vignette for Build-PK-Oral
+See EHR Vignette for Build-PK-Oral.
 }
 \examples{
 \dontrun{

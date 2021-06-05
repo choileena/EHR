@@ -21,7 +21,7 @@ lab data set
 This module will load and modify laboratory data.
 }
 \details{
-See EHR Vignette for Structured Data
+See EHR Vignette for Structured Data.
 }
 \examples{
 \dontrun{

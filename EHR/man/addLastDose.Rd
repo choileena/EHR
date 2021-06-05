@@ -34,6 +34,7 @@ have more than one extracted last dose time. In this case, rules are applied to 
 time should be kept. First, we give preference to an explicit time expression (e.g., "10:30pm")
 over a duration expression (e.g., "14 hour level"). Then, we pair last dose times with drug regimens
 based on minimum distance between last dose time start position and drug name start position.
+
 See EHR Vignette for Extract-Med and Pro-Med-NLP for details.
 }
 \examples{

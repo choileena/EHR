@@ -23,7 +23,7 @@ list with two components
 This module will load and modify demographic data.
 }
 \details{
-See EHR Vignette for Structured Data
+See EHR Vignette for Structured Data.
 }
 \examples{
 set.seed(2525)

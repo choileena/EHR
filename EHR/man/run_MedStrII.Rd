@@ -26,7 +26,7 @@ str data set
 This module will load and modify structured e-prescription data.
 }
 \details{
-See EHR Vignette for Structured Data
+See EHR Vignette for Structured Data.
 }
 \examples{
 \dontrun{
