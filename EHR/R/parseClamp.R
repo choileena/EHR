@@ -16,6 +16,8 @@
 #'
 #' @param filename File name for a single file containing CLAMP output.
 #'
+#' @details See Vignette for Dose Building Using Example Vanderbilt EHR Data
+#'
 #' @return A data.table object with columns for filename, drugname, strength, dose, route,
 #' and freq. The filename contains the file name corresponding to the clinical
 #' note. Each of the entity columns are of the format
