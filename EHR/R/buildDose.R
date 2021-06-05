@@ -39,8 +39,7 @@
 #' }
 #' If none of the optional arguments are specified, then the \code{buildDose} process uses the default option values specified in the EHR
 #' package documentation. 
-#' See EHR Vignette for Extract-Med and Pro-Med-NLP as well as Dose Building Using Example Vanderbilt EHR Data for details.
-#' For additional details, see McNeer, et al. 2020.
+#' See EHR Vignette for Extract-Med and Pro-Med-NLP as well as Dose Building Using Example Vanderbilt EHR Data for details. For additional details, see McNeer, et al. 2020.
 #'
 #' @param dat data.table object from the output of \code{\link{parseMedExtractR}},
 #' \code{\link{parseMedXN}}, \code{\link{parseMedEx}}, or \code{\link{parseCLAMP}}
