@@ -6,7 +6,9 @@
 #' separated using a regular expression (e.g., \sQuote{xr|er}). This function will call
 #' \code{\link{makeDose}} on parsed and paired medication data to calculate dose intake
 #' and daily dose and remove redundancies at the note and date level.
-#'
+#' 
+#' See EHR Vignette for Extract-Med and Pro-Med-NLP as well as Dose Building Using Example Vanderbilt EHR Data for details.
+#' 
 #' @param x data.frame containing the output of \code{\link{buildDose}}, or the output of
 #' \code{\link{addLastDose}} if last dose information is being incorporated.
 #' @param noteMetaData data.frame containing identifying meta data for each
