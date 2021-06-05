@@ -17,6 +17,8 @@
 #' common.
 #' @param \dots drug formulations to split by
 #'
+#' @details See Vignette for Dose Building Using Example Vanderbilt EHR Data
+#'
 #' @return A list containing two dataframes, one with the note level and one with the date level collapsed data.
 #' 
 #' @examples
