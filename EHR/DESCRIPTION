@@ -40,7 +40,8 @@ Suggests:
     medExtractR,
     knitr,
     rmarkdown,
-    ggplot2
+    ggplot2,
+    markdown
 NeedsCompilation: no
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
