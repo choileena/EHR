@@ -17,6 +17,8 @@
 #' The \code{date} column must be in the same format as \code{date} in \code{noteMetaData}, and
 #' \code{labtime} must be a POSIXct
 #'
+#' @details See EHR Vignette for Extract-Med and Pro-Med-NLP for details
+#'
 #' @return data.frame with identifying information (e.g., filename, etc) as well as processed
 #' and standardized last dose times as a POSIXct column
 #'
