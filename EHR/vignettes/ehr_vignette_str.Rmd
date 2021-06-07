@@ -74,7 +74,7 @@ library(lubridate)
 
 The data for example 1 includes a demographic file, a concentration file, an intravenous (IV) dosing file, and a laboratory file, which are all cleaned and formatted appropriately. We also define a directory for the raw data and a directory for interactive checking output files.
 
-```{r simp-in, cache=TRUE}
+```{r simp-in}
 # define directories
 rawDataDir <- system.file("examples", "str_ex1", package="EHR")
 checkDir <- system.file("examples", "str_ex1", "checks", package="EHR")
@@ -94,7 +94,7 @@ head(creat.data)
 
 The `EHR` package modules use a standardized naming convention for patient identification (ID) variables. We rename the unique patient-level ID from `patient_id` to `mod_id` and the visit-level ID from `patient_visit_id` to `mod_id_visit`. If there is only a single visit/course per subject the unique patient-level ID and visit-level ID can be the same, however both `mod_id` and `mod_id_visit` should be defined.
 
-```{r simp-rename, cache=TRUE}
+```{r simp-rename}
 names(conc.data)[1:2] <- names(demo)[1:2] <- c("mod_id", "mod_id_visit")
 names(creat.data)[1] <- names(ivdose.data)[1] <- "mod_id"
 ```
@@ -118,7 +118,7 @@ simple_pk_dat <- run_Build_PK_IV(
     check.path=checkDir)
 ```
 
-```{r sim-build-pk-iv-fake, cache=TRUE, echo = FALSE}
+```{r sim-build-pk-iv-fake, echo = FALSE}
 co({
 simple_pk_dat <- run_Build_PK_IV(
     conc=conc.data,
@@ -163,7 +163,7 @@ Each raw dataset should contain a subject unique ID, a subject visit ID, or both
 
 The demographics data file contains ID variables `subject_id` and `subject_uid`, in addition to demographic variables such as gender, date of birth, height, weight, etc. The Demographics_DATA.csv file is read in using the `readTransform()` function. 
 
-```{r demo-in, cache=TRUE}
+```{r demo-in}
 # demographics data
 demo.in <- readTransform(file.path(rawDataDir, "Demographics_DATA.csv"))
 head(demo.in)
@@ -173,7 +173,7 @@ The example concentration data consists of two files, SampleTimes_DATA.csv and S
 
 The sampling times data csv file is read in with `read.csv()`. Then the function `dataTransformation()` is used to rename the variable `Study.ID` to `subject_id` and to create a new variable called `samp`, which indexes the sample number, using the `modify=` argument. 
 
-```{r samp-in1, cache=TRUE}
+```{r samp-in1}
 # concentration sampling times data
 # read in raw data
 samp.raw <- read.csv(file.path(rawDataDir, "SampleTimes_DATA.csv"))
@@ -188,7 +188,7 @@ head(samp.in0)
 
 Equivalently, the function `readTransform()` can be used to read in and transform the data with a single function call.
 
-```{r samp-in2, cache=TRUE}
+```{r samp-in2}
 # read in and transform data
 samp.in <- readTransform(file.path(rawDataDir, "SampleTimes_DATA.csv"),
     rename = c('Study.ID' = 'subject_id'),
@@ -198,7 +198,7 @@ head(samp.in)
 
 The same steps can be used for the sample values data csv file. It is read in using `read.csv()`. Then using `dataTransformation()` the `subject_id` variable is created from the `name` variable using a call to the helper function `sampId()` in the `modify=` argument.
 
-```{r conc-in1, cache=TRUE}
+```{r conc-in1}
 # concentration sample values data
 # read in raw data
 conc.raw<-read.csv(file.path(rawDataDir, "SampleConcentration_DATA.csv"))
@@ -228,7 +228,7 @@ head(conc.in0)
 
 Again, we can perform the same two steps with a single call to `readTransform()`.
 
-```{r conc-in2, cache=TRUE}
+```{r conc-in2}
 # equivalent using readTransform()
 conc.in <- readTransform(file.path(rawDataDir, "SampleConcentration_DATA.csv"),
   modify = list(
@@ -245,7 +245,7 @@ head(conc.in)
 
 The example drug dosing data consists of files FLOW_DATA.csv and MAR_DATA.csv containing two sources of IV dose information. The FLOW data csv file contains aliases for both ID variables; it is read in with the `readTransform()` function which renames the variables `Subject.Id` to `subject_id` and `Subject.Uniq.Id` to `subject_uid`. 
 
-```{r flow-in, cache=TRUE}
+```{r flow-in}
 # FLOW dosing data
 flow.in <- readTransform(file.path(rawDataDir, "FLOW_DATA.csv"),
                          rename = c('Subject.Id' = 'subject_id',
@@ -255,7 +255,7 @@ head(flow.in)
 
 The MAR data csv file contains several variables with a colon (:) character. To preserve the colon in these variable names, the data can be read in without checking for syntactically valid `R` variable names. The data is read in using `read.csv()` with the argument `check.names = FALSE` and then passed to the `dataTransformation()` function which renames `Uniq.Id` to `subject_uid`.
 
-```{r mar-in, cache=TRUE}
+```{r mar-in}
 # MAR dosing data
 mar.in0 <- read.csv(file.path(rawDataDir, "MAR_DATA.csv"), check.names = FALSE)
 mar.in <- dataTransformation(mar.in0, rename = c('Uniq.Id' = 'subject_uid'))
@@ -264,7 +264,7 @@ head(mar.in)
 
 The example laboratory data consists of files Creatinine_DATA.csv and Albumin_DATA.csv. Both files are read in using the `readTransform()` function and `Subject.uniq` is renamed to `subject_uid`.
 
-```{r labs-in, cache=TRUE}
+```{r labs-in}
 # Serum creatinine lab data
 creat.in <- readTransform(file.path(rawDataDir, "Creatinine_DATA.csv"),
     rename = c('Subject.uniq' = 'subject_uid'))
@@ -282,7 +282,7 @@ The function `idCrosswalk()` merges all of the cleaned input datasets and create
 
 The output of `idCrosswalk()` is a crosswalk dataset between the original ID variables (`subject_id`, `subject_uid`) and the new ID variables (`mod_id`, `mod_visit`, and `mod_id_visit`). The new variable `mod_id_visit` has a 1-to-1 correspondence to variable `subject_id` and uniquely identifies each subjects' visit/course; the new variable `mod_id` has a 1-to-1 correspondence to variable `subject_uid` and uniquely identifies each subject.
 
-```{r merge-ids, cache=TRUE}
+```{r merge-ids}
 # merge all ID datasets
 data <-  list(demo.in,
               samp.in,
@@ -316,7 +316,7 @@ pullFakeId(dat, xwalk, firstCols = NULL, orderBy = NULL)
 
 The `dat=` argument should contain the cleaned input data.frame from pre-processing step (1) and the `xwalk=` argument should contain the crosswalk data.frame produced in step (2). Additional arguments `firstCols=` and `orderBy=` control which variables are in the first columns of the output and the sort order, respectively. The cleaned structured data are saved as `R` objects for use with the modules.
 
-```{r mod-id-data, cache=TRUE}
+```{r mod-id-data}
 ## demographics data
 demo.cln <- pullFakeId(demo.in, mod.id,
     firstCols = c('mod_id', 'mod_visit', 'mod_id_visit'),
@@ -384,7 +384,7 @@ The *Pro-Demographic* module accepts the cleaned structured demographic dataset 
 
 The demographic data can be processed by the `run_Demo()` function using:
 
-```{r Pro-Demographic, cache=TRUE, eval=TRUE}
+```{r Pro-Demographic, eval=TRUE}
 # helper function
 exclude_val <- function(x, val=1) { !is.na(x) & x == val }
 
@@ -450,7 +450,7 @@ ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"
     drugname = drugname)
 ```
 
-```{r Pro-Med-Str1-fake, cache=TRUE, echo=FALSE}
+```{r Pro-Med-Str1-fake, echo=FALSE}
 co({
 ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"), 
     flow.select = c('mod_id','mod_id_visit','Perform.Date','Final.Wt..kg.',
@@ -510,13 +510,13 @@ There are two underlying functions used in this module. `processErx` performs th
 
 Below is example e-prescription data including columns for ID, drug name, dose, frequency, date, strength, and description.
 
-```{r eRX-dat, cache=TRUE}
+```{r eRX-dat}
 (eRX <- read.csv(file.path(rawDataDir,"e-rx_DATA.csv"),stringsAsFactors = FALSE))
 ```
 
 The e-prescription data can be processed by the `run_MedStrII` function using: 
 
-```{r Pro-Med-Str2, cache=TRUE}
+```{r Pro-Med-Str2}
 eRX.out <- run_MedStrII(file.path(rawDataDir,"e-rx_DATA.csv"),
     select = c('GRID','MED_NAME','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT','DESCRIPTION'),
     rename = c('ID','MED_NAME','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT','DESCRIPTION'))
@@ -569,7 +569,7 @@ conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"
 head(conc.out)
 ```
 
-```{r Pro-Drug-Level-fake, cache=TRUE, echo=FALSE}
+```{r Pro-Drug-Level-fake, echo=FALSE}
 co({
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
@@ -593,13 +593,13 @@ head(conc.out)
 
 The output provides a message that 3 rows are missing concentration date. The file 'failMissingConcDate-fent.csv' contains the 3 records with missing values for the `date.time` variable.
 
-```{r faildate,cache=TRUE}
+```{r faildate}
 ( fail.miss.conc.date <- read.csv(file.path(checkDir,"failMissingConcDate-fent.csv")) )
 ```
 
 We can correct the missing dates by providing an updated file called 'fixMissingConcDate-fent.csv' that contains the missing data.
 
-```{r fixdate, cache=TRUE}
+```{r fixdate}
 fail.miss.conc.date[,"date.time"] <- c("9/30/2016 09:32","10/1/2016 19:20","10/2/2016 02:04")
 fail.miss.conc.date
  
@@ -624,7 +624,7 @@ conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"
     demo.list=demo.out)
 ```
 
-```{r Pro-Drug-Level-rerun-fake, cache=TRUE, echo=FALSE}
+```{r Pro-Drug-Level-rerun-fake, echo=FALSE}
 co({
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
@@ -673,7 +673,7 @@ if (file.exists(ms)) file.remove(ms)
 
 The Pro-Laboratory module processes laboratory data that can be merged with data from other modules. The laboratory data can be processed using:
 
-```{r Pro-Laboratory, cache=TRUE, eval=TRUE}
+```{r Pro-Laboratory, eval=TRUE}
 creat.out <- run_Labs(lab.path=file.path(dataDir,"Fentanyl_creat_mod_id.rds"),
     lab.select = c('mod_id','date.time','creat'),
     lab.mod.list = list(date.time = expression(parse_dates(fixDates(paste(date, time))))))
@@ -745,7 +745,7 @@ pk_dat <- run_Build_PK_IV(conc=conc.out,
     date.tz="America/Chicago")
 ```
 
-```{r Build-PK-IV-fake, cache=TRUE, echo=FALSE}
+```{r Build-PK-IV-fake, echo=FALSE}
 co({
 pk_dat <- run_Build_PK_IV(conc=conc.out,
     dose=ivdose.out,

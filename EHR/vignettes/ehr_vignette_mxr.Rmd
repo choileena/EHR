@@ -228,7 +228,7 @@ head(tune_ann)
 
 To select appropriate tuning parameters, we identify a range of possible values for each of the `windowlength` and `max_edit_dist` parameters. Here, we allow `windowlength` to vary from 30 to 120 characters in increments of 30, and `max_edit_dist` to take a value of 0, 1, or 2. We then obtain the `extractMed` results for each combination. We set `progress=FALSE` to avoid printing the progress message for each combination of arguments.
 
-```{r run_mxr, cache = TRUE}
+```{r run_mxr}
 wind_len <- seq(30, 120, 30)
 max_edit <- seq(0, 2, 1)
 tune_pick <- expand.grid("window_length" = wind_len, 
@@ -438,7 +438,7 @@ The `processLastDose` function requires the following arguments:
 Extracted last dose times can fall into two categories: a time expression (e.g., "10am", "22:00", "7 last night") or a duration expression (e.g. "14 hour" level), where the "time" of last dose indicates the number of hours since the last dose was taken relative to the time of the clinical visit. In the latter case, the lab time (from the `labData` argument) is needed in order to convert the extracted duration expression into a datetime variable. Below is an example lab dataset for our sample tacrolimus data.
 
 ```{r}
-data(tac_lab)
+data(tac_lab, package = 'EHR')
 tac_lab
 ```
 
@@ -485,8 +485,8 @@ The main function underlying `collapseDose` is `makeDose`, which standardizes en
 
 For our tacrolimus example above, the output of this function is below. Note that we use the output from `addLastDose` rather than directly from `buildDose`.
 
-```{r, warning = FALSE}
-tac_part_ii <- collapseDose(tac_part_i_out_lastdose, tac_metadata, naFreq = 'most')
+```{r}
+suppressWarnings(tac_part_ii <- collapseDose(tac_part_i_out_lastdose, tac_metadata, naFreq = 'most'))
 ```
 
 Note level collapsing:
@@ -503,9 +503,9 @@ tac_part_ii$date
 
 Below, we demonstrate `collapseDose` using our lamotrigine example. In the function call, we supply an additional argument `'xr|er'` to indicate that we want to separately consider extended release formulations of lamotrigine, (usually denoted by "XR" or "ER"). This prevents regular lamotrigine mentions from being collapsed with lamotrigine XR mentions, even if the dosage is identical.
 
-```{r, warning = FALSE}
-data(lam_metadata)
-lam_part_ii <- collapseDose(lam_part_i_out, lam_metadata, naFreq = 'most', 'xr|er')
+```{r}
+data(lam_metadata, package = 'EHR')
+suppressWarnings(lam_part_ii <- collapseDose(lam_part_i_out, lam_metadata, naFreq = 'most', 'xr|er'))
 ```
 
 Note level collapsing:
