@@ -92,9 +92,9 @@ extractMed <- function(note_fn, drugnames, drgunit,
     utils::data('rxnorm_druglist', package = "medExtractR", envir = e)
     addl[['drug_list']] <- e$rxnorm_druglist
   }
-  if(!('freq_dict' %in% addlvar)) {
-    utils::data('freq_vals', package = "medExtractR", envir = e)
-    addl[['freq_dict']] <- e$freq_vals
+  if(!('frequency_dict' %in% addlvar)) {
+    utils::data('frequency_vals', package = "medExtractR", envir = e)
+    addl[['frequency_dict']] <- e$frequency_vals
   }
   if(!('intaketime_dict' %in% addlvar)) {
     utils::data('intaketime_vals', package = "medExtractR", envir = e)
