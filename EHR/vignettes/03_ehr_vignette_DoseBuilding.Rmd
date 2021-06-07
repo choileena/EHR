@@ -1,14 +1,11 @@
 ---
 title: "Dose Building Using Example Vanderbilt EHR Data"
-date: "`r Sys.Date()`"
-output: pdf_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{3. Dose Building Using Example Vanderbilt EHR Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
-
-<!--
-%\VignetteEngine{knitr::rmarkdown}
-%\VignetteIndexEntry{3. Dose Building Using Example Vanderbilt EHR Data}
-%\VignetteEncoding{UTF-8}
--->
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
