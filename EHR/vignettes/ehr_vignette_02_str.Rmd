@@ -795,6 +795,13 @@ head(pk_dat)
     + `date.tz`: date timezone (e.g., "America/Chicago")
 * The output of the `run_MedStrI` function is a dataset with NONMEM formatted PK variables and (optionally) demographic and laboratory data.
 
+```{r cleanup, echo = FALSE}
+# normally, you would not delete these files
+# CRAN policy states that a package should do proper cleanup
+to_delete <- c(file.path(td, 'check1'), file.path(td, 'check2'), file.path(td, 'data2'))
+unlink(to_delete, recursive = TRUE)
+```
+
 ## References  
 
 1. Choi L, Beck C, McNeer E, Weeks HL, Williams ML, James NT, Niu X, Abou-Khalil BW, Birdwell KA, Roden DM, Stein CM. Development of a System for Post-marketing Population Pharmacokinetic and Pharmacodynamic Studies using Real-World Data from Electronic Health Records. Clinical Pharmacology & Therapeutics. 2020 Apr; 107(4): 934-943.  
