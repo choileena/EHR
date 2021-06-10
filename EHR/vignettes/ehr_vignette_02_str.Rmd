@@ -1,11 +1,13 @@
 ---
 title: "EHR Vignette for Structured Data"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{2. EHR Vignette for Structured Data}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+output: rmarkdown::pdf_document
 ---
+
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{2. EHR Vignette for Structured Data}
+%\VignetteEncoding{UTF-8}
+-->
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)

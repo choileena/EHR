@@ -1,11 +1,13 @@
 ---
 title: "EHR Vignette for *Build-PK-Oral*"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{4. EHR Vignette for Build-PK-Oral}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+output: rmarkdown::pdf_document
 ---
+
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{4. EHR Vignette for Build-PK-Oral}
+%\VignetteEncoding{UTF-8}
+-->
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
