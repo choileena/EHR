@@ -86,7 +86,7 @@ run_MedStrI <- function(flow.path = NULL,
                         flow.select = c('mod_id','mod_id_visit','Perform.Date','Final.Wt..kg.','Final.Rate..NFR.units.','Final.Units'),
                         flow.rename = c('mod_id','mod_id_visit', 'Perform.Date', 'weight', 'rate', 'final.units'),
                         flow.mod.list = list(
-                          date.time = expression(parse_dates(fixDates(Perform.Date))),
+                          date.time = expression(pkdata::parse_dates(fixDates(Perform.Date))),
                           unit = expression(sub('.*[ ]', '', rate)),
                           rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', rate)))),
                         medchk.path, 
@@ -138,7 +138,7 @@ run_MedStrI <- function(flow.path = NULL,
   rate <- suppressWarnings(as.numeric(sub('([0-9.]+).*', '\\1', dm[,'med:dosage'])))
   dm[,'unit'] <- unit
   dm[,'rate'] <- rate
-  dm[,'date.time'] <- parse_dates(paste(dm[,'Date'], dm[,'Time']))
+  dm[,'date.time'] <- pkdata::parse_dates(paste(dm[,'Date'], dm[,'Time']))
   hasUnit <- !is.na(unit)
   inf0 <- dm[hasUnit & unit == infusion.unit,]
   inf1 <- inf0[,c('mod_id','date.time','unit','rate')]
@@ -166,6 +166,9 @@ run_MedStrI <- function(flow.path = NULL,
       hasDemo <- FALSE
     }
   }
+  if(hasDemo) {
+    demoData[,'date.time'] <- pkdata::parse_dates(demoData[,'dateplusdospccu'])
+  }
 
   hasMsWgt <- !is.null(missing.wgt.path)
   if(hasMsWgt) {
@@ -187,18 +190,18 @@ run_MedStrI <- function(flow.path = NULL,
     # last, try demo
     for(i in seq(nrow(dm))) {
       row <- dm[i, c('mod_id','date.time')]
-      # try flow data
       if(row[[1]] != lastid) {
+        # try flow data
         opt <- medFlow[medFlow[,'mod_id'] == row[[1]], c('date.time','weight')]
         lastid <- row[[1]]
-      }
-      if(nrow(opt) == 0 && hasMsWgt) {
-        opt <- missWgt[missWgt[,'mod_id'] == row[[1]], c('date.time','weight')]
-      }
-      # try demo data (if provided)
-      if(nrow(opt) == 0 && hasDemo) {
-        dlix <- demoData[demo.ids == row[[1]], c('dateplusdospccu', 'weight')]
-        opt <- data.frame(date.time = as.POSIXct(dlix[,1], format="%m/%d/%Y %H:%M"), weight = dlix[,2])
+        # try missing weight data
+        if(nrow(opt) == 0 && hasMsWgt) {
+          opt <- missWgt[missWgt[,'mod_id'] == row[[1]], c('date.time','weight')]
+        }
+        # try demo data (if provided)
+        if(nrow(opt) == 0 && hasDemo) {
+          opt <- demoData[demo.ids == row[[1]], c('date.time', 'weight')]
+        }
       }
       if(nrow(opt) > 0) {
         dm[i,'weight'] <- takeClosest(row[[2]], opt[[1]], opt[[2]])
@@ -232,9 +235,19 @@ run_MedStrI <- function(flow.path = NULL,
   # 'mcg/kg/hr' and weight --> multiply by weight to get dose/hr
   # 'mcg/hr' and no weight --> already formatted as dose/hr
 
+  # combine missWgt with demoWgt
+  w1 <- w2 <- NULL
+  if(hasMsWgt) {
+    w1 <- missWgt[,c('mod_id','date.time','weight')]
+  }
+  if(hasDemo) {
+    w2 <- demoData[,c('mod_id','date.time', 'weight')]
+  }
+  moreWgt <- rbind(w1, w2)
+
   # combine flow and MAR infusion
   inf <- infusionData_mod(
-    medFlow[,c('mod_id','date.time','final.units','unit','rate','weight')], inf1, rateunit = rateunit, ratewgtunit = ratewgtunit, addWgt = missWgt
+    medFlow[,c('mod_id','date.time','final.units','unit','rate','weight')], inf1, rateunit = rateunit, ratewgtunit = ratewgtunit, addWgt = moreWgt
   )
 
   # WARNING: if 'mcg/kg/hr' is missing weight, rate will be NA

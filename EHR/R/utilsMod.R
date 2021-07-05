@@ -255,7 +255,7 @@ concData_mod <- function(dat, sampFile, lowerLimit, drugname, giveExample = TRUE
   } else {
     concdate <- dat[,c('mod_id_event','date.time')]
   }
-  dt <- parse_dates(fixDates(concdate[,'date.time']))
+  dt <- pkdata::parse_dates(fixDates(concdate[,'date.time']))
 
   fn <- file.path(checkDir, paste0('fail', failmissconc_filename, drugname, '.csv'))
   fixfn <- sub('fail', 'fix', fn)
@@ -281,7 +281,7 @@ concData_mod <- function(dat, sampFile, lowerLimit, drugname, giveExample = TRUE
   } else {
     dt <- dat[,'date.time']
   }
-  dat[,'date.time'] <- parse_dates(fixDates(dt))
+  dat[,'date.time'] <- pkdata::parse_dates(fixDates(dt))
 
   if(!is.null(dem)) { # if using demographics, keep only conc data with matching demo record
     dat[,'mod_id'] <- dem[match(dat[,'mod_id_visit'], dem[,'mod_id_visit']), 'mod_id']

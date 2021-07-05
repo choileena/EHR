@@ -58,6 +58,7 @@ idCrosswalk <- function(data, idcols, visit.id="subject_id", uniq.id="subject_ui
     red[ix, visit.id] <- ix * -1 + 0.1
     red[, "subj"] <- trunc(red[, visit.id])
     idBySubj <- function(x) unique(x[!is.na(x)])
+    # should only have one `uniq.id` per `visit.id`
     meanIds <- tapply(red[, uniq.id], red[, "subj"], idBySubj)
     idlen <- lengths(meanIds)
     meanIds[idlen == 0] <- NA
@@ -70,6 +71,30 @@ idCrosswalk <- function(data, idcols, visit.id="subject_id", uniq.id="subject_ui
       stop("discrepancy with visit.id and uniq.id must be fixed")
     }
     red[, uniq.id] <- meanIds[match(red[, "subj"], names(meanIds))]
+
+    # if missing `visit.id` can be found for `uniq.id`, use that instead
+    # visit number would be unknown though
+    # after discussion, impute visit number by using the minimum/first known
+    revr_check <- tapply(red[,'subj'], red[, uniq.id], idBySubj)
+    ix <- which(lengths(revr_check) > 1)
+    if(length(ix)) {
+      chk_sub_ids <- names(revr_check)[ix]
+      chk_split <- red[, uniq.id] %in% chk_sub_ids
+      chk0 <- red[!chk_split,]
+      chk1 <- red[chk_split,]
+      chk2 <- do.call(rbind, lapply(split(chk1, chk1[, uniq.id]), function(i) {
+        subj_ids <- i[,'subj']
+        u_subj_ids <- unique(subj_ids[subj_ids >= 0])
+        if(length(u_subj_ids) == 1) {
+          jix <- subj_ids != u_subj_ids
+          # use the minimum visit number
+          i[jix, visit.id] <- min(i[!jix, visit.id])
+        }
+        i
+      }))
+      red <- rbind(chk0, chk2)
+    }
+
     red <- red[, c(visit.id, uniq.id)]
     ix <- which(is.na(red[, uniq.id]))
     red[ix, uniq.id] <- ix * -100
