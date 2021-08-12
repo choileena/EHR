@@ -10,9 +10,10 @@ run_MedStrI(
     "Final.Rate..NFR.units.", "Final.Units"),
   flow.rename = c("mod_id", "mod_id_visit", "Perform.Date", "weight", "rate",
     "final.units"),
-  flow.mod.list = list(date.time = expression(parse_dates(fixDates(Perform.Date))),
-    unit = expression(sub(".*[ ]", "", rate)), rate =
-    expression(as.numeric(sub("([0-9.]+).*", "\\\\1", rate)))),
+  flow.mod.list = list(date.time =
+    expression(pkdata::parse_dates(fixDates(Perform.Date))), unit =
+    expression(sub(".*[ ]", "", rate)), rate = expression(as.numeric(sub("([0-9.]+).*",
+    "\\\\1", rate)))),
   medchk.path,
   mar.path,
   demo.list = NULL,

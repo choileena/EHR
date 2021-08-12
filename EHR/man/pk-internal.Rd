@@ -14,8 +14,6 @@
 \alias{merge_inf_bolus}
 \alias{addZeroDose}
 \alias{pkdata}
-\alias{parse_dates}
-\alias{guessDateFormat}
 \title{Internal functions for pk analysis}
 \description{
 code{takeClosest}: take value at nearest time
