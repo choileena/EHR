@@ -442,7 +442,7 @@ ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"
       rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', rate)))),
     medchk.path=file.path(rawDataDir, sprintf('medChecked-%s.csv', drugname)), 
     mar.path=file.path(dataDir,"Fentanyl_mar_mod_id.rds"),
-    demo.list=demo.out,
+    demo.list=NULL,
     check.path=checkDir, 
     failflow_fn = 'FailFlow',
     failunit_fn = 'Unit',
@@ -466,7 +466,7 @@ ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"
       rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', rate)))),
     medchk.path=file.path(rawDataDir, sprintf('medChecked-%s.csv', drugname)), 
     mar.path=file.path(dataDir,"Fentanyl_mar_mod_id.rds"),
-    demo.list=demo.out,
+    demo.list=NULL,
     check.path=checkDir, 
     failflow_fn = 'FailFlow',
     failunit_fn = 'Unit',
@@ -489,7 +489,7 @@ head(ivdose.out)
     + `flow.mod.list`: list containing modifications to variables in the Flow data
     + `medchk.path`: file path with list of medication names and variants in MAR data to be used 
     + `mar.path`: file path where the MAR data exist
-    + `demo.list`: (optional) file name for processed demographic file that is used to exclude subjects based on exclusion criteria 
+    + `demo.list`: (optional) demographic data, produced from Pro-Demographic, that can be used to impute weight when missing
     + `check.path`: file path where the generated files for data checking are stored, and the corresponding data files with fixed data exist
     + `failflow_fn`: filename stub for invalid duplicate rows in the Flow data with rate of 0 check file. The stub will be prepended with the string 'fail' to create a .csv with the invalida data. The corrected data with failures replaced should use the same filename stub prepended with the string 'fix'.
          - e.g., if `failflow_fn` is 'FailFlow', the file 'failFailFlow.csv' with invalid duplicate rows will be created in the directory specified by `check.path`. The corrected version named 'fixFailFlow.csv' should be placed in the same directory.
