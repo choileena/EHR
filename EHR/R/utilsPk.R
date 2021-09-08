@@ -166,9 +166,8 @@ merge_inf_bolus <- function(inf.info, y) {
   }
 
   if(hasBolus) {
-    names(y) <- c('mod_id', 'date.dose', 'bolus.time', 'bolus.dose', 'medroute')
-    bol.info <- y[!is.na(y$mod_id) & !is.na(y$date.dose) & !is.na(y$bolus.dose),]
-    bol.info$date.time <- pkdata::parse_dates(paste(bol.info$date.dose, bol.info$bolus.time))
+    names(y) <- c('mod_id', 'date.time', 'bolus.dose')
+    bol.info <- y[complete.cases(y),]
     bol.info$date.dose <- format(bol.info$date.time, "%Y-%m-%d")
     bol.info$bolus.time <- format(bol.info$date.time, '%H:%M')
     bol.info$infuse.time <- NA

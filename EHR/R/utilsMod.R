@@ -53,13 +53,29 @@ findMedFlowRow_mod <- function(df, id, dt) {
     rnums
 }
 
-flowData_mod <- function(dat, checkDir, failflow_filename, giveExample = TRUE) {
+flowData_mod <- function(dat, checkDir, failflow_filename, giveExample = TRUE,
+  columnSpecs = c(visitid = 'mod_id_visit', dt = 'date.time', wgt = 'weight', rt = 'rate', ut = 'unit')) {
   # dat should be standardized by this point
   # require mod_id_visit|date.time|weight|rate|final.units
   # create idnum
   # combine it if input is list
   if(class(dat) == 'list') {
     dat <- do.call(rbind, dat)
+  }
+  def_cs <- c(visitid = 'mod_id_visit', dt = 'date.time', wgt = 'weight', rt = 'rate', ut = 'unit')
+  exp_cols <- names(def_cs)
+  provided_cols <- names(columnSpecs)
+  bad_col <- setdiff(provided_cols, exp_cols)
+  if(length(bad_col)) {
+    stop(sprintf('invalid column(s) specified: %s', paste(bad_col, collapse = ', ')))
+  }
+  # rename columns if necessary
+  xnames <- names(dat)
+  for(i in exp_cols) {
+    ccs <- columnSpecs[i]
+    if(!is.na(ccs) && ccs != def_cs[i]) {
+      names(dat)[xnames == ccs] <- def_cs[i]
+    }
   }
   # reorder by id
   dat <- dat[order(dat[,'mod_id_visit']),]

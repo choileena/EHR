@@ -14,8 +14,14 @@ run_MedStrI(
     expression(pkdata::parse_dates(fixDates(Perform.Date))), unit =
     expression(sub(".*[ ]", "", rate)), rate = expression(as.numeric(sub("([0-9.]+).*",
     "\\\\1", rate)))),
-  medchk.path,
   mar.path,
+  mar.datetimeCol,
+  mar.doseCol,
+  mar.drugCol = NULL,
+  mar.weightCol = NULL,
+  mar.givenCol = NULL,
+  medGivenReq = TRUE,
+  medchk.path = NULL,
   demo.list = NULL,
   missing.wgt.path = NULL,
   check.path,
@@ -28,7 +34,6 @@ run_MedStrI(
   rateunit = "mcg/hr",
   ratewgtunit = "mcg/kg/hr",
   weightunit = "kg",
-  medGivenReq = TRUE,
   drugname
 )
 }
@@ -41,11 +46,31 @@ run_MedStrI(
 
 \item{flow.mod.list}{list of expressions, giving modifications to flow data}
 
+\item{mar.path}{filename of MAR data (stored as RDS)}
+
+\item{mar.datetimeCol}{name of date-time column(s) in MAR data. If given as a
+single column, the value should be a date-time variable. If given as two column names,
+the date column should come before the time column. This argument is required}
+
+\item{mar.doseCol}{name of dosage column(s) in MAR data. If given as a
+single column, the column's values should contain dose and units. If given as two
+column names, the dose column should come before the unit column. This argument is required}
+
+\item{mar.drugCol}{name of drug name column in MAR data; if present, the
+\sQuote{medchk.path} argument should also be provided. The default value
+of NULL allows all drug names}
+
+\item{mar.weightCol}{name of weight column in MAR data}
+
+\item{mar.givenCol}{A column name in the MAR data set to use in conjunction
+with the \sQuote{medGivenReq} argument}
+
+\item{medGivenReq}{values in the \sQuote{mar.givenCol} column should equal \dQuote{Given};
+if this is FALSE, NA values are also allowed}
+
 \item{medchk.path}{filename containing data set (stored as CSV); should have
 the column \sQuote{medname} with list of acceptable drug names used to filter
 MAR data}
-
-\item{mar.path}{filename of MAR data (stored as RDS)}
 
 \item{demo.list}{demographic information; if available, missing weight may be
 imputed from demographics}
@@ -73,8 +98,6 @@ indicates weight is required}
 \item{ratewgtunit}{acceptable unit for hourly rate by weight; defaults to \sQuote{mcg/kg/hr}}
 
 \item{weightunit}{acceptable unit for weight; defaults to \sQuote{kg}}
-
-\item{medGivenReq}{values for \sQuote{med:given} should equal \dQuote{Given} unless this is FALSE}
 
 \item{drugname}{drug of interest, included in filename of check files}
 }
