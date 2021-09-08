@@ -154,6 +154,10 @@ run_MedStrI(flow.path='flow.rds',
                             "weight", "rate","final.units"),
             medchk.path='medcheck.csv',
             mar.path='mar.rds',
+            mar.datetimeCol = c('Date','Time'),
+            mar.doseCol = 'med:dosage',
+            mar.drugCol = 'med:mDrug',
+            mar.givenCol = 'med:given',
             check.path=tempdir(),
             drugname='fakedrg1')
 }

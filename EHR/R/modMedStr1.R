@@ -89,14 +89,15 @@
 #'                             "weight", "rate","final.units"),
 #'             medchk.path='medcheck.csv',
 #'             mar.path='mar.rds',
+#'             mar.datetimeCol = c('Date','Time'),
+#'             mar.doseCol = 'med:dosage',
+#'             mar.drugCol = 'med:mDrug',
+#'             mar.givenCol = 'med:given',
 #'             check.path=tempdir(),
 #'             drugname='fakedrg1')
 #'}
 #'
 #' @export
-
-## what I need to add
-# allow weight column
 
 run_MedStrI <- function(flow.path = NULL,
                         flow.select = c('mod_id','mod_id_visit','Perform.Date','Final.Wt..kg.','Final.Rate..NFR.units.','Final.Units'),
