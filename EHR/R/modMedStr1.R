@@ -7,27 +7,34 @@
 #' @param flow.select existing column names to select for flow data
 #' @param flow.rename new column names for flow data
 #' @param flow.mod.list list of expressions, giving modifications to flow data
+#' @param flow.columns a named list that should specify columns in flow data; \sQuote{id},
+#' \sQuote{datetime}, \sQuote{finalunits}, \sQuote{unit}, \sQuote{rate}, \sQuote{weight}
+#' are required. \sQuote{datetime} can refer to a single date-time variable or two
+#' variables holding date and time separately
 #' @param mar.path filename of MAR data (stored as RDS)
-#' @param mar.datetimeCol name of date-time column(s) in MAR data. If given as a
-#' single column, the value should be a date-time variable. If given as two column names,
-#' the date column should come before the time column. This argument is required
-#' @param mar.doseCol name of dosage column(s) in MAR data. If given as a
-#' single column, the column's values should contain dose and units. If given as two
-#' column names, the dose column should come before the unit column. This argument is required
-#' @param mar.drugCol name of drug name column in MAR data; if present, the
-#' \sQuote{medchk.path} argument should also be provided. The default value
-#' of NULL allows all drug names
-#' @param mar.weightCol name of weight column in MAR data
-#' @param mar.givenCol A column name in the MAR data set to use in conjunction
-#' with the \sQuote{medGivenReq} argument
-#' @param medGivenReq values in the \sQuote{mar.givenCol} column should equal \dQuote{Given};
+#' @param mar.columns a named list that should specify columns in MAR data; \sQuote{id},
+#' \sQuote{datetime} and \sQuote{dose} are required. \sQuote{drug}, \sQuote{weight},
+#' \sQuote{given} may also be specified. \sQuote{datetime} can refer to a single date-time
+#' variable or two variables holding date and time separately. \sQuote{dose} can also be
+#' given as a single variable or two. If given as a single column, the column's values
+#' should contain dose and units. If given as two column names, the dose column should
+#' come before the unit column. If \sQuote{drug} is present, the \sQuote{medchk.path}
+#' argument should also be provided. The \sQuote{given} variable should be used in
+#' conjunction with the \sQuote{medGivenReq} argument.
+#' @param medGivenReq values in the \sQuote{given} column should equal \dQuote{Given};
 #' if this is FALSE, NA values are also allowed
 #' @param medchk.path filename containing data set (stored as CSV); should have
 #' the column \sQuote{medname} with list of acceptable drug names used to filter
 #' MAR data
 #' @param demo.list demographic information; if available, missing weight may be
 #' imputed from demographics
+#' @param demo.columns a named list that should specify columns in demographic data; \sQuote{id},
+#' \sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} can refer to a single
+#' date-time variable or two variables holding date and time separately
 #' @param missing.wgt.path filename to additional weight data
+#' @param wgt.columns a named list that should specify columns in weight data; \sQuote{id},
+#' \sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} can refer to a single
+#' date-time variable or two variables holding date and time separately
 #' @param check.path path to \sQuote{check} directory, where check files are
 #' created
 #' @param failflow_fn filename for duplicate flow data with rate zero
@@ -87,12 +94,13 @@
 #'                           "Final.Weight", "Final.Rate","Final.Units"),
 #'             flow.rename = c("mod_id", "mod_id_visit", "Perform.Date",
 #'                             "weight", "rate","final.units"),
-#'             medchk.path='medcheck.csv',
+#'             flow.columns = list(id = 'mod_id', datetime = 'date.time',
+#'                                 finalunits = 'final.units', unit = 'unit',
+#'                                 rate = 'rate', weight = 'weight'),
 #'             mar.path='mar.rds',
-#'             mar.datetimeCol = c('Date','Time'),
-#'             mar.doseCol = 'med:dosage',
-#'             mar.drugCol = 'med:mDrug',
-#'             mar.givenCol = 'med:given',
+#'             mar.columns = list(id = 'mod_id', datetime = c('Date','Time'),
+#'                                dose = 'med:dosage', drug = 'med:mDrug', given = 'med:given'),
+#'             medchk.path='medcheck.csv',
 #'             check.path=tempdir(),
 #'             drugname='fakedrg1')
 #'}
@@ -106,16 +114,15 @@ run_MedStrI <- function(flow.path = NULL,
                           date.time = expression(pkdata::parse_dates(fixDates(Perform.Date))),
                           unit = expression(sub('.*[ ]', '', rate)),
                           rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', rate)))),
+                        flow.columns = list(),
                         mar.path,
-                        mar.datetimeCol,
-                        mar.doseCol,
-                        mar.drugCol = NULL,
-                        mar.weightCol = NULL,
-                        mar.givenCol = NULL,
+                        mar.columns = list(),
                         medGivenReq = TRUE,
                         medchk.path = NULL,
                         demo.list = NULL,
+                        demo.columns = list(),
                         missing.wgt.path = NULL,
+                        wgt.columns = list(),
                         check.path,
                         failflow_fn = 'FailFlow',
                         failunit_fn = 'Unit',
@@ -139,6 +146,16 @@ run_MedStrI <- function(flow.path = NULL,
 
     # clean flow data (remove duplicates, missing rate/unit, incorrect units)
     medFlow <- flowData_mod(flow1, checkDir = check.path, failflow_filename = failflow_fn)
+    flow.req <- list(id = NA, datetime = NA, finalunits = NA, unit = NA, rate = NA, weight = NA)
+    flow.col <- validateColumns(medFlow, flow.columns, flow.req)
+    if(length(flow.col$datetime) == 2) {
+      flowDT <- paste(medFlow[,flow.col$datetime[1]], medFlow[,flow.col$datetime[2]])
+    } else {
+      flowDT <- medFlow[,flow.col$datetime]
+    }
+    medFlow[,'date.time'] <- pkdata::parse_dates(flowDT)
+    medFlow <- medFlow[,c(flow.col$id, 'date.time', flow.col$finalunits, flow.col$unit, flow.col$rate, flow.col$weight)]
+    names(medFlow) <- c('mod_id','date.time','final.units','unit','rate','weight')
   } else {
     # no flow data, create mock with proper columns
     medFlow <- data.frame(mod_id = NA, date.time = NA, final.units = NA, unit = NA, rate = NA, weight = NA)[FALSE,]
@@ -146,6 +163,14 @@ run_MedStrI <- function(flow.path = NULL,
 
   #### MAR data
   mar.in <- readRDS(mar.path)
+  mar.req <- list(id = NA, datetime = NA, dose = NA, drug = NULL, weight = NULL, given = NULL)
+  mar.col <- validateColumns(mar.in, mar.columns, mar.req)
+  mar.idCol <- mar.col$id
+  mar.datetimeCol <- mar.col$datetime
+  mar.doseCol <- mar.col$dose
+  mar.drugCol <- mar.col$drug
+  mar.weightCol <- mar.col$weight
+  mar.givenCol <- mar.col$given
 
   if(!is.null(mar.drugCol) && !is.null(medchk.path)) {
     ## medChecked data
@@ -188,7 +213,7 @@ run_MedStrI <- function(flow.path = NULL,
   }
   hasUnit <- !is.na(unit)
   inf0 <- dm[hasUnit & unit == infusion.unit,]
-  reqInfusionColumns <- c('mod_id','date.time','unit','rate', mar.weightCol)
+  reqInfusionColumns <- c(mar.idCol, 'date.time', 'unit', 'rate', mar.weightCol)
   inf1 <- inf0[,reqInfusionColumns]
 
   bol <- dm[hasUnit & unit == bolus.unit,]
@@ -215,14 +240,26 @@ run_MedStrI <- function(flow.path = NULL,
     }
   }
   if(hasDemo) {
-    demoData[,'date.time'] <- pkdata::parse_dates(demoData[,'dateplusdospccu'])
+    demo.req <- list(id = NA, datetime = NA, weight = NA)
+    demo.col <- validateColumns(demoData, demo.columns, demo.req)
+    if(length(demo.col$datetime) == 2) {
+      demoDT <- paste(demoData[,demo.col$datetime[1]], demoData[,demo.col$datetime[2]])
+    } else {
+      demoDT <- demoData[,demo.col$datetime]
+    }
+    demoData <- demoData[,c(demo.col$id, demo.col$weight)]
+    names(demoData) <- c('mod_id','weight')
+    demoData[,'date.time'] <- pkdata::parse_dates(demoDT)
   }
 
   hasMsWgt <- !is.null(missing.wgt.path)
   if(hasMsWgt) {
     # expected column order: ID|DATE|WGT
     missWgt <- readRDS(missing.wgt.path)
-    names(missWgt)[1:3] <- c('mod_id','date.time','weight')
+    wgt.req <- list(id = NA, datetime = NA, weight = NA)
+    wgt.col <- validateColumns(missWgt, wgt.columns, wgt.req)
+    missWgt <- missWgt[,c(wgt.col$id, wgt.col$datetime, wgt.col$weight)]
+    names(missWgt) <- c('mod_id','date.time','weight')
   } else {
     missWgt <- NULL
   }
@@ -244,10 +281,10 @@ run_MedStrI <- function(flow.path = NULL,
     # next, try missing wgt file
     # last, try demo
     for(i in seq(nrow(dm))) {
-      row <- dm[i, c('mod_id','date.time')]
+      row <- dm[i, c(mar.idCol,'date.time')]
       if(row[[1]] != lastid) {
         # try flow data
-        opt <- medFlow[medFlow[,'mod_id'] == row[[1]], c('date.time','weight')]
+        opt <- medFlow[medFlow[,'mod_id'] == row[[1]], c('date.time', 'weight')]
         lastid <- row[[1]]
         # try missing weight data
         if(nrow(opt) == 0 && hasMsWgt) {
@@ -264,7 +301,7 @@ run_MedStrI <- function(flow.path = NULL,
       }
     }
 
-    coi <- c('mod_id','date.time',mar.drugCol,'rate','unit','weight','weight.date.time')
+    coi <- c(mar.idCol, 'date.time', mar.drugCol, 'rate', 'unit', 'weight', 'weight.date.time')
     mf <- cbind(dm[,coi], flag = 'exclude')
     msg <- sprintf('%s rows with units other than %s or %s, see file %s AND create %s\n',
                 nrow(mf),infusion.unit, bolus.unit, unitfn, unitfixfn)
@@ -293,15 +330,19 @@ run_MedStrI <- function(flow.path = NULL,
     w1 <- missWgt[,c('mod_id','date.time','weight')]
   }
   if(hasDemo) {
-    w2 <- demoData[,c('mod_id','date.time', 'weight')]
+    w2 <- demoData[,c('mod_id','date.time','weight')]
   }
   moreWgt <- rbind(w1, w2)
 
   # combine flow and MAR infusion
   # `inf1` may or may not have "weight" column
   inf <- infusionData_mod(
-    medFlow[,c('mod_id','date.time','final.units','unit','rate','weight')], inf1, rateunit = rateunit, ratewgtunit = ratewgtunit, addWgt = moreWgt
+    medFlow, inf1, rateunit = rateunit, ratewgtunit = ratewgtunit, addWgt = moreWgt
   )
+  # infusionData_mod enforces mod_id; restore name
+  if(mar.idCol != 'mod_id') {
+    names(inf)[1] <- mar.idCol
+  }
 
   # WARNING: if 'mcg/kg/hr' is missing weight, rate will be NA
   # e.g. observation has rate in mcg/kg/hr in MAR data (inf0), but no weight in flow data (medFlow)
@@ -313,27 +354,31 @@ run_MedStrI <- function(flow.path = NULL,
     nowgtfn <- file.path(check.path, paste0('fail', failnowgt_fn,'-', drugname, '.csv'))
     nowgtfixfn <- sub('fail', 'fix', nowgtfn)
     msg <- sprintf('%s rows from %s subjects with "%s" in infusion unit but missing weight, see file %s AND create %s\n',
-                nrow(needfix), length(unique(needfix[,'mod_id'])), weightunit, nowgtfn, nowgtfixfn)
+                nrow(needfix), length(unique(needfix[,mar.idCol])), weightunit, nowgtfn, nowgtfixfn)
     writeCheckData(needfix, nowgtfn, msg)
 
     if(file.access(nowgtfixfn, 4) != -1) {
       hasfix <- read.csv(nowgtfixfn, stringsAsFactors = FALSE)
       if(nrow(hasfix)) {
         inf <- rbind(nofix, hasfix[,names(nofix)])
-        inf <- inf[order(inf$mod_id, inf$date.time),]
+        inf <- inf[order(inf[,mar.idCol], inf[,'date.time']),]
         cat(sprintf('file %s read, %s records corrected\n', nowgtfixfn, nrow(hasfix)))
       }
     }
   }
 
   # combine infusion and bolus
-  hourly <- merge_inf_bolus(inf, bol[,c('mod_id','date.time','rate')])
+  hourly <- merge_inf_bolus(inf, bol[,c(mar.idCol,'date.time','rate')])
   if(nrow(hourly) == 0) {
     stop('after processing, no infusion or bolus data exists')
   }
+  # merge_inf_bolus enforces mod_id; restore name
+  if(mar.idCol != 'mod_id') {
+    names(hourly)[1] <- mar.idCol
+  }
 
   cdArgs <- list(
-    doseData=hourly, idVar="mod_id", dateVar="date.dose",
+    doseData = hourly, idVar = mar.idCol, dateVar = "date.dose",
     otherDoseTimeVar = NULL, otherDoseVar = NULL, otherVars = c('given.dose','maxint','weight')
   )
   # hourly data is already merged, but ensure data is present before updating arguments

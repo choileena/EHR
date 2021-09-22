@@ -157,6 +157,7 @@ merge_inf_bolus <- function(inf.info, y) {
   hasInfusion <- nrow(inf.info) > 0
   hasBolus <- nrow(y) > 0
   if(hasInfusion) {
+    names(inf.info)[1] <- 'mod_id'
     inf.info$date.dose <- format(inf.info$date.time, "%Y-%m-%d")
     inf.info$infuse.time <- format(inf.info$date.time, "%H:%M")
     inf.info$bolus.time <- NA

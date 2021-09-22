@@ -17,9 +17,11 @@
 #'
 #' code{processErxAddl}: additional processing, checking for connected observations
 #'
+#' code{validateColumns}: check columns are in place
+#'
 #' @name mod-internal
 #' @aliases colflow_mod findMedFlowRow_mod flowData_mod concData_mod
-#' infusionData_mod resolveDoseDups_mod processErx processErxAddl
+#' infusionData_mod resolveDoseDups_mod processErx processErxAddl validateColumns
 #' @keywords internal
 NULL
 
@@ -377,11 +379,12 @@ infusionData_mod <- function(flow, mar, flowInt = 60, marInt = 15,
                              rateunit = 'mcg/hr', ratewgtunit = 'mcg/kg/hr', addWgt = NULL) {
 
   if(nrow(flow)){ # add check for >0 obs
-    flow$maxint <- flowInt 
+    flow$maxint <- flowInt
   }
 
   if(nrow(mar)){ # add check for >0 obs
-    mar$maxint <- marInt 
+    mar$maxint <- marInt
+    names(mar)[1] <- 'mod_id'
   }
 
   i1 <- flow[!is.na(flow$rate),]
@@ -652,4 +655,61 @@ processErxAddl <- function(processed) {
   processed[ix,'dose'] <- dose
   processed[ix,'daily.dose'] <- dose * processed[ix,'freq.num']
   processed
+}
+
+validateColumns <- function(df, columnSpecs, defaultSpecs = list()) {
+  # KEY = colname(s)
+  # if default is NULL, not required
+  # if default is NA, required
+  n <- names(df)
+  u <- names(columnSpecs)
+  if(length(defaultSpecs) == 0) {
+    defaultSpecs <- as.list(rep(NA, length(columnSpecs)))
+    names(defaultSpecs) <- u
+  }
+  x <- names(defaultSpecs)
+  cst <- function(t, v) {
+    sprintf('%s"%s"', t, paste(v, collapse = '", "'))
+  }
+  errors <- character(4)
+  # user should provide named list, or list of given length
+  if(is.null(u)) {
+    if(length(columnSpecs) == length(x)) {
+      u <- x
+      names(columnSpecs) <- x
+    } else {
+      errors[1] <- cst('column specification is incorrect; please identify all columns: ', x)
+    }
+  }
+  # user should not provide unexpected columns
+  bad_col <- setdiff(u, x)
+  if(length(bad_col)) {
+    errors[2] <- cst('column specification is incorrect; the following column(s) should not be present: ', bad_col)
+  }
+  # provide defaults, including NULL/NA
+  add_col <- setdiff(x, u)
+  columnSpecs[add_col] <- defaultSpecs[add_col]
+  # safely remove NULL
+  columnSpecs <- columnSpecs[lengths(columnSpecs, FALSE) > 0L]
+  u <- names(columnSpecs)
+  # require NA
+  req_col <- u[is.na(sapply(columnSpecs, `[`, 1))]
+  if(length(req_col)) {
+    errors[3] <- cst('column specification is incorrect; please identify the following columns: ', req_col)
+  }
+  # check for missing columns
+  mycols <- unlist(columnSpecs)
+  mycols <- mycols[!is.na(mycols)]
+  miss_col <- setdiff(mycols, c(n, seq_along(n)))
+  if(length(miss_col)) {
+    errors[4] <- cst('data set is missing expected columns; the following column(s) are missing: ', miss_col)
+  }
+  err <- paste(errors[errors != ''], collapse = '\n  ')
+  if(err != '') stop(err)
+  # convert any numeric columns into names
+  for(i in seq_along(columnSpecs)) {
+    csix <- match(columnSpecs[[i]], seq_along(n))
+    columnSpecs[[i]][!is.na(csix)] <- n[csix[!is.na(csix)]]
+  }
+  columnSpecs
 }

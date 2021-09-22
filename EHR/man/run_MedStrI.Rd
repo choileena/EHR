@@ -14,16 +14,15 @@ run_MedStrI(
     expression(pkdata::parse_dates(fixDates(Perform.Date))), unit =
     expression(sub(".*[ ]", "", rate)), rate = expression(as.numeric(sub("([0-9.]+).*",
     "\\\\1", rate)))),
+  flow.columns = list(),
   mar.path,
-  mar.datetimeCol,
-  mar.doseCol,
-  mar.drugCol = NULL,
-  mar.weightCol = NULL,
-  mar.givenCol = NULL,
+  mar.columns = list(),
   medGivenReq = TRUE,
   medchk.path = NULL,
   demo.list = NULL,
+  demo.columns = list(),
   missing.wgt.path = NULL,
+  wgt.columns = list(),
   check.path,
   failflow_fn = "FailFlow",
   failunit_fn = "Unit",
@@ -46,26 +45,24 @@ run_MedStrI(
 
 \item{flow.mod.list}{list of expressions, giving modifications to flow data}
 
+\item{flow.columns}{a named list that should specify columns in flow data; \sQuote{id},
+\sQuote{datetime}, \sQuote{finalunits}, \sQuote{unit}, \sQuote{rate}, \sQuote{weight}
+are required. \sQuote{datetime} can refer to a single date-time variable or two
+variables holding date and time separately}
+
 \item{mar.path}{filename of MAR data (stored as RDS)}
 
-\item{mar.datetimeCol}{name of date-time column(s) in MAR data. If given as a
-single column, the value should be a date-time variable. If given as two column names,
-the date column should come before the time column. This argument is required}
+\item{mar.columns}{a named list that should specify columns in MAR data; \sQuote{id},
+\sQuote{datetime} and \sQuote{dose} are required. \sQuote{drug}, \sQuote{weight},
+\sQuote{given} may also be specified. \sQuote{datetime} can refer to a single date-time
+variable or two variables holding date and time separately. \sQuote{dose} can also be
+given as a single variable or two. If given as a single column, the column's values
+should contain dose and units. If given as two column names, the dose column should
+come before the unit column. If \sQuote{drug} is present, the \sQuote{medchk.path}
+argument should also be provided. The \sQuote{given} variable should be used in
+conjunction with the \sQuote{medGivenReq} argument.}
 
-\item{mar.doseCol}{name of dosage column(s) in MAR data. If given as a
-single column, the column's values should contain dose and units. If given as two
-column names, the dose column should come before the unit column. This argument is required}
-
-\item{mar.drugCol}{name of drug name column in MAR data; if present, the
-\sQuote{medchk.path} argument should also be provided. The default value
-of NULL allows all drug names}
-
-\item{mar.weightCol}{name of weight column in MAR data}
-
-\item{mar.givenCol}{A column name in the MAR data set to use in conjunction
-with the \sQuote{medGivenReq} argument}
-
-\item{medGivenReq}{values in the \sQuote{mar.givenCol} column should equal \dQuote{Given};
+\item{medGivenReq}{values in the \sQuote{given} column should equal \dQuote{Given};
 if this is FALSE, NA values are also allowed}
 
 \item{medchk.path}{filename containing data set (stored as CSV); should have
@@ -75,7 +72,15 @@ MAR data}
 \item{demo.list}{demographic information; if available, missing weight may be
 imputed from demographics}
 
+\item{demo.columns}{a named list that should specify columns in demographic data; \sQuote{id},
+\sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} can refer to a single
+date-time variable or two variables holding date and time separately}
+
 \item{missing.wgt.path}{filename to additional weight data}
+
+\item{wgt.columns}{a named list that should specify columns in weight data; \sQuote{id},
+\sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} can refer to a single
+date-time variable or two variables holding date and time separately}
 
 \item{check.path}{path to \sQuote{check} directory, where check files are
 created}
@@ -152,12 +157,13 @@ run_MedStrI(flow.path='flow.rds',
                           "Final.Weight", "Final.Rate","Final.Units"),
             flow.rename = c("mod_id", "mod_id_visit", "Perform.Date",
                             "weight", "rate","final.units"),
-            medchk.path='medcheck.csv',
+            flow.columns = list(id = 'mod_id', datetime = 'date.time',
+                                finalunits = 'final.units', unit = 'unit',
+                                rate = 'rate', weight = 'weight'),
             mar.path='mar.rds',
-            mar.datetimeCol = c('Date','Time'),
-            mar.doseCol = 'med:dosage',
-            mar.drugCol = 'med:mDrug',
-            mar.givenCol = 'med:given',
+            mar.columns = list(id = 'mod_id', datetime = c('Date','Time'),
+                               dose = 'med:dosage', drug = 'med:mDrug', given = 'med:given'),
+            medchk.path='medcheck.csv',
             check.path=tempdir(),
             drugname='fakedrg1')
 }

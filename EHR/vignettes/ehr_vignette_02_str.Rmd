@@ -431,7 +431,7 @@ Part I handles IV dose data from two sources, Flow data and Medication Administr
 The IV dose data can be processed by the `run_MedStrI()` function using: 
 
 ```{r Pro-Med-Str1, eval=FALSE}
-ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"), 
+ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"),
     flow.select = c('mod_id','mod_id_visit','Perform.Date','Final.Wt..kg.',
                     'Final.Rate..NFR.units.','Final.Units'),
     flow.rename = c('mod_id','mod_id_visit', 'Perform.Date', 'weight',
@@ -440,22 +440,33 @@ ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"
       date.time = expression(parse_dates(fixDates(Perform.Date))),
       unit = expression(sub('.*[ ]', '', rate)),
       rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', rate)))),
-    medchk.path=file.path(rawDataDir, sprintf('medChecked-%s.csv', drugname)), 
+    flow.columns = list(id = 'mod_id', datetime = 'date.time', finalunits = 'final.units',
+                        unit = 'unit', rate = 'rate', weight = 'weight'),
     mar.path=file.path(dataDir,"Fentanyl_mar_mod_id.rds"),
-    demo.list=NULL,
-    check.path=checkDir, 
+    mar.columns = list(id = 'mod_id', datetime = c('Date','Time'), dose = 'med:dosage',
+                       drug = 'med:mDrug', given = 'med:given'),
+    medGivenReq = TRUE,
+    medchk.path = file.path(rawDataDir, sprintf('medChecked-%s.csv', drugname)),
+    demo.list = NULL,
+    demo.columns = list(),
+    missing.wgt.path = NULL,
+    wgt.columns = list(),
+    check.path = checkDir,
     failflow_fn = 'FailFlow',
     failunit_fn = 'Unit',
     failnowgt_fn = 'NoWgt',
     infusion.unit = 'mcg/kg/hr',
     bolus.unit = 'mcg',
     bol.rate.thresh = Inf,
+    rateunit = 'mcg/hr',
+    ratewgtunit = 'mcg/kg/hr',
+    weightunit = 'kg',
     drugname = drugname)
 ```
 
 ```{r Pro-Med-Str1-fake, echo=FALSE}
 co({
-ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"), 
+ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"),
     flow.select = c('mod_id','mod_id_visit','Perform.Date','Final.Wt..kg.',
                     'Final.Rate..NFR.units.','Final.Units'),
     flow.rename = c('mod_id','mod_id_visit', 'Perform.Date', 'weight',
@@ -464,16 +475,27 @@ ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"
       date.time = expression(parse_dates(fixDates(Perform.Date))),
       unit = expression(sub('.*[ ]', '', rate)),
       rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', rate)))),
-    medchk.path=file.path(rawDataDir, sprintf('medChecked-%s.csv', drugname)), 
+    flow.columns = list(id = 'mod_id', datetime = 'date.time', finalunits = 'final.units',
+                        unit = 'unit', rate = 'rate', weight = 'weight'),
     mar.path=file.path(dataDir,"Fentanyl_mar_mod_id.rds"),
-    demo.list=NULL,
-    check.path=checkDir, 
+    mar.columns = list(id = 'mod_id', datetime = c('Date','Time'), dose = 'med:dosage',
+                       drug = 'med:mDrug', given = 'med:given'),
+    medGivenReq = TRUE,
+    medchk.path = file.path(rawDataDir, sprintf('medChecked-%s.csv', drugname)),
+    demo.list = NULL,
+    demo.columns = list(),
+    missing.wgt.path = NULL,
+    wgt.columns = list(),
+    check.path = checkDir,
     failflow_fn = 'FailFlow',
     failunit_fn = 'Unit',
     failnowgt_fn = 'NoWgt',
     infusion.unit = 'mcg/kg/hr',
     bolus.unit = 'mcg',
     bol.rate.thresh = Inf,
+    rateunit = 'mcg/hr',
+    ratewgtunit = 'mcg/kg/hr',
+    weightunit = 'kg',
     drugname = drugname)
     })
 ```
@@ -487,9 +509,15 @@ head(ivdose.out)
     + `flow.select`: list of variables in the Flow data, which are used for processing
     + `flow.rename`: rename variables for the variables in flow.select
     + `flow.mod.list`: list containing modifications to variables in the Flow data
-    + `medchk.path`: file path with list of medication names and variants in MAR data to be used 
+    + `flow.columns`: named list of variables required in flow data
     + `mar.path`: file path where the MAR data exist
+    + `mar.columns`: named list of variables required in MAR data
+    + `medGivenReq`: indicator if values in the MAR given column should equal "Given", or otherwise include NA
+    + `medchk.path`: file path with list of medication names and variants in MAR data to be used 
     + `demo.list`: (optional) demographic data, produced from Pro-Demographic, that can be used to impute weight when missing
+    + `demo.columns`: named list of variables required in demographic data
+    + `missing.wgt.path`: file path to additional weight data
+    + `wgt.columns`: named list of variables required in weight data
     + `check.path`: file path where the generated files for data checking are stored, and the corresponding data files with fixed data exist
     + `failflow_fn`: filename stub for invalid duplicate rows in the Flow data with rate of 0 check file. The stub will be prepended with the string 'fail' to create a .csv with the invalida data. The corrected data with failures replaced should use the same filename stub prepended with the string 'fix'.
          - e.g., if `failflow_fn` is 'FailFlow', the file 'failFailFlow.csv' with invalid duplicate rows will be created in the directory specified by `check.path`. The corrected version named 'fixFailFlow.csv' should be placed in the same directory.
@@ -498,6 +526,9 @@ head(ivdose.out)
     + `infusion.unit`: string specifying units for infusion doses (default: 'mcg/kg/hr')
     + `bolus.unit`: string specifying units for bolus doses (default: 'mcg')
     + `bol.rate.thresh`: upper bound for retaining bolus doses. Bolus units with a rate above the threshold are dropped (default: Inf; i.e., keep all bolus doses)
+    + `rateunit`: string specifying units for hourly rate (default: 'mcg/hr')
+    + `ratewgtunit`: string specifying units for hourly rate by weight (default: 'mcg/kg/hr')
+    + `weightunit`: string specifying units for weight (default: 'kg')
     + `drugname`: drug name of interest (e.g., dex, fent)
 * The output of the `run_MedStrI` function is a dataset with processed IV dosing data including date (date.dose), infusion dose time (infuse.time.real and infuse.time) and rate (infuse.dose), bolus dose time (bolus.time) and dose level (bolus.dose), weight used in dose calculation and identification numbers for further merging with the output from other modules.
 
