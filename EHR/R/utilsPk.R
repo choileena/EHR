@@ -73,14 +73,15 @@ combine <- function(x, y) {
 }
 
 updateInterval_mod <- function(inf, demo) {
-  # first three columns of demo should be: id|date|time
+  # first two columns of demo should be: id|datetime
   # first column of inf should be: id
   demo <- demo[complete.cases(demo),]
   # add leading zeroes
-  date <- fixDates(demo[,2])
-  time <- sub("^([0-9]{2})([0-9]{2})$", "\\1:\\2", sprintf("%04d", demo[,3]))
-  dt <- paste(date, time)
-  surg.time <- pkdata::parse_dates(dt)
+#   date <- fixDates(demo[,2])
+#   time <- sub("^([0-9]{2})([0-9]{2})$", "\\1:\\2", sprintf("%04d", demo[,3]))
+#   dt <- paste(date, time)
+#   surg.time <- pkdata::parse_dates(dt)
+  surg.time <- demo[,2]
   dsid <- inf[,1]
   ids <- unique(dsid)
   ids <- ids[!is.na(ids)] # drop if id==NA

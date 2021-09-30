@@ -4,17 +4,47 @@
 #'
 #' @param conc concentration data, the output of \code{\link{run_DrugLevel}} 
 #' or a correctly formatted data.frame
+#' @param conc.columns a named list that should specify columns in concentration
+#' data; \sQuote{id}, \sQuote{datetime}, \sQuote{druglevel} are required.
+#' \sQuote{idvisit} may also be specified. \sQuote{datetime} is date and time for
+#' concentration measurement, which can refer to a single date-time variable
+#' (datetime = \sQuote{date_time}) or two variables holding date and time
+#' separately (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).
 #' @param dose dose data, the output of \code{\link{run_MedStrI}} or a
 #' correctly formatted data.frame
+#' @param dose.columns a named list that should specify columns in dose data;
+#' \sQuote{id} is required. \sQuote{infuseDatetime} and \sQuote{infuseDose}
+#' should be set if infusion dose data is present. \sQuote{infuseTimeExact}
+#' may also be specified for infusion data -- this variable represents an
+#' precise time, if for example the \sQuote{infuseDatetime} variable is rounded.
+#' \sQuote{bolusDatetime} and \sQuote{bolusDose} should be set if bolus dose
+#' data is present. A generic \sQuote{date} variable may be provided, agnostic
+#' to either infusion or bolus dosing. \sQuote{gap} and \sQuote{weight} column
+#' names may also be set. Any of the date-time variables can be specified as a
+#' single date-time variable (infuseDatetime = \sQuote{date_time}) or two variables
+#' holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})).
 #' @param lab.dat lab data, if available. the output from \code{\link{run_Labs}} or 
 #' a correctly formatted list
-#' @param lab.vars variables to include from lab data
+#' @param lab.columns a named list that should specify columns in lab data; \sQuote{id},
+#' and \sQuote{datetime} are required. \sQuote{datetime} is the date and time when
+#' the lab data was obtained, which can refer to a single date-time variable
+#' (datetime = \sQuote{date_time}) or two variables holding date and time separately
+#' (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})). Any other columns present in lab
+#' data are treated as lab values.
 #' @param demo.list demographic information, if available. the output from 
 #' \code{\link{run_Demo}} or a correctly formatted data.frame
-#' @param demo.vars variables to include from demographic data
-#' @param demo.abbr character vector used to rename/abbreviate demo variables
-#' @param pk.vars variables to include from PK data. the variables 
-#' c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event') are required
+#' @param demo.columns a named list that should specify columns in demographic data;
+#' \sQuote{id} and \sQuote{datetime} are required. \sQuote{datetime} is the date
+#' and time when the demographic data were obtained, which can refer to a single date-time
+#' variable (datetime = \sQuote{date_time}) or two variables holding date and time separately
+#' (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})). \sQuote{weight} and \sQuote{idvisit}
+#' may also be used to specify columns for weight or the unique id-visit. Any other columns
+#' present in the demographic data are treated as covariates.
+#' @param pk.vars variables to include in the returned PK data. The variable \sQuote{date}
+#' is a special case; when included, it maps the \sQuote{time} offset to its original date-time.
+#' Other named variables will be merged from the concentration data set. For example,
+#' rather than being separate data sets, labs or demographics may already be present in
+#' the concentration data. These columns should be named here.
 #' @param drugname drug of interest, included in filename of check files
 #' @param check.path path to \sQuote{check} directory, where check files are
 #' created
@@ -51,26 +81,109 @@
 #'                      weight = 45)
 #' 
 #' 
-#' run_Build_PK_IV(conc = plconc, dose = ivdose,
-#'                 pk.vars = c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event'))
+#' run_Build_PK_IV(conc = plconc,
+#'                 conc.columns = list(id = 'mod_id', datetime = 'date.time', druglevel = 'conc.level', idvisit = 'mod_id_visit'),
+#'                 dose = ivdose,
+#'                 dose.columns = list(id = 'mod_id', date = 'date.dose', bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose', gap = 'maxint', weight = 'weight'),
+#'                 pk.vars = 'date')
 #'}
 #'
 #' @export
 
-run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
-                            demo.list = NULL, demo.vars = NULL, demo.abbr = NULL, 
-                            pk.vars, drugname, check.path, 
+run_Build_PK_IV <- function(conc, conc.columns = list(),
+                            dose, dose.columns = list(),
+                            lab.dat = NULL, lab.columns = list(),
+                            demo.list = NULL, demo.columns = list(),
+                            pk.vars = NULL, drugname, check.path,
                             missdemo_fn='-missing-demo',
                             faildupbol_fn='DuplicateBolus-',
                             date.format="%m/%d/%y %H:%M:%S",
-                            date.tz="America/Chicago") {
+                            date.tz="America/Chicago"
+) {
+  conc.req <- list(id = NA, datetime = NA, druglevel = NA, idvisit = NULL)
+  dose.req <- list(id = NA, date = NULL, infuseDatetime = NULL, infuseTimeExact = NULL, infuseDose = NULL,
+    bolusDatetime = NULL, bolusDose = NULL, gap = NULL, weight = NULL)
+  lab.req <- list(id = NA, datetime = NA)
+  demo.req <- list(id = NA, datetime = NA, idvisit = NULL, weight = NULL)
+
+  # standardize conc data
+  conc.col <- validateColumns(conc, conc.columns, conc.req)
+  if(length(conc.col$datetime) == 2) {
+    concDT <- paste(conc[,conc.col$datetime[1]], conc[,conc.col$datetime[2]])
+  } else {
+    concDT <- conc[,conc.col$datetime]
+  }
+  conc[,'date.time'] <- pkdata::parse_dates(concDT)
+  # find variables to merge in later
+  conc.orig <- conc[, setdiff(names(conc), c(conc.col$druglevel, conc.col$idvisit))]
+  # require pk.vars to restore?
+  orig.vars <- pk.vars[pk.vars %in% names(conc.orig)]
+  # ignore variables with these names
+  pk.excl <- c('date', 'other', 'multiple.record')
+  orig.vars <- setdiff(orig.vars, c(pk.excl, conc.col$id, 'date.time'))
+  if(length(orig.vars)) {
+    conc.orig <- conc.orig[, c(conc.col$id, 'date.time', orig.vars)]
+  } else {
+    conc.orig <- NULL
+  }
+  conc <- conc[,c(conc.col$id, 'date.time', conc.col$druglevel, conc.col$idvisit)]
+
+  # standardize dose data
+  dose.col <- validateColumns(dose, dose.columns, dose.req)
+  hasInf <- 'infuseDose' %in% names(dose.col)
+  hasBol <- 'bolusDose' %in% names(dose.col)
+  # force mod_id
+  if(dose.col$id != 'mod_id') {
+    names(dose)[match(dose.col$id, names(dose))] <- 'mod_id'
+  }
+  dosecoi <- 'mod_id'
+  if(hasInf) {
+    if(length(dose.col$infuseDatetime) == 2) {
+      infdt <- paste(dose[,dose.col$infuseDatetime[1]], dose[,dose.col$infuseDatetime[2]])
+    } else {
+      infdt <- dose[,dose.col$infuseDatetime]
+    }
+    dose[,'infuse.time'] <- pkdata::parse_dates(infdt)
+    if(dose.col$infuseDose != 'infuse.dose') {
+      dose[,'infuse.dose'] <- dose[,dose.col$infuseDose]
+    }
+    # require a "real" (accurate) date-time
+    if('infuseTimeExact' %in% names(dose.col)) {
+      if(length(dose.col$infuseTimeExact) == 2) {
+        infdtr <- paste(dose[,dose.col$infuseTimeExact[1]], dose[,dose.col$infuseTimeExact[2]])
+      } else {
+        infdtr <- dose[,dose.col$infuseTimeExact]
+      }
+      dose[,'infuse.time.real'] <- pkdata::parse_dates(infdtr)
+    } else {
+      dose[,'infuse.time.real'] <- dose[,'infuse.time']
+    }
+    dosecoi <- c(dosecoi, 'infuse.time', 'infuse.time.real', 'infuse.dose')
+  }
+  if(hasBol) {
+    if(length(dose.col$bolusDatetime) == 2) {
+      boldt <- paste(dose[,dose.col$bolusDatetime[1]], dose[,dose.col$bolusDatetime[2]])
+    } else {
+      boldt <- dose[,dose.col$bolusDatetime]
+    }
+    dose[,'bolus.time'] <- pkdata::parse_dates(boldt)
+    if(dose.col$bolusDose != 'bolus.dose') {
+      dose[,'bolus.dose'] <- dose[,dose.col$bolusDose]
+    }
+    dosecoi <- c(dosecoi, 'bolus.time', 'bolus.dose')
+  }
+  if('date' %in% names(dose.col)) {
+    dose[,'date.dose'] <- pkdata::parse_dates(dose[,dose.col$date])
+    dosecoi <- c(dosecoi, 'date.dose')
+  }
+  dosecoi <- c(dosecoi, dose.col$gap, dose.col$weight)
+  dose <- dose[,dosecoi]
+
   # trim Doses - determine whether each dose is valid by comparing to concentration data
-  tdArgs <- list(doseData=dose, drugLevelData=conc, drugLevelID="mod_id",
-    drugLevelTimeVar="date.time", drugLevelVar="conc.level",
+  tdArgs <- list(doseData=dose, drugLevelData=conc, drugLevelID=conc.col$id,
+    drugLevelTimeVar="date.time", drugLevelVar=conc.col$druglevel,
     otherDoseTimeVar=NULL, otherDoseVar=NULL
   )
-  hasInf <- 'infuse.dose' %in% names(dose)
-  hasBol <- 'bolus.dose' %in% names(dose)
   if(hasInf) {
     tdArgs$infusionDoseTimeVar <- 'infuse.time'
     tdArgs$infusionDoseVar <- 'infuse.dose'
@@ -80,10 +193,25 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
     tdArgs$bolusDoseVar <- 'bolus.dose'
   }
   info <- do.call(pkdata::trimDoses, tdArgs)
+  ni <- names(info)
+  # require 'date.dose' column
+  if(!('date.dose' %in% ni)) {
+    tmpDate <- rep(as.Date(NA), nrow(info))
+    if(hasInf) {
+      tmpDate <- as.Date(info[,'infuse.time'])
+    }
+    if(hasBol) {
+      ix <- which(is.na(tmpDate))
+      tmpDate[ix] <- as.Date(info[ix,'bolus.time'])
+    }
+    info[,'date.dose'] <- tmpDate
+  }
 
   info <- resolveDoseDups_mod(info, checkDir=check.path, drugname=drugname, faildupbol_filename=faildupbol_fn)
 
-  if('maxint' %in% names(info)) {
+  if('gap' %in% names(dose.col)) {
+    # force column name 'maxint'
+    names(info)[match(dose.col$gap, ni)] <- 'maxint'
     # skip if no infusion data
     if(hasInf) {
       info0 <- addZeroDose(info, infusionDoseTimeVar="infuse.time", infusionDoseVar="infuse.dose",
@@ -116,8 +244,16 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
       info1 <- info0
       hasDemo <- FALSE
     } else {
-      dem <- demoData[,c('mod_id','surgery_date','time_fromor')]
-      dem[dem == ''] <- NA
+      # standardize demographic data
+      demo.col <- validateColumns(demoData, demo.columns, demo.req)
+      if(length(demo.col$datetime) == 2) {
+        demoDT <- paste(demoData[,demo.col$datetime[1]], demoData[,demo.col$datetime[2]])
+      } else {
+        demoDT <- demoData[,demo.col$datetime]
+      }
+      # previously, this was ['surgery_date','time_fromor']
+      demoData[,'date.time'] <- pkdata::parse_dates(demoDT)
+      dem <- demoData[, c(demo.col$id, 'date.time')]
       info1 <- updateInterval_mod(info0, dem)
     }
   } else {
@@ -125,12 +261,12 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
   }
 
   doseById <- split(info1, info1[,'mod_id'])
-  drugLevelById <- split(conc, conc[,'mod_id'])
-  uids <- as.character(unique(conc[,'mod_id']))
+  drugLevelById <- split(conc, conc[,conc.col$id])
+  uids <- as.character(unique(conc[,conc.col$id]))
   # ID needs to be in both data sets
   uids <- uids[uids %in% names(doseById)]
   # default pkdata arguments
-  pkArgs <- list(doseIdVar = "mod_id", drugLevelVar="conc.level", intervalVar='maxint')
+  pkArgs <- list(doseIdVar = "mod_id", drugLevelVar=conc.col$druglevel, intervalVar='maxint')
   if(hasInf) {
     pkArgs$infusionDoseTimeVar <- 'infuse.time'
     pkArgs$infusionDoseVar <- 'infuse.dose'
@@ -150,15 +286,22 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
     cat(sprintf('The number of subjects in the PK data before merging with demographics: %s\n', length(unique(pkd$mod_id))))
   }
 
-  hasMIV <- 'mod_id_visit' %in% names(conc)
+  hasMIV <- 'idvisit' %in% names(conc.col)
   if(hasMIV) {
-    pkd[,'mod_id_visit'] <- conc[match(pkd[,'mod_id'], conc[,'mod_id']), 'mod_id_visit']
+    pkd[,'mod_id_visit'] <- conc[match(pkd[,'mod_id'], conc[,conc.col$id]), conc.col$idvisit]
   } else {
     pkd[,'mod_id_visit'] <- pkd[,'mod_id']
   }
 
-  if(hasInf) {
-    flow.weight <- info[!is.na(info[,'weight']), c('mod_id','infuse.time.real','weight')]
+  pk.excl <- setdiff(pk.excl, pk.vars)
+  pk.vars <- setdiff(names(pkd), pk.excl)
+
+  if(hasInf && 'weight' %in% names(dose.col)) {
+    flow.weight <- info[!is.na(info[,dose.col$weight]), c('mod_id','infuse.time.real',dose.col$weight)]
+    # force column name 'weight"
+    if(dose.col$weight != 'weight') {
+      names(flow.weight)[3] <- 'weight'
+    }
     tmp <- merge(pkd, flow.weight, by.x=c('mod_id','date'), by.y=c('mod_id','infuse.time.real'), all.x=TRUE)
   } else {
     tmp <- pkd
@@ -170,30 +313,67 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
   }
 
   if(hasLabs) {
+    lab.vars <- c()
+    # if input is single DF, turn into list
+    if(inherits(lab.dat, 'data.frame')) {
+      lab.dat <- list(lab.dat)
+    }
     for(i in seq_along(lab.dat)) {
-      tmp <- merge_by_time(tmp, lab.dat[[i]], maxTime=168, x.id='mod_id', y.id='mod_id', x.time='date', y.time='date.time')
+      lab.col <- validateColumns(lab.dat[[i]], lab.columns, lab.req)
+      if(length(lab.col$datetime) == 2) {
+        labdt <- paste(lab.dat[[i]][,lab.col$datetime[1]], lab.dat[[i]][,lab.col$datetime[2]])
+      } else {
+        labdt <- lab.dat[[i]][,lab.col$datetime]
+      }
+      lab.dat[[i]][,'date.time'] <- pkdata::parse_dates(labdt)
+      cln <- names(lab.dat[[i]])
+      cln <- setdiff(cln, c(lab.col$id, 'date.time'))
+      lab.vars <- c(lab.vars, cln)
+      if(length(cln)) {
+        curlab <- lab.dat[[i]][,c(lab.col$id, 'date.time', cln)]
+        tmp <- merge_by_time(tmp, curlab, maxTime=168, x.id='mod_id', y.id=lab.col$id, x.time='date', y.time='date.time')
+      }
     }
     missLab <- setdiff(lab.vars, names(tmp))
     if(length(missLab)) {
       stop(sprintf('there was a problem merging lab variables: %s', paste(missLab, collapse = ', ')))
     }
+  } else {
+    lab.vars <- NULL
+  }
+
+  if(!is.null(conc.orig)) {
+    # instead of merge_by_time, could do exact merge on time
+    tmp <- merge_by_time(tmp, conc.orig, maxTime = Inf, x.id='mod_id', y.id=conc.col$id, x.time='date', y.time='date.time')
+    pk.vars <- c(pk.vars, orig.vars)
   }
 
   datetime <- as.POSIXct(tmp[,'date'])
   tmp[,'date'] <- as.character(datetime, format = date.format, tz = date.tz)
 
   if(hasDemo) {
-    tmp <- merge(tmp, demoData, by.x=c('mod_id_visit', 'mod_id'), by.y=c('mod_id_visit', 'mod_id'), all.x=TRUE)
-    ix <- which(is.na(tmp[,'weight.x']))
-    tmp[ix,'weight.x'] <- tmp[ix,'weight.y']
-    names(tmp)[match(c('weight.x','weight.y'), names(tmp))] <- c('weight','weight_demo')
+    if(!('idvisit' %in% names(demo.col))) {
+      demoData[,'mod_id_visit'] <- demoData[,demo.col$id]
+      demo.col$idvisit <- 'mod_id_visit'
+    }
+    if('weight' %in% names(demo.col)) {
+      names(demoData)[match(demo.col$weight, names(demoData))] <- 'weight'
+    }
+
+    tmp <- merge(tmp, demoData, by.x=c('mod_id_visit', 'mod_id'), by.y=c(demo.col$idvisit, demo.col$id), all.x=TRUE)
+    if('weight' %in% names(demoData)) {
+      ix <- which(is.na(tmp[,'weight.x']))
+      tmp[ix,'weight.x'] <- tmp[ix,'weight.y']
+      names(tmp)[match(c('weight.x','weight.y'), names(tmp))] <- c('weight','weight_demo')
+    }
 
     # drop mod_id based on exclusion criteria
     cat(sprintf('The number of subjects in the demographic file, who meet the exclusion criteria: %s\n', length(demoExcl)))
     tmp <- tmp[!(tmp[,'mod_id_visit'] %in% demoExcl),]
 
     #drop if mod_id is missing (i.e. no demographics for this visit)
-    tmp <- tmp[!(is.na(tmp[,'mod_id'])),]
+    tmp <- tmp[!is.na(tmp[,'mod_id']),]
+    n_tmp <- names(tmp)
 
     # check for missing demo
     dd2 <- tmp[tmp$event==0,]
@@ -206,15 +386,20 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
     cat(msg)
     write.csv(x, fn, quote=FALSE, row.names=FALSE)
 
-    missCpb <- tmp[is.na(tmp[,'cpb_sts']), 'mod_id_visit']
-    cat(sprintf('List of IDs missing at least 1 cpb_sts: %s\n', paste(unique(missCpb), collapse = '\n')))
-    if(length(missCpb) == 0) {
-      cat('Checked: all missing cpb_sts are 0\n')
-    } else {
-      tmp[is.na(tmp[,'cpb_sts']), 'cpb_sts'] <- 0
+    # return all demo columns
+    demo.vars <- setdiff(names(demoData), c(demo.col$idvisit, demo.col$id, demo.col$datetime, 'date.time'))
+    # add weight_demo if necessary
+    if('weight_demo' %in% n_tmp) {
+      demo.vars <- c(demo.vars, 'weight_demo')
     }
 
+    missdemov <- setdiff(demo.vars, n_tmp)
+    cat(sprintf('Some demographic variables are missing and will be excluded: %s\n', paste(missdemov, collapse = '\n')))
+
+    demo.vars <- demo.vars[demo.vars %in% n_tmp]
     cat(sprintf('The list of final demographic variables: %s\n', paste(demo.vars, collapse = '\n')))
+  } else {
+    demo.vars <- NULL
   }
 
   if(hasLabs) {
@@ -230,19 +415,41 @@ run_Build_PK_IV <- function(conc, dose, lab.dat = NULL, lab.vars = NULL,
     }
   }
 
-  keep.variable <- c(pk.vars, demo.vars, lab.vars)
-  tmp2 <- tmp[, keep.variable]
-  tmp2$mdv <- tmp2$event
+  misspkv <- setdiff(pk.vars, names(tmp))
+  cat(sprintf('Some PK variables are missing and will be excluded: %s\n', paste(misspkv, collapse = '\n')))
 
-  tmp3 <- tmp2[,c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'mdv', 'event', demo.vars, lab.vars)]
+  mainpk <- tmp[, pk.vars, drop = FALSE]
+  n_subj <- length(unique(mainpk[['mod_id']]))
+  # restore id column name
+  idvar <- conc.col$id
+  if(hasMIV) {
+    mainpk[,'mod_id'] <- NULL
+    colord <- c('mod_id_visit', setdiff(names(mainpk), 'mod_id_visit'))
+    col1 <- conc.col$idvisit
+  } else {
+    mainpk[,'mod_id_visit'] <- NULL
+    colord <- c('mod_id', setdiff(names(mainpk), 'mod_id'))
+    col1 <- idvar
+  }
+  mainpk <- mainpk[, colord]
+  names(mainpk)[1] <- col1
+
+  # rename dose and event
+  names(mainpk)[match(c('conc','dose'), names(mainpk))] <- c('dv','amt')
+  mainpk[,'event'] <- NULL
+  # these should be equivalent
+  mainpk[,'mdv'] <- +(is.na(mainpk[,'dv']))
+  mainpk[,'evid'] <- +(!is.na(mainpk[,'amt']))
+
+  reqOrder <- c(col1, 'time', 'amt', 'dv', 'rate', 'mdv', 'evid')
+  pkOrder <- c(reqOrder, setdiff(names(mainpk), reqOrder))
+  tmp3 <- cbind(mainpk[,pkOrder], tmp[, c(demo.vars, lab.vars), drop = FALSE])
 
   if(hasDemo) {
-    msg <- 'The dimension of the final PK data exported with the key demographics: %s x %s with %s distinct subjects (mod_id_visit)\n'
+    msg <- 'The dimension of the final PK data exported with the key demographics: %s x %s with %s distinct subjects (%s)\n'
   } else {
-    msg <- 'The dimension of the final PK data: %s x %s with %s distinct subjects (mod_id_visit)\n'
+    msg <- 'The dimension of the final PK data: %s x %s with %s distinct subjects (%s)\n'
   }
-  cat(sprintf(msg, nrow(tmp3), ncol(tmp3), length(unique(tmp3$mod_id_visit))))
-
-  colnames(tmp3) <- c('mod_id_visit', 'time', 'conc', 'amt', 'rate', 'mdv', 'evid', demo.abbr, lab.vars)
+  cat(sprintf(msg, nrow(tmp3), ncol(tmp3), n_subj, idvar))
   tmp3
 }

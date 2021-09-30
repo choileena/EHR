@@ -552,8 +552,8 @@ The e-prescription data can be processed by the `run_MedStrII` function using:
 
 ```{r Pro-Med-Str2}
 eRX.out <- run_MedStrII(file.path(rawDataDir,"e-rx_DATA.csv"),
-    select = c('GRID','MED_NAME','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT','DESCRIPTION'),
-    rename = c('ID','MED_NAME','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT','DESCRIPTION'))
+    dat.columns = list(id = 'GRID', dose = 'RX_DOSE', freq = 'FREQUENCY', date = 'ENTRY_DATE', str = 'STRENGTH_AMOUNT', desc = 'DESCRIPTION')
+)
 
 eRX.out
 ```
@@ -561,8 +561,7 @@ eRX.out
 The following arguments are used in the `run_MedStrII` function:
 
 * `file`: file name of prescription data
-* `select`: the names of the columns to select
-* `rename`: new column names; the default are the names required for the underlying functions, `processErx` and `processErxAddl`
+* `dat.columns`: the names of the columns to select
 
 In the above example, daily dose was calculated for the first 5 patients by multiplying strength\*dose\*freq.num, and a redundant daily dose was removed for the patient with ID2. In order to calculate a daily dose for the patient with ID3, the strength of 100 from the description was used because STRENGTH_AMOUNT was missing. For the patient with ID6, the dose amounts of 1.5, 1, and 1.5 are added together to get a dose of 4, and the daily dose is calculated as strength\*dose.
 

@@ -4,20 +4,14 @@
 \alias{run_MedStrII}
 \title{Run Structured E-Prescription Data}
 \usage{
-run_MedStrII(
-  file,
-  select = c("GRID", "MED_NAME", "RX_DOSE", "FREQUENCY", "ENTRY_DATE",
-    "STRENGTH_AMOUNT", "DESCRIPTION"),
-  rename = c("ID", "MED_NAME", "RX_DOSE", "FREQUENCY", "ENTRY_DATE", "STRENGTH_AMOUNT",
-    "DESCRIPTION")
-)
+run_MedStrII(file, dat.columns = list())
 }
 \arguments{
 \item{file}{filename of prescription data (stored as CSV)}
 
-\item{select}{columns to select}
-
-\item{rename}{new column names}
+\item{dat.columns}{a named list that should specify columns in data; \sQuote{id},
+\sQuote{dose}, \sQuote{freq}, \sQuote{date}, and \sQuote{str} are required.
+\sQuote{desc} may also be specified.}
 }
 \value{
 str data set
@@ -45,9 +39,10 @@ erx_data <- data.frame(GRID=paste0("ID",c(1,1,2,2,2,2)),
                                      "Brandname 100mg tablet", "fakedrug 100 mg tablet",
                                      "fakedrug 100 mg tablet"))
 
-write.csv(erx_data, 'erx_data.csv') 
+write.csv(erx_data, 'erx_data.csv')
 
-run_MedStrII('erx_data.csv')                   
+run_MedStrII('erx_data.csv', list(id = 'GRID', dose = 'RX_DOSE', freq = 'FREQUENCY',
+             date = 'ENTRY_DATE', str = 'STRENGTH_AMOUNT', desc = 'DESCRIPTION'))
 }
 
 

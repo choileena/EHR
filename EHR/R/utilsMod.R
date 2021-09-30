@@ -564,10 +564,10 @@ writeCheckData <- function(dat, filename, msg, decor = TRUE, ...) {
 
 processErx <- function(rx, description=TRUE, strength_exclude="\\s*mg|\\(.*\\)", dose_exclude="\\s*(cap|capsule|tablet|tab|pill)[s]?") {
   str <- rx[,'STRENGTH_AMOUNT']
-  rx[,'DESCRIPTION'] <- tolower(rx[,'DESCRIPTION'])
 
   ## If observations are missing STRENGTH_AMOUNT, use number from DESCRIPTION
   if(description == TRUE) {
+    rx[,'DESCRIPTION'] <- tolower(rx[,'DESCRIPTION'])
     ix <- which(is.na(str) | str == '')
     desc <- rx[ix,'DESCRIPTION']
     m <- gregexpr("\\d+\\s*mg|\\d+\\.\\d+\\s*mg", desc)
@@ -610,10 +610,8 @@ processErx <- function(rx, description=TRUE, strength_exclude="\\s*mg|\\(.*\\)",
   rx <- rx[order(rx[,'ID'], rx[,'ENTRY_DATE']),]
 
   ## Get rid of duplicate daily.dose on the same date for an ID
-  rx[,'date'] <- as.Date(rx[,'ENTRY_DATE'])
-  id_date_dose <- do.call(paste, c(rx[,c('ID','date','daily.dose')], sep = '|'))
+  id_date_dose <- do.call(paste, c(rx[,c('ID','ENTRY_DATE','daily.dose')], sep = '|'))
   rx <- rx[!duplicated(id_date_dose),]
-
   rx
 }
 

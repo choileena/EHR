@@ -17,7 +17,7 @@ run_MedStrI(
   flow.columns = list(),
   mar.path,
   mar.columns = list(),
-  medGivenReq = TRUE,
+  medGivenReq = FALSE,
   medchk.path = NULL,
   demo.list = NULL,
   demo.columns = list(),
@@ -47,23 +47,26 @@ run_MedStrI(
 
 \item{flow.columns}{a named list that should specify columns in flow data; \sQuote{id},
 \sQuote{datetime}, \sQuote{finalunits}, \sQuote{unit}, \sQuote{rate}, \sQuote{weight}
-are required. \sQuote{datetime} can refer to a single date-time variable or two
-variables holding date and time separately}
+are required. \sQuote{datetime} is date and time for data measurement, which can refer
+to a single date-time variable (datetime = \sQuote{date_time}) or two variables holding
+date and time separately (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
 \item{mar.path}{filename of MAR data (stored as RDS)}
 
 \item{mar.columns}{a named list that should specify columns in MAR data; \sQuote{id},
 \sQuote{datetime} and \sQuote{dose} are required. \sQuote{drug}, \sQuote{weight},
-\sQuote{given} may also be specified. \sQuote{datetime} can refer to a single date-time
-variable or two variables holding date and time separately. \sQuote{dose} can also be
-given as a single variable or two. If given as a single column, the column's values
-should contain dose and units. If given as two column names, the dose column should
-come before the unit column. If \sQuote{drug} is present, the \sQuote{medchk.path}
+\sQuote{given} may also be specified. \sQuote{datetime} is date and time for data
+measurement, which can refer to a single date-time variable (datetime = \sQuote{date_time})
+or two variables holding date and time separately (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).
+\sQuote{dose} can also be given as a single variable or two variables. If given as a single column,
+the column's values should contain dose and units such as \sQuote{25 mcg}. If given as
+two column names, the dose column should come before the unit column
+(e.g., dose = c(\sQuote{doseamt}, \sQuote{unit})). If \sQuote{drug} is present, the \sQuote{medchk.path}
 argument should also be provided. The \sQuote{given} variable should be used in
 conjunction with the \sQuote{medGivenReq} argument.}
 
 \item{medGivenReq}{values in the \sQuote{given} column should equal \dQuote{Given};
-if this is FALSE, NA values are also allowed}
+if this is FALSE (the default), NA values are also acceptable}
 
 \item{medchk.path}{filename containing data set (stored as CSV); should have
 the column \sQuote{medname} with list of acceptable drug names used to filter
@@ -73,14 +76,19 @@ MAR data}
 imputed from demographics}
 
 \item{demo.columns}{a named list that should specify columns in demographic data; \sQuote{id},
-\sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} can refer to a single
-date-time variable or two variables holding date and time separately}
+\sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} is the date
+and time when the demographic data were obtained, which can refer to a single date-time
+variable (datetime = \sQuote{date_time}) or two variables holding date and time separately
+(e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
-\item{missing.wgt.path}{filename to additional weight data}
+\item{missing.wgt.path}{filename for a CSV file with additional weight data. The variables
+in this file should be defined in the \sQuote{wgt.columns} argument.}
 
 \item{wgt.columns}{a named list that should specify columns in weight data; \sQuote{id},
-\sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} can refer to a single
-date-time variable or two variables holding date and time separately}
+\sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} is date
+and time for weight measurement, which can refer to a single date-time variable
+(datetime = \sQuote{date_time}) or two variables holding date and time separately
+(e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
 \item{check.path}{path to \sQuote{check} directory, where check files are
 created}
@@ -107,7 +115,7 @@ indicates weight is required}
 \item{drugname}{drug of interest, included in filename of check files}
 }
 \value{
-str data set
+structured data set
 }
 \description{
 This module will load and modify structured intravenous (IV) infusion and 
