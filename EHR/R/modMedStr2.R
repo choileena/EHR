@@ -2,7 +2,7 @@
 #'
 #' This module will load and modify structured e-prescription data.
 #'
-#' @param file filename of prescription data (stored as CSV)
+#' @param file filename of prescription data (CSV, RData, RDS), or data.frame
 #' @param dat.columns a named list that should specify columns in data; \sQuote{id},
 #' \sQuote{dose}, \sQuote{freq}, \sQuote{date}, and \sQuote{str} are required.
 #' \sQuote{desc} may also be specified.
@@ -38,7 +38,7 @@
 #' @export
 
 run_MedStrII <- function(file, dat.columns = list()) {
-  x <- readTransform(file)
+  x <- read(file)
   req <- list(id = NA, dose = NA, freq = NA, date = NA, str = NA, desc = NULL)
   col <- validateColumns(x, dat.columns, req)
   xDT <- x[,col$date]

@@ -16,7 +16,7 @@ run_Build_PK_Oral(
 )
 }
 \arguments{
-\item{x}{data.frame}
+\item{x}{a data.frame or file saved as either CSV, RData, or RDS}
 
 \item{idCol}{data.frame id column name}
 

@@ -5,25 +5,17 @@
 \title{Run Str Data I}
 \usage{
 run_MedStrI(
-  flow.path = NULL,
-  flow.select = c("mod_id", "mod_id_visit", "Perform.Date", "Final.Wt..kg.",
-    "Final.Rate..NFR.units.", "Final.Units"),
-  flow.rename = c("mod_id", "mod_id_visit", "Perform.Date", "weight", "rate",
-    "final.units"),
-  flow.mod.list = list(date.time =
-    expression(pkdata::parse_dates(fixDates(Perform.Date))), unit =
-    expression(sub(".*[ ]", "", rate)), rate = expression(as.numeric(sub("([0-9.]+).*",
-    "\\\\1", rate)))),
-  flow.columns = list(),
   mar.path,
   mar.columns = list(),
   medGivenReq = FALSE,
+  flow.path = NULL,
+  flow.columns = list(),
   medchk.path = NULL,
   demo.list = NULL,
   demo.columns = list(),
   missing.wgt.path = NULL,
   wgt.columns = list(),
-  check.path,
+  check.path = NULL,
   failflow_fn = "FailFlow",
   failunit_fn = "Unit",
   failnowgt_fn = "NoWgt",
@@ -33,25 +25,11 @@ run_MedStrI(
   rateunit = "mcg/hr",
   ratewgtunit = "mcg/kg/hr",
   weightunit = "kg",
-  drugname
+  drugname = NULL
 )
 }
 \arguments{
-\item{flow.path}{filename of flow data (stored as RDS)}
-
-\item{flow.select}{existing column names to select for flow data}
-
-\item{flow.rename}{new column names for flow data}
-
-\item{flow.mod.list}{list of expressions, giving modifications to flow data}
-
-\item{flow.columns}{a named list that should specify columns in flow data; \sQuote{id},
-\sQuote{datetime}, \sQuote{finalunits}, \sQuote{unit}, \sQuote{rate}, \sQuote{weight}
-are required. \sQuote{datetime} is date and time for data measurement, which can refer
-to a single date-time variable (datetime = \sQuote{date_time}) or two variables holding
-date and time separately (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
-
-\item{mar.path}{filename of MAR data (stored as RDS)}
+\item{mar.path}{filename of MAR data (CSV, RData, RDS), or data.frame}
 
 \item{mar.columns}{a named list that should specify columns in MAR data; \sQuote{id},
 \sQuote{datetime} and \sQuote{dose} are required. \sQuote{drug}, \sQuote{weight},
@@ -68,7 +46,16 @@ conjunction with the \sQuote{medGivenReq} argument.}
 \item{medGivenReq}{values in the \sQuote{given} column should equal \dQuote{Given};
 if this is FALSE (the default), NA values are also acceptable}
 
-\item{medchk.path}{filename containing data set (stored as CSV); should have
+\item{flow.path}{filename of flow data (CSV, RData, RDS), or data.frame}
+
+\item{flow.columns}{a named list that should specify columns in flow data; \sQuote{id},
+\sQuote{datetime}, \sQuote{finalunits}, \sQuote{unit}, \sQuote{rate}, \sQuote{weight}
+are required. \sQuote{idvisit} may also be specified. \sQuote{datetime} is date and time
+for data measurement, which can refer to a single date-time variable
+(datetime = \sQuote{date_time}) or two variables holding date and time separately
+(e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
+
+\item{medchk.path}{filename containing data set (CSV, RData, RDS), or data.frame; should have
 the column \sQuote{medname} with list of acceptable drug names used to filter
 MAR data}
 
@@ -81,7 +68,7 @@ and time when the demographic data were obtained, which can refer to a single da
 variable (datetime = \sQuote{date_time}) or two variables holding date and time separately
 (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
-\item{missing.wgt.path}{filename for a CSV file with additional weight data. The variables
+\item{missing.wgt.path}{filename containing additional weight data (CSV, RData, RDS), or data.frame. The variables
 in this file should be defined in the \sQuote{wgt.columns} argument.}
 
 \item{wgt.columns}{a named list that should specify columns in weight data; \sQuote{id},
@@ -91,7 +78,7 @@ and time for weight measurement, which can refer to a single date-time variable
 (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
 \item{check.path}{path to \sQuote{check} directory, where check files are
-created}
+created. The default (NULL) will not produce any check files.}
 
 \item{failflow_fn}{filename for duplicate flow data with rate zero}
 
@@ -112,7 +99,8 @@ indicates weight is required}
 
 \item{weightunit}{acceptable unit for weight; defaults to \sQuote{kg}}
 
-\item{drugname}{drug of interest, included in filename of check files}
+\item{drugname}{drug of interest, included in filename of check files. The default (NULL)
+will produce filenames without drugname included.}
 }
 \value{
 structured data set
@@ -137,6 +125,9 @@ flow <- data.frame(mod_id=c(1,1,2,2,2),
                                 rep("0.5 mcg/kg/hr",3)),
                    Final.Units=c("3.375","6.5",
                                  "2.25","2.25","2.25"))
+flow[,'Perform.Date'] <- pkdata::parse_dates(EHR:::fixDates(flow[,'record.date']))
+flow[,'unit'] <- sub('.*[ ]', '', flow[,'Final.Rate'])
+flow[,'rate'] <- as.numeric(sub('([0-9.]+).*', '\\\\1', flow[,'Final.Rate']))
 
 saveRDS(flow, 'flow.rds')
 
@@ -160,17 +151,13 @@ medcheck <- data.frame(medname="Fakedrug1",freq=4672)
 write.csv(medcheck, 'medcheck.csv')
 
 
-run_MedStrI(flow.path='flow.rds',
-            flow.select=c("mod_id","mod_id_visit","record.date",
-                          "Final.Weight", "Final.Rate","Final.Units"),
-            flow.rename = c("mod_id", "mod_id_visit", "Perform.Date",
-                            "weight", "rate","final.units"),
-            flow.columns = list(id = 'mod_id', datetime = 'date.time',
-                                finalunits = 'final.units', unit = 'unit',
-                                rate = 'rate', weight = 'weight'),
-            mar.path='mar.rds',
+run_MedStrI(mar.path='mar.rds',
             mar.columns = list(id = 'mod_id', datetime = c('Date','Time'),
                                dose = 'med:dosage', drug = 'med:mDrug', given = 'med:given'),
+            flow.path='flow.rds',
+            flow.columns = list(id = 'mod_id', datetime = 'Perform.Date',
+                                finalunits = 'Final.Units', unit = 'unit',
+                                rate = 'rate', weight = 'Final.Weight'),
             medchk.path='medcheck.csv',
             check.path=tempdir(),
             drugname='fakedrg1')

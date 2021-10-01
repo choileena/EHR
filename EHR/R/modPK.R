@@ -2,16 +2,16 @@
 #'
 #' This module builds PK data for intravenously (IV) administered medications.
 #'
-#' @param conc concentration data, the output of \code{\link{run_DrugLevel}} 
-#' or a correctly formatted data.frame
+#' @param conc concentration data, the output of \code{\link{run_DrugLevel}}, 
+#' a filename (CSV, RData, RDS), or a correctly formatted data.frame
 #' @param conc.columns a named list that should specify columns in concentration
 #' data; \sQuote{id}, \sQuote{datetime}, \sQuote{druglevel} are required.
 #' \sQuote{idvisit} may also be specified. \sQuote{datetime} is date and time for
 #' concentration measurement, which can refer to a single date-time variable
 #' (datetime = \sQuote{date_time}) or two variables holding date and time
 #' separately (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).
-#' @param dose dose data, the output of \code{\link{run_MedStrI}} or a
-#' correctly formatted data.frame
+#' @param dose dose data, the output of \code{\link{run_MedStrI}}, a filename
+#' (CSV, RData, RDS), or a correctly formatted data.frame
 #' @param dose.columns a named list that should specify columns in dose data;
 #' \sQuote{id} is required. \sQuote{infuseDatetime} and \sQuote{infuseDose}
 #' should be set if infusion dose data is present. \sQuote{infuseTimeExact}
@@ -23,14 +23,6 @@
 #' names may also be set. Any of the date-time variables can be specified as a
 #' single date-time variable (infuseDatetime = \sQuote{date_time}) or two variables
 #' holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})).
-#' @param lab.dat lab data, if available. the output from \code{\link{run_Labs}} or 
-#' a correctly formatted list
-#' @param lab.columns a named list that should specify columns in lab data; \sQuote{id},
-#' and \sQuote{datetime} are required. \sQuote{datetime} is the date and time when
-#' the lab data was obtained, which can refer to a single date-time variable
-#' (datetime = \sQuote{date_time}) or two variables holding date and time separately
-#' (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})). Any other columns present in lab
-#' data are treated as lab values.
 #' @param demo.list demographic information, if available. the output from 
 #' \code{\link{run_Demo}} or a correctly formatted data.frame
 #' @param demo.columns a named list that should specify columns in demographic data;
@@ -40,14 +32,23 @@
 #' (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})). \sQuote{weight} and \sQuote{idvisit}
 #' may also be used to specify columns for weight or the unique id-visit. Any other columns
 #' present in the demographic data are treated as covariates.
+#' @param lab.list lab data, if available. the output from \code{\link{run_Labs}} or 
+#' a correctly formatted list
+#' @param lab.columns a named list that should specify columns in lab data; \sQuote{id},
+#' and \sQuote{datetime} are required. \sQuote{datetime} is the date and time when
+#' the lab data was obtained, which can refer to a single date-time variable
+#' (datetime = \sQuote{date_time}) or two variables holding date and time separately
+#' (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})). Any other columns present in lab
+#' data are treated as lab values.
 #' @param pk.vars variables to include in the returned PK data. The variable \sQuote{date}
 #' is a special case; when included, it maps the \sQuote{time} offset to its original date-time.
 #' Other named variables will be merged from the concentration data set. For example,
 #' rather than being separate data sets, labs or demographics may already be present in
 #' the concentration data. These columns should be named here.
-#' @param drugname drug of interest, included in filename of check files
+#' @param drugname drug of interest, included in filename of check files. The default (NULL)
+#' will produce filenames without drugname included.
 #' @param check.path path to \sQuote{check} directory, where check files are
-#' created
+#' created. The default (NULL) will not produce any check files.
 #' @param missdemo_fn filename for checking NA frequency among demographic data
 #' @param faildupbol_fn filename for duplicate bolus data
 #' @param date.format output format for \sQuote{date} variable
@@ -82,9 +83,12 @@
 #' 
 #' 
 #' run_Build_PK_IV(conc = plconc,
-#'                 conc.columns = list(id = 'mod_id', datetime = 'date.time', druglevel = 'conc.level', idvisit = 'mod_id_visit'),
+#'                 conc.columns = list(id = 'mod_id', datetime = 'date.time',
+#'                   druglevel = 'conc.level', idvisit = 'mod_id_visit'),
 #'                 dose = ivdose,
-#'                 dose.columns = list(id = 'mod_id', date = 'date.dose', bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose', gap = 'maxint', weight = 'weight'),
+#'                 dose.columns = list(id = 'mod_id', date = 'date.dose',
+#'                   bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose',
+#'                   gap = 'maxint', weight = 'weight'),
 #'                 pk.vars = 'date')
 #'}
 #'
@@ -92,9 +96,9 @@
 
 run_Build_PK_IV <- function(conc, conc.columns = list(),
                             dose, dose.columns = list(),
-                            lab.dat = NULL, lab.columns = list(),
                             demo.list = NULL, demo.columns = list(),
-                            pk.vars = NULL, drugname, check.path,
+                            lab.list = NULL, lab.columns = list(),
+                            pk.vars = NULL, drugname = NULL, check.path = NULL,
                             missdemo_fn='-missing-demo',
                             faildupbol_fn='DuplicateBolus-',
                             date.format="%m/%d/%y %H:%M:%S",
@@ -225,7 +229,7 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   }
 
   hasDemo <- !is.null(demo.list)
-  hasLabs <- !is.null(lab.dat)
+  hasLabs <- !is.null(lab.list)
   if(hasDemo) { # if using demographic data
     demoData <- NULL
     demoExcl <- NULL
@@ -315,22 +319,22 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   if(hasLabs) {
     lab.vars <- c()
     # if input is single DF, turn into list
-    if(inherits(lab.dat, 'data.frame')) {
-      lab.dat <- list(lab.dat)
+    if(inherits(lab.list, 'data.frame')) {
+      lab.list <- list(lab.list)
     }
-    for(i in seq_along(lab.dat)) {
-      lab.col <- validateColumns(lab.dat[[i]], lab.columns, lab.req)
+    for(i in seq_along(lab.list)) {
+      lab.col <- validateColumns(lab.list[[i]], lab.columns, lab.req)
       if(length(lab.col$datetime) == 2) {
-        labdt <- paste(lab.dat[[i]][,lab.col$datetime[1]], lab.dat[[i]][,lab.col$datetime[2]])
+        labdt <- paste(lab.list[[i]][,lab.col$datetime[1]], lab.list[[i]][,lab.col$datetime[2]])
       } else {
-        labdt <- lab.dat[[i]][,lab.col$datetime]
+        labdt <- lab.list[[i]][,lab.col$datetime]
       }
-      lab.dat[[i]][,'date.time'] <- pkdata::parse_dates(labdt)
-      cln <- names(lab.dat[[i]])
+      lab.list[[i]][,'date.time'] <- pkdata::parse_dates(labdt)
+      cln <- names(lab.list[[i]])
       cln <- setdiff(cln, c(lab.col$id, 'date.time'))
       lab.vars <- c(lab.vars, cln)
       if(length(cln)) {
-        curlab <- lab.dat[[i]][,c(lab.col$id, 'date.time', cln)]
+        curlab <- lab.list[[i]][,c(lab.col$id, 'date.time', cln)]
         tmp <- merge_by_time(tmp, curlab, maxTime=168, x.id='mod_id', y.id=lab.col$id, x.time='date', y.time='date.time')
       }
     }
@@ -378,13 +382,15 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
     # check for missing demo
     dd2 <- tmp[tmp$event==0,]
 
-    x <- data.frame(variable = colnames(dd2), freq = colSums(is.na(dd2)))
-    x[,'percent'] <- round(x[,'freq'] / nrow(dd2), 2)
-    rownames(x) <- NULL
-    fn <- file.path(check.path, paste0(drugname, missdemo_fn, '.csv'))
-    msg <- sprintf('check NA frequency in demographics, see file %s\n', fn)
-    cat(msg)
-    write.csv(x, fn, quote=FALSE, row.names=FALSE)
+    if(!is.null(check.path)) {
+      x <- data.frame(variable = colnames(dd2), freq = colSums(is.na(dd2)))
+      x[,'percent'] <- round(x[,'freq'] / nrow(dd2), 2)
+      rownames(x) <- NULL
+      fn <- file.path(check.path, paste0(drugname, missdemo_fn, '.csv'))
+      msg <- sprintf('check NA frequency in demographics, see file %s\n', fn)
+      cat(msg)
+      write.csv(x, fn, quote=FALSE, row.names=FALSE)
+    }
 
     # return all demo columns
     demo.vars <- setdiff(names(demoData), c(demo.col$idvisit, demo.col$id, demo.col$datetime, 'date.time'))

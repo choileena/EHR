@@ -57,7 +57,7 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 #'
 #' This module builds PK data for orally administered medications.
 #'
-#' @param x data.frame
+#' @param x a data.frame or file saved as either CSV, RData, or RDS
 #' @param idCol data.frame id column name
 #' @param dtCol data.frame date column name
 #' @param doseCol dose column name
@@ -116,6 +116,7 @@ run_Build_PK_Oral <- function(x, idCol = 'id', dtCol = 'dt', doseCol = 'dose', c
                               first_interval_hours = 336, imputeClosest = NULL) {
   tz <- Sys.timezone()
 
+  x <- read(x)
   x_cols <- names(x)
   exp_cols <- c(idCol, dtCol, doseCol, concCol)
   stopifnot(all(exp_cols %in% x_cols))
@@ -165,5 +166,14 @@ run_Build_PK_Oral <- function(x, idCol = 'id', dtCol = 'dt', doseCol = 'dose', c
   xx[,'time'] <- round(as.numeric(difftime(xx[,'date'], xx_t0, units = 'hours')), 2)
   xx[,'date'] <- as.character(xx[,'date'], '%Y-%m-%d %H:%M:%S')
   # remove rows with negative `addl`
-  xx[is.na(xx[,'addl']) | xx[,'addl'] >= 0,]
+  xx <- xx[is.na(xx[,'addl']) | xx[,'addl'] >= 0,]
+  names(xx)[match(c('conc','dose'), names(xx))] <- c('dv','amt')
+  xx[,'evid'] <- +(!is.na(xx[,'amt']))
+  # set column order
+  reqOrder <- c('CID', 'time', 'amt', 'dv', 'mdv', 'evid', 'addl', 'II')
+  pkOrder <- c(reqOrder, setdiff(names(xx), reqOrder))
+  xx <- xx[,pkOrder]
+  # restore idCol name
+  names(xx)[1] <- idCol
+  xx
 }
