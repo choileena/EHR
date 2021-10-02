@@ -81,6 +81,11 @@ rawDataDir <- system.file("examples", "str_ex1", package="EHR")
 checkDir <- file.path(td, 'check1')
 
 demo <- read.csv(file.path(rawDataDir,"Demographics_DATA_simple.csv"))
+# date.time variable is expected in the demographic data; if date.time variable is not already in the demographic data, it could be generated using other varibles as done in this example 
+z1 <- EHR:::fixDates(demo[, 'surgery_date'])
+z2 <- sub("^([0-9]{2})([0-9]{2})$", "\\1:\\2", sprintf("%04d", demo[,
+'time_fromor']))
+demo[,'date.time'] <- pkdata::parse_dates(paste(z1, z2))
 head(demo)
 
 conc.data <- read.csv(file.path(rawDataDir,"Concentration_DATA_simple.csv"))
@@ -105,16 +110,13 @@ Using the four datasets, we can build a final PK dataset with the function `run_
 ```{r sim-build-pk-iv, eval = FALSE}
 simple_pk_dat <- run_Build_PK_IV(
     conc=conc.data,
+    conc.columns = list(id = 'mod_id', datetime = 'date.time', druglevel = 'conc.level', idvisit = 'mod_id_visit'),
     dose=ivdose.data,
+    dose.columns = list(id = 'mod_id', date = 'date.dose', infuseDatetime = 'infuse.time', infuseDose = 'infuse.dose', infuseTimeExact= 'infuse.time.real',  bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose', gap = 'maxint', weight = 'weight'),
     lab.dat = list(creat.data),
-    lab.vars = c('creat'),
+    lab.columns = list(id = 'mod_id', datetime = 'date.time'),
     demo.list = demo,
-    demo.vars=c('weight', 'weight_demo', 'height', 'gender', 'ageatsurgery',
-                'stat_sts', 'cpb_sts', 'length_of_icu_stay'),
-    demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',
-                'age', 'stat', 'cpb', 'loi'),
-    pk.vars=c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event',
-              'other', 'multiple.record', 'date', 'mod_id'),
+    demo.columns = list(id = 'mod_id', datetime = 'date.time', idvisit = 'mod_id_visit'),
     drugname='fent',
     check.path=checkDir)
 ```
@@ -123,16 +125,13 @@ simple_pk_dat <- run_Build_PK_IV(
 co({
 simple_pk_dat <- run_Build_PK_IV(
     conc=conc.data,
+    conc.columns = list(id = 'mod_id', datetime = 'date.time', druglevel = 'conc.level', idvisit = 'mod_id_visit'),
     dose=ivdose.data,
+    dose.columns = list(id = 'mod_id', date = 'date.dose', infuseDatetime = 'infuse.time', infuseDose = 'infuse.dose', infuseTimeExact= 'infuse.time.real',  bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose', gap = 'maxint', weight = 'weight'),
     lab.dat = list(creat.data),
-    lab.vars = c('creat'),
+    lab.columns = list(id = 'mod_id', datetime = 'date.time'),
     demo.list = demo,
-    demo.vars=c('weight', 'weight_demo', 'height', 'gender', 'ageatsurgery',
-                'stat_sts', 'cpb_sts', 'length_of_icu_stay'),
-    demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',
-                'age', 'stat', 'cpb', 'loi'),
-    pk.vars=c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event',
-              'other', 'multiple.record', 'date', 'mod_id'),
+    demo.columns = list(id = 'mod_id', datetime = 'date.time', idvisit = 'mod_id_visit'),
     drugname='fent',
     check.path=checkDir)
 })
@@ -169,6 +168,11 @@ The demographics data file contains ID variables `subject_id` and `subject_uid`,
 ```{r demo-in}
 # demographics data
 demo.in <- readTransform(file.path(rawDataDir, "Demographics_DATA.csv"))
+# date.time variable is expected in the demo.ingraphic data; if date.time variable is not already in the demo.ingraphic data, it could be generated using other varibles as done in this example 
+z1 <- EHR:::fixDates(demo.in[, 'surgery_date'])
+z2 <- sub("^([0-9]{2})([0-9]{2})$", "\\1:\\2", sprintf("%04d", demo.in[,
+'time_fromor']))
+demo.in[,'date.time'] <- pkdata::parse_dates(paste(z1, z2))
 head(demo.in)
 ```
 
@@ -431,7 +435,8 @@ Part I handles IV dose data from two sources, Flow data and Medication Administr
 The IV dose data can be processed by the `run_MedStrI()` function using: 
 
 ```{r Pro-Med-Str1, eval=FALSE}
-ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"),
+ivdose.out <- run_MedStrI(
+    flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"),
     flow.select = c('mod_id','mod_id_visit','Perform.Date','Final.Wt..kg.',
                     'Final.Rate..NFR.units.','Final.Units'),
     flow.rename = c('mod_id','mod_id_visit', 'Perform.Date', 'weight',
@@ -440,11 +445,9 @@ ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"
       date.time = expression(parse_dates(fixDates(Perform.Date))),
       unit = expression(sub('.*[ ]', '', rate)),
       rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', rate)))),
-    flow.columns = list(id = 'mod_id', datetime = 'date.time', finalunits = 'final.units',
-                        unit = 'unit', rate = 'rate', weight = 'weight'),
+    flow.columns = list(id = 'mod_id', datetime = 'date.time', finalunits = 'final.units', unit = 'unit', rate = 'rate', weight = 'weight'),
     mar.path=file.path(dataDir,"Fentanyl_mar_mod_id.rds"),
-    mar.columns = list(id = 'mod_id', datetime = c('Date','Time'), dose = 'med:dosage',
-                       drug = 'med:mDrug', given = 'med:given'),
+    mar.columns = list(id = 'mod_id', datetime = c('Date','Time'), dose = 'med:dosage', drug = 'med:mDrug', given = 'med:given'),
     medGivenReq = TRUE,
     medchk.path = file.path(rawDataDir, sprintf('medChecked-%s.csv', drugname)),
     demo.list = NULL,
@@ -466,7 +469,8 @@ ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"
 
 ```{r Pro-Med-Str1-fake, echo=FALSE}
 co({
-ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"),
+ivdose.out <- run_MedStrI(
+    flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"),
     flow.select = c('mod_id','mod_id_visit','Perform.Date','Final.Wt..kg.',
                     'Final.Rate..NFR.units.','Final.Units'),
     flow.rename = c('mod_id','mod_id_visit', 'Perform.Date', 'weight',
@@ -475,11 +479,9 @@ ivdose.out <- run_MedStrI(flow.path=file.path(dataDir,"Fentanyl_flow_mod_id.rds"
       date.time = expression(parse_dates(fixDates(Perform.Date))),
       unit = expression(sub('.*[ ]', '', rate)),
       rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', rate)))),
-    flow.columns = list(id = 'mod_id', datetime = 'date.time', finalunits = 'final.units',
-                        unit = 'unit', rate = 'rate', weight = 'weight'),
+    flow.columns = list(id = 'mod_id', datetime = 'date.time', finalunits = 'final.units', unit = 'unit', rate = 'rate', weight = 'weight'),
     mar.path=file.path(dataDir,"Fentanyl_mar_mod_id.rds"),
-    mar.columns = list(id = 'mod_id', datetime = c('Date','Time'), dose = 'med:dosage',
-                       drug = 'med:mDrug', given = 'med:given'),
+    mar.columns = list(id = 'mod_id', datetime = c('Date','Time'), dose = 'med:dosage', drug = 'med:mDrug', given = 'med:given'),
     medGivenReq = TRUE,
     medchk.path = file.path(rawDataDir, sprintf('medChecked-%s.csv', drugname)),
     demo.list = NULL,
@@ -758,18 +760,16 @@ If demographic data is provided, the demographic variables named in `demo.vars` 
 PK data with IV dosing can be built by the `run_Build_PK_IV` function using: 
 
 ```{r Build-PK-IV, eval=FALSE}
-pk_dat <- run_Build_PK_IV(conc=conc.out,
+pk_dat <- run_Build_PK_IV(
+    conc=conc.out,
+    conc.columns = list(id = 'mod_id', datetime = 'date.time', druglevel = 'conc.level', idvisit = 'mod_id_visit'),
     dose=ivdose.out,
-    demo.list=demo.out,
-    demo.vars=c('weight', 'weight_demo', 'height', 'gender',
-                'ageatsurgery', 'stat_sts', 'cpb_sts',
-                'length_of_icu_stay'),
-    demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',
-                'age', 'stat', 'cpb', 'loi'),
+    dose.columns = list(id = 'mod_id', date = 'date.dose', infuseDatetime = 'infuse.time', infuseDose = 'infuse.dose', infuseTimeExact= 'infuse.time.real',  bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose', gap = 'maxint', weight = 'weight'),
     lab.dat = lab.out,
-    lab.vars = c('creat','alb'),
-    pk.vars=c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event',
-              'other', 'multiple.record', 'date', 'mod_id'),
+    lab.columns = list(id = 'mod_id', datetime = 'date.time'),
+    demo.list = demo.out,
+    demo.columns = list(id = 'mod_id', datetime = 'date.time', idvisit = 'mod_id_visit'),
+    pk.vars=c('date'),
     drugname=drugname,
     check.path=checkDir,
     missdemo_fn='-missing-demo',
@@ -780,18 +780,16 @@ pk_dat <- run_Build_PK_IV(conc=conc.out,
 
 ```{r Build-PK-IV-fake, echo=FALSE}
 co({
-pk_dat <- run_Build_PK_IV(conc=conc.out,
+pk_dat <- run_Build_PK_IV(
+    conc=conc.out,
+    conc.columns = list(id = 'mod_id', datetime = 'date.time', druglevel = 'conc.level', idvisit = 'mod_id_visit'),
     dose=ivdose.out,
-    demo.list=demo.out,
-    demo.vars=c('weight', 'weight_demo', 'height', 'gender',
-                'ageatsurgery', 'stat_sts', 'cpb_sts',
-                'length_of_icu_stay'),
-    demo.abbr=c('wgt', 'wgt_demo', 'height', 'gender',
-                'age', 'stat', 'cpb', 'loi'),
+    dose.columns = list(id = 'mod_id', date = 'date.dose', infuseDatetime = 'infuse.time', infuseDose = 'infuse.dose', infuseTimeExact= 'infuse.time.real',  bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose', gap = 'maxint', weight = 'weight'),
     lab.dat = lab.out,
-    lab.vars = c('creat','alb'),
-    pk.vars=c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event',
-              'other', 'multiple.record', 'date', 'mod_id'),
+    lab.columns = list(id = 'mod_id', datetime = 'date.time'),
+    demo.list = demo.out,
+    demo.columns = list(id = 'mod_id', datetime = 'date.time', idvisit = 'mod_id_visit'),
+    pk.vars=c('date'),
     drugname=drugname,
     check.path=checkDir,
     missdemo_fn='-missing-demo',
