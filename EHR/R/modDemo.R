@@ -2,7 +2,7 @@
 #'
 #' This module will load and modify demographic data.
 #'
-#' @param demo.path filename of a lab file (stored as RDS)
+#' @param demo.path filename of demographic file (CSV, RData, RDS) or data.frame
 #' @param toexclude expression that should evaluate to a logical, indicating if
 #' the observation should be excluded
 #' @param demo.mod.list list of expressions, giving modifications to make
@@ -45,7 +45,7 @@
 
 run_Demo <- function(demo.path, toexclude, demo.mod.list) {
   # read and transform data
-  demo.in <- readRDS(demo.path)
+  demo.in <- read(demo.path)
   demo <- dataTransformation(demo.in, modify = demo.mod.list)
 
   # exclusion criteria

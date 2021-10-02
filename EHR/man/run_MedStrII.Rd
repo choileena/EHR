@@ -7,7 +7,7 @@
 run_MedStrII(file, dat.columns = list())
 }
 \arguments{
-\item{file}{filename of prescription data (stored as CSV)}
+\item{file}{filename of prescription data (CSV, RData, RDS), or data.frame}
 
 \item{dat.columns}{a named list that should specify columns in data; \sQuote{id},
 \sQuote{dose}, \sQuote{freq}, \sQuote{date}, and \sQuote{str} are required.

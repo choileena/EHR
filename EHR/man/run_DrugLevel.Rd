@@ -12,17 +12,17 @@ run_DrugLevel(
     "_"))),
   samp.path = NULL,
   samp.mod.list = list(mod_id_event = expression(paste(mod_id_visit, samp, sep = "_"))),
-  check.path,
+  check.path = NULL,
   failmiss_fn = "MissingConcDate-",
   multsets_fn = "multipleSetsConc-",
   faildup_fn = "DuplicateConc-",
-  drugname,
+  drugname = NULL,
   LLOQ,
   demo.list = NULL
 )
 }
 \arguments{
-\item{conc.path}{filename of concentration data (stored as RDS)}
+\item{conc.path}{filename of concentration data (CSV, RData, RDS), or data.frame}
 
 \item{conc.select}{columns to select from concentration data}
 
@@ -30,12 +30,12 @@ run_DrugLevel(
 
 \item{conc.mod.list}{list of expressions, giving modifications to make}
 
-\item{samp.path}{filename of data with sampling time (stored as RDS)}
+\item{samp.path}{filename of data with sampling time (CSV, RData, RDS), or data.frame}
 
 \item{samp.mod.list}{list of expressions, giving modifications to make}
 
 \item{check.path}{path to \sQuote{check} directory, where check files are
-created}
+created. The default (NULL) will not produce any check files.}
 
 \item{failmiss_fn}{filename for data missing concentration date}
 
@@ -43,7 +43,8 @@ created}
 
 \item{faildup_fn}{filename for data with duplicate concentration observations}
 
-\item{drugname}{drug of interest, included in filename of check files}
+\item{drugname}{drug of interest, included in filename of check files. The default (NULL)
+will produce filenames without drugname included.}
 
 \item{LLOQ}{lower limit of concentration values; values below this are invalid}
 

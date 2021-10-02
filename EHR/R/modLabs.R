@@ -2,7 +2,7 @@
 #'
 #' This module will load and modify laboratory data.
 #'
-#' @param lab.path filename of a lab file (stored as RDS)
+#' @param lab.path filename of a lab file (CSV, RData, RDS), or data.frame
 #' @param lab.select columns to select
 #' @param lab.mod.list list of expressions giving modifications to make;
 #'  passed to \code{\link{dataTransformation}}
@@ -27,7 +27,7 @@
 #' @export
 
 run_Labs <- function(lab.path, lab.select, lab.mod.list) {
-  lab.in <- readRDS(lab.path)
+  lab.in <- read(lab.path)
   lab <- dataTransformation(lab.in, modify = lab.mod.list)
   lab[,lab.select]
 }

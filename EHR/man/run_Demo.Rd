@@ -7,7 +7,7 @@
 run_Demo(demo.path, toexclude, demo.mod.list)
 }
 \arguments{
-\item{demo.path}{filename of a lab file (stored as RDS)}
+\item{demo.path}{filename of demographic file (CSV, RData, RDS) or data.frame}
 
 \item{toexclude}{expression that should evaluate to a logical, indicating if
 the observation should be excluded}

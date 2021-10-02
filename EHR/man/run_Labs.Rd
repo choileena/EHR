@@ -7,7 +7,7 @@
 run_Labs(lab.path, lab.select, lab.mod.list)
 }
 \arguments{
-\item{lab.path}{filename of a lab file (stored as RDS)}
+\item{lab.path}{filename of a lab file (CSV, RData, RDS), or data.frame}
 
 \item{lab.select}{columns to select}
 
