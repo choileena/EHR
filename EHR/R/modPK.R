@@ -2,11 +2,12 @@
 #'
 #' This module builds PK data for intravenously (IV) administered medications.
 #'
-#' @param conc concentration data, the output of \code{\link{run_DrugLevel}}, 
+#' @param drug conc concentration data, the output of \code{\link{run_DrugLevel}}, 
 #' a filename (CSV, RData, RDS), or a correctly formatted data.frame
 #' @param conc.columns a named list that should specify columns in concentration
 #' data; \sQuote{id}, \sQuote{datetime}, \sQuote{druglevel} are required.
-#' \sQuote{idvisit} may also be specified. \sQuote{datetime} is date and time for
+#' \sQuote{idvisit} may also be specified; \sQuote{idvisit} can be used when there are multiple visits 
+#' (i.e., several occasions) for the same subject. \sQuote{datetime} is date and time for
 #' concentration measurement, which can refer to a single date-time variable
 #' (datetime = \sQuote{date_time}) or two variables holding date and time
 #' separately (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).
@@ -22,17 +23,25 @@
 #' to either infusion or bolus dosing. \sQuote{gap} and \sQuote{weight} column
 #' names may also be set. Any of the date-time variables can be specified as a
 #' single date-time variable (infuseDatetime = \sQuote{date_time}) or two variables
-#' holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})).
-#' @param demo.list demographic information, if available. the output from 
+#' holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})). 
+#' If ‘gap’ is provided, it allows a continuous infusion given when there are missing records 
+#' between infusion dosing records. For example, suppose that ‘gap’ = 60 is defined 
+#' (which is typical gap size when infusion dosing is supposed to be recorded hourly for inpatients) 
+#' and time between two records (i.e., gap) are greater than 1 hour (i.e., missing record). If the gap 
+#' between the two records is less or equal to twice of the gap (i.e., 2*60 = 120 min), a continuous infusion 
+#' is assumed until the 2nd dose record; otherwise, the first infusion is assumed to be stopped 
+#' (i.e., add zero doses) after 120 min and a new infusion (the 2nd record) starts at its recorded time. 
+#' For the last infusion record, the infusion stops after the gap (i.e., add zero dose value after the gap).
+#' @param demo.list demographic information, if available; the output from 
 #' \code{\link{run_Demo}} or a correctly formatted data.frame
 #' @param demo.columns a named list that should specify columns in demographic data;
 #' \sQuote{id} and \sQuote{datetime} are required. \sQuote{datetime} is the date
 #' and time when the demographic data were obtained, which can refer to a single date-time
 #' variable (datetime = \sQuote{date_time}) or two variables holding date and time separately
 #' (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})). \sQuote{weight} and \sQuote{idvisit}
-#' may also be used to specify columns for weight or the unique id-visit. Any other columns
+#' may also be used to specify columns for weight or the unique idvisit. Any other columns
 #' present in the demographic data are treated as covariates.
-#' @param lab.list lab data, if available. the output from \code{\link{run_Labs}} or 
+#' @param lab.list lab data, if available; the output from \code{\link{run_Labs}} or 
 #' a correctly formatted list
 #' @param lab.columns a named list that should specify columns in lab data; \sQuote{id},
 #' and \sQuote{datetime} are required. \sQuote{datetime} is the date and time when
