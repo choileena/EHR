@@ -39,12 +39,13 @@ or two variables holding date and time separately (e.g., datetime = c(\sQuote{Da
 \sQuote{dose} can also be given as a single variable or two variables. If given as a single column,
 the column's values should contain dose and units such as \sQuote{25 mcg}. If given as
 two column names, the dose column should come before the unit column
-(e.g., dose = c(\sQuote{doseamt}, \sQuote{unit})). If \sQuote{drug} is present, the \sQuote{medchk.path}
-argument should also be provided. The \sQuote{given} variable should be used in
-conjunction with the \sQuote{medGivenReq} argument.}
+(e.g., dose = c(\sQuote{doseamt}, \sQuote{unit})). \sQuote{drug} can provide list of acceptable drug names.
+If \sQuote{drug} is present, the \sQuote{medchk.path} argument should also be provided.
+The \sQuote{given} is a variable that flags whether the medication (inpatient) was given. When it is given, 
+values shoule be \dQuote{Given}; should be used in conjunction with the \sQuote{medGivenReq} argument.}
 
-\item{medGivenReq}{values in the \sQuote{given} column should equal \dQuote{Given};
-if this is FALSE (the default), NA values are also acceptable}
+\item{medGivenReq}{if TRUE, values in \sQuote{given} column in MAR data should equal \dQuote{Given}; 
+if this is FALSE (the default), NA values are also acceptable.}
 
 \item{flow.path}{filename of flow data (CSV, RData, RDS), or data.frame}
 
@@ -56,11 +57,12 @@ for data measurement, which can refer to a single date-time variable
 (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
 \item{medchk.path}{filename containing data set (CSV, RData, RDS), or data.frame; should have
-the column \sQuote{medname} with list of acceptable drug names used to filter
-MAR data}
+the column \sQuote{medname} with list of acceptable drug names (e.g., brand and generic name, abbreviations)
+to subset drugs of interest using \sQuote{drug} column in MAR data. This argument can be used when MAR data 
+contains different drugs that should be excluded.}
 
-\item{demo.list}{demographic information; if available, missing weight may be
-imputed from demographics}
+\item{demo.list}{demographic information; if available, the output from `run_Demo` or 
+a correctly formatted data.frame, which can be used to impute weight when missing}
 
 \item{demo.columns}{a named list that should specify columns in demographic data; \sQuote{id},
 \sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} is the date
@@ -68,10 +70,10 @@ and time when the demographic data were obtained, which can refer to a single da
 variable (datetime = \sQuote{date_time}) or two variables holding date and time separately
 (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
-\item{missing.wgt.path}{filename containing additional weight data (CSV, RData, RDS), or data.frame. The variables
-in this file should be defined in the \sQuote{wgt.columns} argument.}
+\item{missing.wgt.path}{filename containing additional weight data (CSV, RData, RDS), or data.frame. 
+The variables in this file should be defined in the \sQuote{wgt.columns} argument.}
 
-\item{wgt.columns}{a named list that should specify columns in weight data; \sQuote{id},
+\item{wgt.columns}{a named list that should specify columns in additional weight data; \sQuote{id},
 \sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} is date
 and time for weight measurement, which can refer to a single date-time variable
 (datetime = \sQuote{date_time}) or two variables holding date and time separately
