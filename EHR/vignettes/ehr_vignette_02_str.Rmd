@@ -758,7 +758,7 @@ The Build-PK-IV module creates PK data for IV medications. Both dose data from t
   
 If demographic data is provided, the demographic variables will also be included. 
 
-If `pk.vars` includes ‘date’, the output generates its original date-time to which the ‘time’ is mapped. Users can use `pk.vars` to include variables for demographics or labs that are already merged with the concentration dataset when they prefer to provide a single concentration data file (required). But still a separate dose data file is required.
+If `pk.vars` includes ‘date’, the output generates its original date-time to which the ‘time’ is mapped. Users can use `pk.vars` to include variables for demographics or labs that are already merged with the concentration dataset when they prefer to provide a single concentration data file (required). But a separate dose data file is still required.
 
 PK data with IV dosing can be built by the `run_Build_PK_IV` function using: 
 
