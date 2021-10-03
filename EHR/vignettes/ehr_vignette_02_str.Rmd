@@ -81,15 +81,8 @@ dir.create(file.path(td, 'check1'))
 rawDataDir <- system.file("examples", "str_ex1", package="EHR")
 checkDir <- file.path(td, 'check1')
 
- #demo <- read.csv(file.path(rawDataDir,"Demographics_DATA_simple.csv"))
-# pre-process the demographic data 
-# date.time variable is expected in demographic data
-# if date.time variable is not already in the demographic data, it can be generated 
-# using other variables as in this example
-# z1 <- EHR:::fixDates(demo[, 'surgery_date'])
-# z2 <- sub("^([0-9]{2})([0-9]{2})$", "\\1:\\2", sprintf("%04d", demo[,'time_fromor']))
-# demo[,'surgery_date_time'] <- pkdata::parse_dates(paste(z1, z2))
-demo <- read.csv(file.path("~/Downloads","Demographics_DATA_simple.csv"))
+# pre-processed demographic data 
+demo <- read.csv(file.path(rawDataDir,"Demographics_DATA_simple.csv"))
 head(demo)
 
 conc.data <- read.csv(file.path(rawDataDir,"Concentration_DATA_simple.csv"))
