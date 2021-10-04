@@ -24,21 +24,10 @@
 #' names may also be set. Any of the date-time variables can be specified as a
 #' single date-time variable (infuseDatetime = \sQuote{date_time}) or two variables
 #' holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})). 
-#' If \sQuote{gap} is provided, it allows a continuous infusion given when there are missing records 
-#' between infusion dosing records. For example, suppose that \sQuote{gap} = 60 is defined 
-#' (which is typical gap size when infusion dosing is supposed to be recorded hourly for inpatients) 
-#' and time between two records (i.e., gap) are greater than 1 hour (i.e., missing record). If the gap 
-#' between the two records is less or equal to twice of the gap (i.e., 2*60 = 120 min), a continuous infusion 
-#' is assumed until the 2nd dose record; otherwise, the first infusion is assumed to be stopped 
-#' (i.e., add zero doses) after 120 min and a new infusion (the 2nd record) starts at its recorded time. 
-#' For the last infusion record, the infusion stops after the gap (i.e., add zero dose value after the gap).
 #' @param demo.list demographic information, if available; the output from 
 #' \code{\link{run_Demo}} or a correctly formatted data.frame
 #' @param demo.columns a named list that should specify columns in demographic data;
-#' \sQuote{id} and \sQuote{datetime} are required. \sQuote{datetime} is the date
-#' and time when the demographic data were obtained, which can refer to a single date-time
-#' variable (datetime = \sQuote{date_time}) or two variables holding date and time separately
-#' (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})). \sQuote{weight} and \sQuote{idvisit}
+#' \sQuote{id} is required. \sQuote{weight} and \sQuote{idvisit}
 #' may also be used to specify columns for weight or the unique idvisit. Any other columns
 #' present in the demographic data are treated as covariates.
 #' @param lab.list lab data, if available; the output from \code{\link{run_Labs}} or 
@@ -64,6 +53,15 @@
 #' @param date.tz output time zone for \sQuote{date} variable
 #'
 #' @details See EHR Vignette for Structured Data.
+#'
+#' Regarding the \sQuote{gap} variable in the dose dataset, if \sQuote{gap} is specified in \sQuote{dose.columns}, 
+#' it allows a continuous infusion given when there are missing records 
+#' between infusion dosing records. For example, suppose that \sQuote{gap} = 60 is defined 
+#' (which is typical gap size when infusion dosing is supposed to be recorded hourly for inpatients) 
+#' and time between two records (i.e., gap) are greater than 1 hour (i.e., missing records). If the gap 
+#' between the two records is less or equal to twice of the gap (i.e., 2*60 = 120 min), a continuous infusion 
+#' is assumed until the 2nd dose record; otherwise, the first infusion is assumed to be stopped 
+#' (i.e., add zero doses) after 60 min (i.e., equal to the gap size)  and a new infusion (the 2nd record) starts at its recorded time. 
 #'
 #' @return PK data set
 #'

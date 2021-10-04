@@ -18,9 +18,6 @@
 #' \code{\link{zeroOneTable}}, and three commonly used statistical methods to
 #' analyze data for PheWAS are implement by \code{\link{analysisPheWAS}}.
 #' }
-#' As we will make changes on some functions, users can download most recent version
-#' of the package from GitHub repository using the following commend:
-#' devtools::install_github('choileena/EHR/EHR/')
 #'
 #' @docType package
 #'
