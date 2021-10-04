@@ -243,7 +243,7 @@ The number of rows after removing the duplicates  %8d\n', n1, n2))
   dat[order(dat[,'mod_id_visit'], dat[,'date.time']),]
 }
 
-concData_mod <- function(dat, sampFile, lowerLimit, drugname = NULL, giveExample = TRUE,
+concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveExample = TRUE,
                          checkDir = NULL, dem=NULL,
                          failmissconc_filename,
                          multsets_filename,
@@ -321,7 +321,11 @@ concData_mod <- function(dat, sampFile, lowerLimit, drugname = NULL, giveExample
     writeCheckData(ddd, fn, msg)
   }
 
-  ddd[,'valid'] <- +(ddd[,'conc.level'] >= lowerLimit)
+  if(is.na(lowerLimit)) {
+    ddd[,'valid'] <- 1
+  } else {
+    ddd[,'valid'] <- +(ddd[,'conc.level'] >= lowerLimit)
+  }
   tt <- tapply(ddd$valid, ddd$mod_id_visit, sum)
   tt <- data.frame(mod_id_visit=names(tt), num=tt)
   dd.x <- ddd[!duplicated(ddd$mod_id_visit), c('mod_id_visit', 'mod_id', 'eid')]

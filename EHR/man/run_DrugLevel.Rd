@@ -17,7 +17,7 @@ run_DrugLevel(
   multsets_fn = "multipleSetsConc-",
   faildup_fn = "DuplicateConc-",
   drugname = NULL,
-  LLOQ,
+  LLOQ = NA,
   demo.list = NULL
 )
 }

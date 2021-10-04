@@ -24,8 +24,8 @@
 #' names may also be set. Any of the date-time variables can be specified as a
 #' single date-time variable (infuseDatetime = \sQuote{date_time}) or two variables
 #' holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})). 
-#' If ‘gap’ is provided, it allows a continuous infusion given when there are missing records 
-#' between infusion dosing records. For example, suppose that ‘gap’ = 60 is defined 
+#' If \sQuote{gap} is provided, it allows a continuous infusion given when there are missing records 
+#' between infusion dosing records. For example, suppose that \sQuote{gap} = 60 is defined 
 #' (which is typical gap size when infusion dosing is supposed to be recorded hourly for inpatients) 
 #' and time between two records (i.e., gap) are greater than 1 hour (i.e., missing record). If the gap 
 #' between the two records is less or equal to twice of the gap (i.e., 2*60 = 120 min), a continuous infusion 

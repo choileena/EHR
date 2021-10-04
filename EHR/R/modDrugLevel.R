@@ -71,7 +71,7 @@ run_DrugLevel <- function(conc.path, conc.select, conc.rename,
                           failmiss_fn = 'MissingConcDate-',
                           multsets_fn = 'multipleSetsConc-',
                           faildup_fn = 'DuplicateConc-',
-                          drugname = NULL, LLOQ, demo.list=NULL) {
+                          drugname = NULL, LLOQ = NA, demo.list=NULL) {
   #### sample
   if(!is.null(samp.path)) {
     # read and transform data
