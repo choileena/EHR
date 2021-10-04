@@ -343,7 +343,8 @@ pkdata <- function(doseData, drugLevelData, doseIdVar = "id",
         gapv <- match(intervalVar, columnNames1)
         # subset on non-missing infusion dose and times
         dose.info <- x[!is.na(x[,rtcol]) & !is.na(x[,idv]),]
-        if(nrow(dose.info) > 0) {
+        nr_di <- nrow(dose.info)
+        if(nr_di > 0) {
             real.time <- pkdata::parse_dates(dose.info[,rtcol])
             # find hourly time difference between real.time and init.time
             dose.info$time <- as.numeric(difftime(real.time, init.time), units='hours')
@@ -351,7 +352,7 @@ pkdata <- function(doseData, drugLevelData, doseIdVar = "id",
             dose.info <- dose.info[order(dose.info$time),]
             # indicator for change in dosage
             changeIndexStart <- c(1, which(abs(diff(dose.info[,idv])) > 0.0001)+1)
-            changeIndexEnd <- c(which(abs(diff(dose.info[,idv])) > 0.0001), nrow(dose.info))
+            changeIndexEnd <- c(which(abs(diff(dose.info[,idv])) > 0.0001), nr_di)
             changeIndex <- changeIndexStart
             dose.info[changeIndex, 'change'] <- 1
             infuse.data <- data.frame(id=dose.info[changeIndex, idcol], date=real.time[changeIndex],
@@ -366,14 +367,15 @@ pkdata <- function(doseData, drugLevelData, doseIdVar = "id",
                 # calculate dose based on rate times length on dose
                 gap <- 1
                 if(length(gapv)) {
-                  gap <- dose.info[nrow(dose.info), gapv]/60
+                  gap <- dose.info[nr_di, gapv]/60
                 }
-                infuse.data$dose <- infuse.data$rate * diff(c(infuse.data$time, dose.info[nrow(dose.info), "time"]+gap))
+                infuse.data$dose <- infuse.data$rate * diff(c(infuse.data$time, dose.info[nr_di, "time"]+gap))
             }
             # calculate skips/imputed for each range between dose change
             if('skips' %in% columnNames1) {
-                for(i in seq(nrow(infuse.data))) {
-                    if(i < nrow(infuse.data)) {
+                nr_id <- nrow(infuse.data)
+                for(i in seq(nr_id)) {
+                    if(i < nr_id) {
                         tmp <- dose.info[dose.info[,'time'] >= infuse.data$time[i] & dose.info[,'time'] < infuse.data$time[i+1], 'skips']
                     } else {
                         tmp <- dose.info[dose.info[,'time'] >= infuse.data$time[i], 'skips']
