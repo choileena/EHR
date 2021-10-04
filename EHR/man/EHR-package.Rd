@@ -42,6 +42,13 @@ Choi L, Carroll RJ, Beck C, Mosley JD, Roden DM, Denny JC, Van Driest SL.\cr
 Bioinformatics. 2018 Sep 1;34(17):2988-2996. doi: 10.1093/bioinformatics/bty306.
 }
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://choileena.github.io/}
+}
+
+}
 \author{
 \strong{Maintainer}: Leena Choi \email{naturechoi@gmail.com} (\href{https://orcid.org/0000-0002-2544-7090}{ORCID})
 

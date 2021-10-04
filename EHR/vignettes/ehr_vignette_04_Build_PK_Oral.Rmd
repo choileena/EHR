@@ -1,7 +1,6 @@
 ---
 title: "EHR Vignette for *Build-PK-Oral*"
-date: '`r Sys.Date()`'
-output: pdf_document
+output: rmarkdown::pdf_document
 ---
 
 <!--
@@ -29,7 +28,7 @@ Population PK datasets require a certain format in order to be analyzed by softw
 - Build PK data for orally administered medications using assumed dosing schedule when last-dose times are not provided.
 - Build PK data for orally administered medications using last-dose times if they are provided or extracted from clinical notes in EHRs.
 
-A possible EHR-extracted dataset follows:
+An example data pre-processed from EHR-extracted data follows:
 
 ```{r}
 # Data generating function for examples
@@ -73,15 +72,14 @@ Assume that individuals take their morning dose of medicine 30 minutes after the
 
 Additionally, it is reasonable to assume that the individual has been taking the drug of interest prior to their first measured concentration.  For this reason assume that there is regular dosing leading up to the first extracted concentration, the duration of which is set by the argument `first_interval_hours`; this duration should be long enough for trough concentrations to reach a steady state.
 
-`run_Build_PK_Oral()` builds a PK dataset by following this logic, given specification of appropriate columns:
-
-- `idCol`: subject identification number
-- `dtCol`: time of concentration measurement
-- `doseCol`: dose
-- `concCol`: drug concentration
-- `ldCol`: last-dose time; the default is `NULL` to ignore
-- `first_interval_hours`: Hours of regular dosing leading up to the first concentration; the default is 336 hours = 14 days
-- `imputeClosest`: Vector of columns for imputation of missing data using last observation carried forward or, if unavailable, next observation propagated backward
+* `run_Build_PK_Oral` builds a PK dataset by following this logic, given specification of appropriate columns. The `run_Build_PK_Oral` function arguments are as follows:
+    + `idCol`: subject identification number
+    + `dtCol`: time of concentration measurement
+    + `doseCol`: dose
+    + `concCol`: drug concentration
+    + `ldCol`: last-dose time; the default is `NULL` to ignore
+    + `first_interval_hours`: Hours of regular dosing leading up to the first concentration; the default is 336 hours = 14 days
+    + `imputeClosest`: Vector of columns for imputation of missing data using last observation carried forward or, if unavailable, next observation propagated backward; the default is `NULL` to ignore
 
 ```{r}
 dat2 <- dat[,-8]
@@ -112,6 +110,19 @@ run_Build_PK_Oral(x = dat,
 ```
 
 Individual 1 has no extracted last-dose times so their data is unchanged from before. Compare, however, rows 7-9 to rows 7-8 of the previous dataset constructed without last-dose times.  The measured concentration of 14.1 on `date` 2019-11-01 is associated with a last-dose time.  `addl` drops from 69 to 68 and the extracted last-dose is added in row 8 with additional `date` 2019-10-31 20:58:36, the last-dose time extracted from clinical notes. Notice that the number of doses leading up to the concentration is unchanged and the timing of the final dose has been adjusted to reflect information in the EHR (i.e., the calculated time of 1162.70 for `time`).  This dataset still relies on assumptions about dosing, but should reflect the actual dosing schedule better by incorporating last-dose times from the EHR.
+
+* The final PK data includes ID and standard NONMEM formatted variables:
+  + `time`: time of either dosing or concentration measurement.
+  + `amt`: dose amount; `NA` for concentration events.
+  + `dv`: drug blood concentration value, which is DV (dependent variable) as NONMEM data item; `NA` for a dose event.
+  + `mdv`: missing dependent variable; 1 for indicating that there is no dependent variable (in this case, blood concentration), 0 for dependent variable.
+  + `evid`: event ID; 1 for indicating dose event (amt, II, and addl for this record will be used for the drug dose information if evid = 1), 0 for observation (or dependent variable if mdv = 0).
+  + `addl`: additional doses; the number of times for additional oral dose to be repeated, which is 1 less than total number of repeated (identical) doses.
+  + `II`: interdose interval, the amount of time between each additional dose.
+  + `date`: date and time for concentration measurement or assumed dosing
+  + `age`: an example covariate from demographic data
+  + `weight`: an example covariate from demographic data
+  + `hgb`: an example covariate from lab data
 
 ## References  
 

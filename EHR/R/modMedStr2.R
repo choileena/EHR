@@ -2,9 +2,10 @@
 #'
 #' This module will load and modify structured e-prescription data.
 #'
-#' @param file filename of prescription data (stored as CSV)
-#' @param select columns to select
-#' @param rename new column names
+#' @param file filename of prescription data (CSV, RData, RDS), or data.frame
+#' @param dat.columns a named list that should specify columns in data; \sQuote{id},
+#' \sQuote{dose}, \sQuote{freq}, \sQuote{date}, and \sQuote{str} are required.
+#' \sQuote{desc} may also be specified.
 #'
 #' @details See EHR Vignette for Structured Data.
 #'
@@ -27,18 +28,39 @@
 #'                                      "Brandname 100mg tablet", "fakedrug 100 mg tablet",
 #'                                      "fakedrug 100 mg tablet"))
 #' 
-#' write.csv(erx_data, 'erx_data.csv') 
+#' write.csv(erx_data, 'erx_data.csv')
 #' 
-#' run_MedStrII('erx_data.csv')                   
+#' run_MedStrII('erx_data.csv', list(id = 'GRID', dose = 'RX_DOSE', freq = 'FREQUENCY',
+#'              date = 'ENTRY_DATE', str = 'STRENGTH_AMOUNT', desc = 'DESCRIPTION'))
 #' }
 #'
 #'
 #' @export
 
-run_MedStrII <- function(file,
-                        select = c('GRID','MED_NAME','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT','DESCRIPTION'),
-                        rename = c('ID','MED_NAME','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT','DESCRIPTION')) {
-  tac <- readTransform(file, select = select, rename = rename)
-  tac_processed <- processErx(tac)
-  processErxAddl(tac_processed)
+run_MedStrII <- function(file, dat.columns = list()) {
+  x <- read(file)
+  req <- list(id = NA, dose = NA, freq = NA, date = NA, str = NA, desc = NULL)
+  col <- validateColumns(x, dat.columns, req)
+  xDT <- x[,col$date]
+  keepED <- col$date == 'ENTRY_DATE'
+  x[,'ENTRY_DATE'] <- pkdata::parse_dates(xDT)
+  col$date <- 'ENTRY_DATE'
+  colix <- match(col, names(x))
+  orig <- names(x)[colix]
+  hasDesc <- 'desc' %in% names(col)
+  if(hasDesc) {
+    cnames <- c('ID','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT','DESCRIPTION')
+  } else {
+    cnames <- c('ID','RX_DOSE','FREQUENCY','ENTRY_DATE','STRENGTH_AMOUNT')
+  }
+  # replace columns names with hard-coded expected values
+  names(x)[colix] <- cnames
+  step1 <- processErx(x, description = hasDesc)
+  step2 <- processErxAddl(step1)
+  # restore original column names
+  names(step2)[colix] <- orig
+  if(!keepED) {
+    step2[,'ENTRY_DATE'] <- NULL
+  }
+  step2
 }

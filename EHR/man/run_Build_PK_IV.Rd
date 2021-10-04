@@ -6,15 +6,16 @@
 \usage{
 run_Build_PK_IV(
   conc,
+  conc.columns = list(),
   dose,
-  lab.dat = NULL,
-  lab.vars = NULL,
+  dose.columns = list(),
   demo.list = NULL,
-  demo.vars = NULL,
-  demo.abbr = NULL,
-  pk.vars,
-  drugname,
-  check.path,
+  demo.columns = list(),
+  lab.list = NULL,
+  lab.columns = list(),
+  pk.vars = NULL,
+  drugname = NULL,
+  check.path = NULL,
   missdemo_fn = "-missing-demo",
   faildupbol_fn = "DuplicateBolus-",
   date.format = "\%m/\%d/\%y \%H:\%M:\%S",
@@ -22,31 +23,58 @@ run_Build_PK_IV(
 )
 }
 \arguments{
-\item{conc}{concentration data, the output of \code{\link{run_DrugLevel}} 
-or a correctly formatted data.frame}
+\item{conc.columns}{a named list that should specify columns in concentration
+data; \sQuote{id}, \sQuote{datetime}, \sQuote{druglevel} are required.
+\sQuote{idvisit} may also be specified; \sQuote{idvisit} can be used when there are multiple visits 
+(i.e., several occasions) for the same subject. \sQuote{datetime} is date and time for
+concentration measurement, which can refer to a single date-time variable
+(datetime = \sQuote{date_time}) or two variables holding date and time
+separately (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
-\item{dose}{dose data, the output of \code{\link{run_MedStrI}} or a
-correctly formatted data.frame}
+\item{dose}{dose data, the output of \code{\link{run_MedStrI}}, a filename
+(CSV, RData, RDS), or a correctly formatted data.frame}
 
-\item{lab.dat}{lab data, if available. the output from \code{\link{run_Labs}} or 
-a correctly formatted list}
+\item{dose.columns}{a named list that should specify columns in dose data;
+\sQuote{id} is required. \sQuote{infuseDatetime} and \sQuote{infuseDose}
+should be set if infusion dose data is present. \sQuote{infuseTimeExact}
+may also be specified for infusion data -- this variable represents an
+precise time, if for example the \sQuote{infuseDatetime} variable is rounded.
+\sQuote{bolusDatetime} and \sQuote{bolusDose} should be set if bolus dose
+data is present. A generic \sQuote{date} variable may be provided, agnostic
+to either infusion or bolus dosing. \sQuote{gap} and \sQuote{weight} column
+names may also be set. Any of the date-time variables can be specified as a
+single date-time variable (infuseDatetime = \sQuote{date_time}) or two variables
+holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})).}
 
-\item{lab.vars}{variables to include from lab data}
-
-\item{demo.list}{demographic information, if available. the output from 
+\item{demo.list}{demographic information, if available; the output from 
 \code{\link{run_Demo}} or a correctly formatted data.frame}
 
-\item{demo.vars}{variables to include from demographic data}
+\item{demo.columns}{a named list that should specify columns in demographic data;
+\sQuote{id} is required. \sQuote{weight} and \sQuote{idvisit}
+may also be used to specify columns for weight or the unique idvisit. Any other columns
+present in the demographic data are treated as covariates.}
 
-\item{demo.abbr}{character vector used to rename/abbreviate demo variables}
+\item{lab.list}{lab data, if available; the output from \code{\link{run_Labs}} or 
+a correctly formatted list}
 
-\item{pk.vars}{variables to include from PK data. the variables 
-c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event') are required}
+\item{lab.columns}{a named list that should specify columns in lab data; \sQuote{id},
+and \sQuote{datetime} are required. \sQuote{datetime} is the date and time when
+the lab data was obtained, which can refer to a single date-time variable
+(datetime = \sQuote{date_time}) or two variables holding date and time separately
+(e.g., datetime = c(\sQuote{Date}, \sQuote{Time})). Any other columns present in lab
+data are treated as lab values.}
 
-\item{drugname}{drug of interest, included in filename of check files}
+\item{pk.vars}{variables to include in the returned PK data. The variable \sQuote{date}
+is a special case; when included, it maps the \sQuote{time} offset to its original date-time.
+Other named variables will be merged from the concentration data set. For example,
+rather than being separate data sets, labs or demographics may already be present in
+the concentration data. These columns should be named here.}
+
+\item{drugname}{drug of interest, included in filename of check files. The default (NULL)
+will produce filenames without drugname included.}
 
 \item{check.path}{path to \sQuote{check} directory, where check files are
-created}
+created. The default (NULL) will not produce any check files.}
 
 \item{missdemo_fn}{filename for checking NA frequency among demographic data}
 
@@ -55,6 +83,9 @@ created}
 \item{date.format}{output format for \sQuote{date} variable}
 
 \item{date.tz}{output time zone for \sQuote{date} variable}
+
+\item{drug}{conc concentration data, the output of \code{\link{run_DrugLevel}}, 
+a filename (CSV, RData, RDS), or a correctly formatted data.frame}
 }
 \value{
 PK data set
@@ -63,7 +94,16 @@ PK data set
 This module builds PK data for intravenously (IV) administered medications.
 }
 \details{
-See EHR Vignette for Structured Data
+See EHR Vignette for Structured Data.
+
+Regarding the \sQuote{gap} variable in the dose dataset, if \sQuote{gap} is specified in \sQuote{dose.columns}, 
+it allows a continuous infusion given when there are missing records 
+between infusion dosing records. For example, suppose that \sQuote{gap} = 60 is defined 
+(which is typical gap size when infusion dosing is supposed to be recorded hourly for inpatients) 
+and time between two records (i.e., gap) are greater than 1 hour (i.e., missing records). If the gap 
+between the two records is less or equal to twice of the gap (i.e., 2*60 = 120 min), a continuous infusion 
+is assumed until the 2nd dose record; otherwise, the first infusion is assumed to be stopped 
+(i.e., add zero doses) after 60 min (i.e., equal to the gap size)  and a new infusion (the 2nd record) starts at its recorded time.
 }
 \examples{
 \dontrun{
@@ -89,8 +129,14 @@ ivdose <- data.frame(mod_id = 1:3,
                      weight = 45)
 
 
-run_Build_PK_IV(conc = plconc, dose = ivdose,
-                pk.vars = c('mod_id_visit', 'time', 'conc', 'dose', 'rate', 'event'))
+run_Build_PK_IV(conc = plconc,
+                conc.columns = list(id = 'mod_id', datetime = 'date.time',
+                  druglevel = 'conc.level', idvisit = 'mod_id_visit'),
+                dose = ivdose,
+                dose.columns = list(id = 'mod_id', date = 'date.dose',
+                  bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose',
+                  gap = 'maxint', weight = 'weight'),
+                pk.vars = 'date')
 }
 
 }

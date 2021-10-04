@@ -1,6 +1,6 @@
 Package: EHR
-Version: 0.4-0
-Date: 2021-06-04
+Version: 0.4-4
+Date: 2021-09-08
 Title: Electronic Health Record (EHR) Data Processing and Analysis Tool
 Maintainer: Leena Choi <naturechoi@gmail.com>
 Authors@R:
@@ -33,6 +33,7 @@ Description: Process and analyze electronic health record (EHR) data. The 'EHR'
     <doi:10.1093/bioinformatics/bty306>.
 Depends: R (>= 2.10)
 License: GPL (>=3)
+URL: https://choileena.github.io/
 Imports: stats, utils, data.table, methods, lubridate, pkdata
 Suggests:
     glmnet,
@@ -40,7 +41,8 @@ Suggests:
     medExtractR,
     knitr,
     rmarkdown,
-    ggplot2
+    ggplot2,
+    markdown
 NeedsCompilation: no
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr

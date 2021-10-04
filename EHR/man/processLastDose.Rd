@@ -32,7 +32,7 @@ the last dose time is calculated from the labtime by extracting the appropriate 
 final dataset is returned with last dose time formatted into a POSIXct variable.
 }
 \details{
-See EHR Vignette for Extract-Med and Pro-Med-NLP for details
+See EHR Vignette for Extract-Med and Pro-Med-NLP for details.
 }
 \examples{
 tac_mxr <- read.csv(system.file("examples", "tac_mxr.csv", package = "EHR"))

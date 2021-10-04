@@ -1,7 +1,6 @@
 ---
 title: "Dose Building Using Example Vanderbilt EHR Data"
-date: "`r Sys.Date()`"
-output: pdf_document
+output: rmarkdown::pdf_document
 ---
 
 <!--
@@ -135,8 +134,13 @@ tac_metadata[c(51,55,104,105),]
 ```
 
 Below, a few rows of the note level and date level collapsing are shown for our example tacrolimus data.
-```{r,message=FALSE}
+
+```{r, eval = FALSE}
 tac_part2 <- collapseDose(tac_mxr_part1_out, tac_metadata, naFreq='most')
+```
+
+```{r, echo = FALSE, message = FALSE}
+suppressWarnings(tac_part2 <- collapseDose(tac_mxr_part1_out, tac_metadata, naFreq='most'))
 ```
 
 Note level:
@@ -178,7 +182,8 @@ tac_gs_part2_date[c(29,42),]
 ```
 
 The following code compares the gold standard to the Part II output and provides the recall and precision measures for note level and date level collapsing for dose intake and daily dose. In order to replicate the results from this paper, we use the Part I gold standard as the input to `collapseDose`.
-```{r}
+
+```{r, eval = FALSE}
 precall <- function(dat, gs) {
   tp1 <- sum(dat %in% gs)
   fp1 <- sum(!(dat %in% gs))
@@ -192,6 +197,52 @@ precall <- function(dat, gs) {
 
 metaData <- bmd(unique(tac_gs_part1$filename))
 tacxr <- collapseDose(tac_gs_part1, metaData, 'bid')
+tacxr.note <- tacxr[['note']]
+tacxr.date <- tacxr[['date']]
+
+tacxr.note$pid <- sub("_.*","",tacxr.note$filename)
+tacxr.date$pid <- sub("_.*","",tacxr.date$filename)
+tac_gs_part2_note$pid <- sub("_.*","",tac_gs_part2_note$filename)
+tac_gs_part2_date$pid <- sub("_.*","",tac_gs_part2_date$filename)
+
+tacxrrow.note.intake <- do.call(paste, c(tacxr.note[,c('pid','dose.intake',
+                                                       'dosechange')],sep = '|'))
+tacxrrow.note.daily <- do.call(paste, c(tacxr.note[,c('pid','intaketime','dose.daily',
+                                                      'dosechange')], sep = '|'))
+tacxrrow.date.intake <- do.call(paste, c(tacxr.date[,c('pid','dose.intake',
+                                                       'dosechange')], sep = '|'))
+tacxrrow.date.daily <- do.call(paste, c(tacxr.date[,c('pid','intaketime','dose.daily',
+                                                      'dosechange')], sep = '|'))
+
+gs.tacxrrow.note.intake <- do.call(paste, c(tac_gs_part2_note[,c('pid','doseintake',
+                                                                 'dosechange')], sep = '|'))
+gs.tacxrrow.note.daily <- do.call(paste, c(tac_gs_part2_note[,c('pid','intaketime','daily',
+                                                                'dosechange')], sep = '|'))
+gs.tacxrrow.date.intake <- do.call(paste, c(tac_gs_part2_date[,c('pid','doseintake',
+                                                                 'dosechange')], sep = '|'))
+gs.tacxrrow.date.daily <- do.call(paste, c(tac_gs_part2_date[,c('pid','intaketime','daily',
+                                                                'dosechange')], sep = '|'))
+
+precall(tacxrrow.note.intake, gs.tacxrrow.note.intake)
+precall(tacxrrow.note.daily, gs.tacxrrow.note.daily)
+precall(tacxrrow.date.intake, gs.tacxrrow.date.intake)
+precall(tacxrrow.date.daily, gs.tacxrrow.date.daily)
+```
+
+```{r, echo = FALSE, warning = FALSE}
+precall <- function(dat, gs) {
+  tp1 <- sum(dat %in% gs)
+  fp1 <- sum(!(dat %in% gs))
+  fn1 <- sum(!(gs %in% dat))
+  r1 <- c(tp1, tp1 + fn1)
+  p1 <- c(tp1, tp1 + fp1)
+  r <- rbind(r1,p1)
+  dimnames(r) <- list(c('recall','prec'), c('num','den'))
+  cbind(r, prop = round(r[,1] / r[,2], 2))
+}
+
+metaData <- bmd(unique(tac_gs_part1$filename))
+suppressWarnings(tacxr <- collapseDose(tac_gs_part1, metaData, 'bid'))
 tacxr.note <- tacxr[['note']]
 tacxr.date <- tacxr[['date']]
 

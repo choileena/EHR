@@ -5,19 +5,17 @@
 \title{Run Str Data I}
 \usage{
 run_MedStrI(
-  flow.path = NULL,
-  flow.select = c("mod_id", "mod_id_visit", "Perform.Date", "Final.Wt..kg.",
-    "Final.Rate..NFR.units.", "Final.Units"),
-  flow.rename = c("mod_id", "mod_id_visit", "Perform.Date", "weight", "rate",
-    "final.units"),
-  flow.mod.list = list(date.time = expression(parse_dates(fixDates(Perform.Date))),
-    unit = expression(sub(".*[ ]", "", rate)), rate =
-    expression(as.numeric(sub("([0-9.]+).*", "\\\\1", rate)))),
-  medchk.path,
   mar.path,
+  mar.columns = list(),
+  medGivenReq = FALSE,
+  flow.path = NULL,
+  flow.columns = list(),
+  medchk.path = NULL,
   demo.list = NULL,
+  demo.columns = list(),
   missing.wgt.path = NULL,
-  check.path,
+  wgt.columns = list(),
+  check.path = NULL,
   failflow_fn = "FailFlow",
   failunit_fn = "Unit",
   failnowgt_fn = "NoWgt",
@@ -27,32 +25,62 @@ run_MedStrI(
   rateunit = "mcg/hr",
   ratewgtunit = "mcg/kg/hr",
   weightunit = "kg",
-  medGivenReq = TRUE,
-  drugname
+  drugname = NULL
 )
 }
 \arguments{
-\item{flow.path}{filename of flow data (stored as RDS)}
+\item{mar.path}{filename of MAR data (CSV, RData, RDS), or data.frame}
 
-\item{flow.select}{existing column names to select for flow data}
+\item{mar.columns}{a named list that should specify columns in MAR data; \sQuote{id},
+\sQuote{datetime} and \sQuote{dose} are required. \sQuote{drug}, \sQuote{weight},
+\sQuote{given} may also be specified. \sQuote{datetime} is date and time for data
+measurement, which can refer to a single date-time variable (datetime = \sQuote{date_time})
+or two variables holding date and time separately (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).
+\sQuote{dose} can also be given as a single variable or two variables. If given as a single column,
+the column's values should contain dose and units such as \sQuote{25 mcg}. If given as
+two column names, the dose column should come before the unit column
+(e.g., dose = c(\sQuote{doseamt}, \sQuote{unit})). \sQuote{drug} can provide list of acceptable drug names.
+If \sQuote{drug} is present, the \sQuote{medchk.path} argument should also be provided.
+The \sQuote{given} is a variable that flags whether the medication (inpatient) was given. When it is given, 
+values shoule be \dQuote{Given}; should be used in conjunction with the \sQuote{medGivenReq} argument.}
 
-\item{flow.rename}{new column names for flow data}
+\item{medGivenReq}{if TRUE, values in \sQuote{given} column in MAR data should equal \dQuote{Given}; 
+if this is FALSE (the default), NA values are also acceptable.}
 
-\item{flow.mod.list}{list of expressions, giving modifications to flow data}
+\item{flow.path}{filename of flow data (CSV, RData, RDS), or data.frame}
 
-\item{medchk.path}{filename containing data set (stored as CSV); should have
-the column \sQuote{medname} with list of acceptable drug names used to filter
-MAR data}
+\item{flow.columns}{a named list that should specify columns in flow data; \sQuote{id},
+\sQuote{datetime}, \sQuote{finalunits}, \sQuote{unit}, \sQuote{rate}, \sQuote{weight}
+are required. \sQuote{idvisit} may also be specified. \sQuote{datetime} is date and time
+for data measurement, which can refer to a single date-time variable
+(datetime = \sQuote{date_time}) or two variables holding date and time separately
+(e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
-\item{mar.path}{filename of MAR data (stored as RDS)}
+\item{medchk.path}{filename containing data set (CSV, RData, RDS), or data.frame; should have
+the column \sQuote{medname} with list of acceptable drug names (e.g., brand and generic name, abbreviations)
+to subset drugs of interest using \sQuote{drug} column in MAR data. This argument can be used when MAR data 
+contains different drugs that should be excluded.}
 
-\item{demo.list}{demographic information; if available, missing weight may be
-imputed from demographics}
+\item{demo.list}{demographic information; if available, the output from `run_Demo` or 
+a correctly formatted data.frame, which can be used to impute weight when missing}
 
-\item{missing.wgt.path}{filename to additional weight data}
+\item{demo.columns}{a named list that should specify columns in demographic data; \sQuote{id},
+\sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} is the date
+and time when the demographic data were obtained, which can refer to a single date-time
+variable (datetime = \sQuote{date_time}) or two variables holding date and time separately
+(e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
+
+\item{missing.wgt.path}{filename containing additional weight data (CSV, RData, RDS), or data.frame. 
+The variables in this file should be defined in the \sQuote{wgt.columns} argument.}
+
+\item{wgt.columns}{a named list that should specify columns in additional weight data; \sQuote{id},
+\sQuote{datetime}, and \sQuote{weight} are required. \sQuote{datetime} is date
+and time for weight measurement, which can refer to a single date-time variable
+(datetime = \sQuote{date_time}) or two variables holding date and time separately
+(e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
 \item{check.path}{path to \sQuote{check} directory, where check files are
-created}
+created. The default (NULL) will not produce any check files.}
 
 \item{failflow_fn}{filename for duplicate flow data with rate zero}
 
@@ -73,19 +101,18 @@ indicates weight is required}
 
 \item{weightunit}{acceptable unit for weight; defaults to \sQuote{kg}}
 
-\item{medGivenReq}{values for \sQuote{med:given} should equal \dQuote{Given} unless this is FALSE}
-
-\item{drugname}{drug of interest, included in filename of check files}
+\item{drugname}{drug of interest, included in filename of check files. The default (NULL)
+will produce filenames without drugname included.}
 }
 \value{
-str data set
+structured data set
 }
 \description{
 This module will load and modify structured intravenous (IV) infusion and 
 bolus medication data.
 }
 \details{
-See EHR Vignette for Structured Data
+See EHR Vignette for Structured Data.
 }
 \examples{
 \dontrun{
@@ -100,6 +127,9 @@ flow <- data.frame(mod_id=c(1,1,2,2,2),
                                 rep("0.5 mcg/kg/hr",3)),
                    Final.Units=c("3.375","6.5",
                                  "2.25","2.25","2.25"))
+flow[,'Perform.Date'] <- pkdata::parse_dates(EHR:::fixDates(flow[,'record.date']))
+flow[,'unit'] <- sub('.*[ ]', '', flow[,'Final.Rate'])
+flow[,'rate'] <- as.numeric(sub('([0-9.]+).*', '\\\\1', flow[,'Final.Rate']))
 
 saveRDS(flow, 'flow.rds')
 
@@ -123,13 +153,14 @@ medcheck <- data.frame(medname="Fakedrug1",freq=4672)
 write.csv(medcheck, 'medcheck.csv')
 
 
-run_MedStrI(flow.path='flow.rds',
-            flow.select=c("mod_id","mod_id_visit","record.date",
-                          "Final.Weight", "Final.Rate","Final.Units"),
-            flow.rename = c("mod_id", "mod_id_visit", "Perform.Date",
-                            "weight", "rate","final.units"),
+run_MedStrI(mar.path='mar.rds',
+            mar.columns = list(id = 'mod_id', datetime = c('Date','Time'),
+                               dose = 'med:dosage', drug = 'med:mDrug', given = 'med:given'),
+            flow.path='flow.rds',
+            flow.columns = list(id = 'mod_id', datetime = 'Perform.Date',
+                                finalunits = 'Final.Units', unit = 'unit',
+                                rate = 'rate', weight = 'Final.Weight'),
             medchk.path='medcheck.csv',
-            mar.path='mar.rds',
             check.path=tempdir(),
             drugname='fakedrg1')
 }

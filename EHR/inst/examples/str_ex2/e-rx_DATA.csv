@@ -1,8 +1,8 @@
-﻿GRID,MED_NAME,RX_DOSE,FREQUENCY,ENTRY_DATE,STRENGTH_AMOUNT,DESCRIPTION
-ID1,lamotrigine,1,bid,2009-02-24,100,lamotrigine 100 mg tablet (Also Known As Lamictal)
-ID2,lamotrigine,2,bid,2006-12-30,100,lamotrigine 100 mg tablet (Also Known As Lamictal)
-ID2,Lamictal,1,bid,2006-12-30,200,LaMICtal 200 mg tablet
-ID3,Lamictal XR,3,bid,2004-08-24,,Lamictal XR 100 mg 24 hr Tab
-ID4,lamotrigine,1,twice a day,2010-05-22,200 mg,lamotrigine 200 mg tablet (Also Known As Lamictal)
-ID5,lamotrigine,2 tabs,qam,2007-06-13,200,"LaMICtal XR 200 mg tablet,extended release"
-ID6,lamotrigine,1.5+1+1.5,"brkfst, lunch, dinner",2015-03-14,100,lamoTRIgine 100 mg tablet (Also Known As Lamictal)
+"GRID","MED_NAME","RX_DOSE","FREQUENCY","ENTRY_DATE","STRENGTH_AMOUNT","DESCRIPTION"
+"ID1","lamotrigine","1","bid","2009-02-24","100","lamotrigine 100 mg tablet (Also Known As Lamictal)"
+"ID2","lamotrigine","2","bid","2006-12-30","100","lamotrigine 100 mg tablet (Also Known As Lamictal)"
+"ID2","Lamictal","1","bid","2006-12-30","200","LaMICtal 200 mg tablet"
+"ID3","Lamictal XR","3","bid","2004-08-24","","Lamictal XR 100 mg 24 hr Tab"
+"ID4","lamotrigine","1","twice a day","2010-05-22","200 mg","lamotrigine 200 mg tablet (Also Known As Lamictal)"
+"ID5","lamotrigine","2 tabs","qam","2007-06-13","200","LaMICtal XR 200 mg tablet,extended release"
+"ID6","lamotrigine","1.5+1+1.5","brkfst, lunch, dinner","2015-03-14","100","lamoTRIgine 100 mg tablet (Also Known As Lamictal)"

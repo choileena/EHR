@@ -2,18 +2,19 @@
 #'
 #' This module will load and modify drug-level data.
 #'
-#' @param conc.path filename of concentration data (stored as RDS)
+#' @param conc.path filename of concentration data (CSV, RData, RDS), or data.frame
 #' @param conc.select columns to select from concentration data
 #' @param conc.rename new column names for concentration data
 #' @param conc.mod.list list of expressions, giving modifications to make
-#' @param samp.path filename of data with sampling time (stored as RDS)
+#' @param samp.path filename of data with sampling time (CSV, RData, RDS), or data.frame
 #' @param samp.mod.list list of expressions, giving modifications to make
 #' @param check.path path to \sQuote{check} directory, where check files are
-#' created
+#' created. The default (NULL) will not produce any check files.
 #' @param failmiss_fn filename for data missing concentration date
 #' @param multsets_fn filename for data with multiple concentration sets
 #' @param faildup_fn filename for data with duplicate concentration observations
-#' @param drugname drug of interest, included in filename of check files
+#' @param drugname drug of interest, included in filename of check files. The default (NULL)
+#' will produce filenames without drugname included.
 #' @param LLOQ lower limit of concentration values; values below this are invalid
 #' @param demo.list demographic information; if available, concentration records
 #' must have a valid demo record
@@ -66,15 +67,15 @@ run_DrugLevel <- function(conc.path, conc.select, conc.rename,
                           conc.mod.list = list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
                           samp.path = NULL,
                           samp.mod.list = list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
-                          check.path,
+                          check.path = NULL,
                           failmiss_fn = 'MissingConcDate-',
                           multsets_fn = 'multipleSetsConc-',
                           faildup_fn = 'DuplicateConc-',
-                          drugname, LLOQ, demo.list=NULL) {
+                          drugname = NULL, LLOQ = NA, demo.list=NULL) {
   #### sample
   if(!is.null(samp.path)) {
     # read and transform data
-    samp.in <- readRDS(samp.path)
+    samp.in <- read(samp.path)
     samp <- dataTransformation(samp.in, modify = samp.mod.list)
   } else {
     samp <- NULL
@@ -83,7 +84,7 @@ run_DrugLevel <- function(conc.path, conc.select, conc.rename,
   #### concentration
 
   # read and transform data
-  conc.in <- readRDS(conc.path)
+  conc.in <- read(conc.path)
   conc <- dataTransformation(conc.in,
     select = conc.select,
     rename = conc.rename,                         

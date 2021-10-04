@@ -39,7 +39,7 @@ when output for a new observation (or new clinical note) begins. The user should
 the argument \code{begText} to be a regular expression used to identify the lines where output
 for a new clinical note begins.
 
-See Vignette for Dose Building Using Example Vanderbilt EHR Data
+See EHR Vignette for Extract-Med and Pro-Med-NLP as well as Dose Building Using Example Vanderbilt EHR Data for details.
 }
 \examples{
 mxn_output <- system.file("examples", "lam_medxn.csv", package = "EHR")

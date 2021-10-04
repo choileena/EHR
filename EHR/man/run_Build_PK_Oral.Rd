@@ -16,7 +16,7 @@ run_Build_PK_Oral(
 )
 }
 \arguments{
-\item{x}{data.frame}
+\item{x}{a data.frame or file saved as either CSV, RData, or RDS}
 
 \item{idCol}{data.frame id column name}
 
@@ -40,7 +40,7 @@ data.frame
 This module builds PK data for orally administered medications.
 }
 \details{
-See EHR Vignette for Build-PK-Oral
+See EHR Vignette for Build-PK-Oral.
 }
 \examples{
 \dontrun{

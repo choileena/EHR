@@ -31,6 +31,8 @@ If different formulations of the drug (e.g., extended release) exist, they can b
 separated using a regular expression (e.g., \sQuote{xr|er}). This function will call
 \code{\link{makeDose}} on parsed and paired medication data to calculate dose intake
 and daily dose and remove redundancies at the note and date level.
+
+See EHR Vignette for Extract-Med and Pro-Med-NLP as well as Dose Building Using Example Vanderbilt EHR Data for details.
 }
 \examples{
 data(lam_mxr_parsed)
