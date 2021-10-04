@@ -33,6 +33,7 @@ Description: Process and analyze electronic health record (EHR) data. The 'EHR'
     <doi:10.1093/bioinformatics/bty306>.
 Depends: R (>= 2.10)
 License: GPL (>=3)
+URL: https://choileena.github.io/
 Imports: stats, utils, data.table, methods, lubridate, pkdata
 Suggests:
     glmnet,
