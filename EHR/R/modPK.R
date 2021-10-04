@@ -115,7 +115,7 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   dose.req <- list(id = NA, date = NULL, infuseDatetime = NULL, infuseTimeExact = NULL, infuseDose = NULL,
     bolusDatetime = NULL, bolusDose = NULL, gap = NULL, weight = NULL)
   lab.req <- list(id = NA, datetime = NA)
-  demo.req <- list(id = NA, datetime = NA, idvisit = NULL, weight = NULL)
+  demo.req <- list(id = NA, datetime = NULL, idvisit = NULL, weight = NULL)
 
   # standardize conc data
   conc.col <- validateColumns(conc, conc.columns, conc.req)
@@ -235,6 +235,7 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
     info0[,'maxint'] <- 60
   }
 
+  info1 <- info0
   hasDemo <- !is.null(demo.list)
   hasLabs <- !is.null(lab.list)
   if(hasDemo) { # if using demographic data
@@ -252,23 +253,23 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
     }
     if(is.null(demoData)) {
       warning('Demographic data was provided in an unexpected format and will be ignored')
-      info1 <- info0
       hasDemo <- FALSE
     } else {
       # standardize demographic data
       demo.col <- validateColumns(demoData, demo.columns, demo.req)
-      if(length(demo.col$datetime) == 2) {
-        demoDT <- paste(demoData[,demo.col$datetime[1]], demoData[,demo.col$datetime[2]])
-      } else {
-        demoDT <- demoData[,demo.col$datetime]
+      # it is unlikely for datetime to be specified
+      if('datetime' %in% names(demo.col)) {
+        if(length(demo.col$datetime) == 2) {
+          demoDT <- paste(demoData[,demo.col$datetime[1]], demoData[,demo.col$datetime[2]])
+        } else {
+          demoDT <- demoData[,demo.col$datetime]
+        }
+        # previously, this was ['surgery_date','time_fromor']
+        demoData[,'date.time'] <- pkdata::parse_dates(demoDT)
+        dem <- demoData[, c(demo.col$id, 'date.time')]
+        info1 <- updateInterval_mod(info0, dem)
       }
-      # previously, this was ['surgery_date','time_fromor']
-      demoData[,'date.time'] <- pkdata::parse_dates(demoDT)
-      dem <- demoData[, c(demo.col$id, 'date.time')]
-      info1 <- updateInterval_mod(info0, dem)
     }
-  } else {
-    info1 <- info0
   }
 
   doseById <- split(info1, info1[,'mod_id'])
