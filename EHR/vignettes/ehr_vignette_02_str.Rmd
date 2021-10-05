@@ -547,7 +547,7 @@ head(ivdose.out)
     + bolus.time: bolus dose time
     + bolus.dose: bolus dose amount
     + given.dose: the raw dose given is preserved from the flow sheet data when available (identified as "finalunits" in flow.columns)
-    + maxint: estimated infusion recording interval
+    + maxint: infusion recording interval (e.g., maxint = 15 min for MAR data; maxint = 60 min for flow data)
     + weight: subject body weight recorded near infusion time, which will be used in dose calculation
 
 ### Part II: e-prescription data
