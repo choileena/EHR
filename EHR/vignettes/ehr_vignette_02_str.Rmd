@@ -95,7 +95,7 @@ creat.data <- read.csv(file.path(rawDataDir,"Creatinine_DATA_simple.csv"))
 head(creat.data)
 ```
 
-The `EHR` package modules use a standardized naming convention for patient identification (ID) variables. We rename the unique patient-level ID from `patient_id` to `mod_id` and the visit-level ID from `patient_visit_id` to `mod_id_visit`. The visit-level ID can be used to distinguish different visits (i.e., occasions) when the same patient visits hospital multiple times for surgery or course of treatment. If there is only a single visit/course per subject the unique patient-level ID and visit-level ID can be the same, however both `mod_id` and `mod_id_visit` should be defined.
+The `EHR` package modules use a standardized naming convention for patient identification (ID) variables. We rename the unique patient-level ID from `patient_id` to `mod_id` and the visit-level ID from `patient_visit_id` to `mod_id_visit`. The visit-level ID can be used to distinguish different visits (i.e., occasions) when the same patient has multiple hospitalizations. If there is only a single visit per subject the unique patient-level ID and visit-level ID can be the same, however both `mod_id` and `mod_id_visit` should be defined.
 
 ```{r simp-rename}
 names(conc.data)[1:2] <- names(demo)[1:2] <- c("mod_id", "mod_id_visit")
@@ -148,7 +148,7 @@ head(simple_pk_dat,15)
 
 # Example 2: Complete Data Processing and Building from Raw Extracted Data to PK Data 
 
-To begin example 2 we define three directories for the raw data, the processed data, and files used for interactive checking. If a file path for interactive checking is not provided, the interactive checking will not be performed.
+To begin example 2 we define directories for the raw data, the processed data, and files used for interactive checking. If a file path for interactive checking is not provided, the interactive checking will not be performed.
 
 ```{r ex2-dirs}
 dir.create(file.path(td, 'data2'))
@@ -168,7 +168,7 @@ Each raw dataset should contain a subject unique ID, a subject visit ID, or both
 
 ### (1) Read and clean raw data
 
-The demographics data file contains ID variables `subject_id` and `subject_uid`, in addition to demographic variables such as gender, date of birth, height, weight, etc. The Demographics_DATA.csv file is read in using the `readTransform()` function. As the date and time for surgery is not in the data, which is a required variable, a new variable `date.time` is created using date for surgery (`surgery_date`) and time of surgery in military time format (`time_fromor`).
+The demographics data file contains ID variables `subject_id` and `subject_uid`, in addition to demographic variables such as gender, date of birth, height, weight, etc. The Demographics_DATA.csv file is read in using the `readTransform()` function. <!--As the date and time for surgery is not in the data, which is a required variable, a new variable `date.time` is created using date for surgery (`surgery_date`) and time of surgery in military time format (`time_fromor`).-->
 
 ```{r demo-in}
 # demographics data
@@ -250,9 +250,24 @@ conc.in <- readTransform(file.path(rawDataDir, "SampleConcentration_DATA.csv"),
 head(conc.in)
 ```
 
-The example drug dosing data consists of files FLOW_DATA.csv and MAR_DATA.csv containing two sources of IV dose information (for details about these data sources, see *Pro-Med-Str* module below). The FLOW data csv file contains aliases for both ID variables; it is read in with the `readTransform()` function which renames the variables `Subject.Id` to `subject_id` and `Subject.Uniq.Id` to `subject_uid`. If the flow data are provided, date and time, unit, and rate are required variables. We make the date and time variable, `Perform.Date`, in the required date/time format, and create unit and rate variables from a combined variable, `Final.Rate..NFR.units.`.
+The example drug dosing data consists of files FLOW_DATA.csv and MAR_DATA.csv containing two sources of IV dose information (for details about these data sources, see *Pro-Med-Str* module below). The FLOW data csv file contains aliases for both ID variables; it is read in with the `readTransform()` function which renames the variables `Subject.Id` to `subject_id` and `Subject.Uniq.Id` to `subject_uid`, and creates the required `date.time`, `unit`, and `rate` variables.
 
 ```{r flow-in}
+# FLOW dosing data
+flow.in <- readTransform(file.path(rawDataDir, "FLOW_DATA.csv"),
+ rename = c('Subject.Id' = 'subject_id',
+            'Subject.Uniq.Id' = 'subject_uid'),
+ modify=list(
+  date.time = expression(pkdata::parse_dates(EHR:::fixDates(Perform.Date))),
+  unit = expression(sub('.*[ ]', '', Final.Rate..NFR.units.)),
+  rate = expression(as.numeric(sub('([0-9.]+).*', '\\1', Final.Rate..NFR.units.)))
+  )
+ ) 
+head(flow.in)
+```
+
+<!--
+```{r flow-in0}
 # FLOW dosing data
 flow.in <- readTransform(file.path(rawDataDir, "FLOW_DATA.csv"),
                          rename = c('Subject.Id' = 'subject_id',
@@ -264,8 +279,8 @@ flow.in[,'date.time'] <- pkdata::parse_dates(EHR:::fixDates(flow.in[,'Perform.Da
 flow.in[,'unit'] <- sub('.*[ ]', '', flow.in[,'Final.Rate..NFR.units.'])
 flow.in[,'rate'] <- as.numeric(sub('([0-9.]+).*', '\\1', flow.in[,'Final.Rate..NFR.units.']))
 head(flow.in)
-
 ```
+-->
 
 The MAR data csv file contains several variables with a colon (:) character. To preserve the colon in these variable names, the data can be read in without checking for syntactically valid `R` variable names. The data is read in using `read.csv()` with the argument `check.names = FALSE` and then passed to the `dataTransformation()` function which renames `Uniq.Id` to `subject_uid`.
 
@@ -426,7 +441,8 @@ The *Pro-Med-Str* module processes structured medication data. Part I handles IV
 
 ### Part I: IV dose data
 
-Part I handles IV dose data from two sources, Flow data and Medication Administration Records (MAR) data. The Flow data are patient flow sheets which at this institution record infusion rates and changes to all infusions for all inpatients outside of the operating room, while the MAR data record all bolus doses of medications and infusions administered in the operating room before 11/01/2017 at this institution. After 11/01/2017 when a new EHR system, *Epic* was implemented in this institution, MAR data record all types of medications for inpatients, and Flow sheet data no longer exists. Thus, while MAR data is required, the use of Flow sheet data is optional for this module. The module can be semi-interactive for data checking (although it is not required, we recommend using this feature); if `check.path` is provided (the default is NULL), it can generate several files to check potential data errors and get feedback from an investigator. If corrected information ('fix' files) are provided, the module should be re-run to incorporate the corrections. The major functions of this module are:
+Part I handles IV dose data from two sources, Flow data and Medication Administration Records (MAR) data.
+In this example, the Flow data are patient flow sheets which record infusion rates and changes outside of the operating room, while the MAR data record all bolus and infusion doses administered in the operating room before 11/01/2017. After 11/01/2017 when a new EHR system, *Epic* was implemented, MAR data recorded all types of medications for inpatients. Thus, while MAR data is required, the use of Flow sheet data is optional for this module. The module can be semi-interactive for data checking (although it is not required, we recommend using this feature); if `check.path` is provided (the default is NULL), it can generate several files to check potential data errors and get feedback from an investigator. If corrected information ('fix' files) are provided, the module should be re-run to incorporate the corrections. The major functions of this module are:
 
 * Process MAR data using the given medications in the `medchk.path` file, infusion units, bolus units, and bolus rate threshold. If there are data rows containing units other than those specified, a file listing these records will be produced using the `failunit_fn` stub appended with drugname.
      + e.g., if failunit_fn is 'Unit' the file 'failUnit-fent.csv' will be created in the `check.path` directory. The corrected file should replace 'fail' with 'fix' (e.g., 'fixUnit-fent.csv'), and include an additional variable called 'flag' with the value 'keep' for the records to be retained.
@@ -592,7 +608,6 @@ conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"
     drugname=drugname,
     LLOQ=LLOQ,
     demo.list=demo.out)
-head(conc.out)
 ```
 
 ```{r Pro-Drug-Level-fake, echo=FALSE}
