@@ -10,7 +10,7 @@
 #'
 #' code{fixDates}: add leading zeroes to date
 #'
-#' code{combine}: rbind two data sets (GIVE DIFFERENT NAME)
+#' code{joinFlowMar}: rbind two data sets
 #'
 #' code{updateInterval_mod}: replace maxint with difference between surgery time
 #' and infusion time (if smaller than maxint)
@@ -26,7 +26,7 @@
 #' code{pkdata}
 #'
 #' @name pk-internal
-#' @aliases takeClosest takeClosestTime daysDiff minDiff fixDates combine
+#' @aliases takeClosest takeClosestTime daysDiff minDiff fixDates joinFlowMar
 #' updateInterval_mod fix_serum_time merge_by_time merge_inf_bolus
 #' addZeroDose pkdata
 #' @keywords internal
@@ -63,7 +63,7 @@ fixDates <- function(x) {
   sub('^([0-9]{2}/[0-9]{2}/)([0-9]{2})(?![0-9])', '\\120\\2', d, perl = TRUE)
 }
 
-combine <- function(x, y) {
+joinFlowMar <- function(x, y) {
   y[,setdiff(names(x), names(y))] <- NA
   x <- rbind(x, y[,names(x)])
   names(x) <- c('mod_id', 'date.time', 'infuse.dose', 'unit', 'rate', 'weight', 'maxint')
