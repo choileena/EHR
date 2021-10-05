@@ -538,7 +538,17 @@ head(ivdose.out)
     + `ratewgtunit`: string specifying units for hourly rate by weight (default: 'mcg/kg/hr')
     + `weightunit`: string specifying units for weight (default: 'kg')
     + `drugname`: drug name of interest (e.g., dex, fent)
-* The output of the `run_MedStrI` function is a dataset with processed IV dosing data including date (date.dose), infusion dose time (infuse.time.real for real infusion time and infuse.time for hourly rounded time) and rate (infuse.dose), bolus dose time (bolus.time) and dose level (bolus.dose), weight used in dose calculation and identification numbers for further merging with the output from other modules.
+* The output of the `run_MedStrI` function is a dataset with processed IV dosing data with the following variables:
+    + user provided identification numbers for further merging with the output from other modules (e.g., mod_id in this example data)
+    + date.dose: date of dose administration
+    + infuse.time.real: actual infusion dosing time
+    + infuse.time: infusion dose time processed (rounded time) based on continuous infusion time
+    + infuse.dose: infusion dose amount (e.g., calculated by rate*weight)
+    + bolus.time: bolus dose time
+    + bolus.dose: bolus dose amount
+    + given.dose: the raw dose given is preserved from the flow sheet data when available (identified as "finalunits" in flow.columns)
+    + maxint: estimated infusion recording interval
+    + weight: subject body weight recorded near infusion time, which will be used in dose calculation
 
 ### Part II: e-prescription data
 
