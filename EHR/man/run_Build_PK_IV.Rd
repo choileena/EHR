@@ -23,6 +23,9 @@ run_Build_PK_IV(
 )
 }
 \arguments{
+\item{conc}{concentration data, the output of \code{\link{run_DrugLevel}}, 
+a filename (CSV, RData, RDS), or a correctly formatted data.frame}
+
 \item{conc.columns}{a named list that should specify columns in concentration
 data; \sQuote{id}, \sQuote{datetime}, \sQuote{druglevel} are required.
 \sQuote{idvisit} may also be specified; \sQuote{idvisit} can be used when there are multiple visits 
@@ -83,9 +86,6 @@ created. The default (NULL) will not produce any check files.}
 \item{date.format}{output format for \sQuote{date} variable}
 
 \item{date.tz}{output time zone for \sQuote{date} variable}
-
-\item{drug}{conc concentration data, the output of \code{\link{run_DrugLevel}}, 
-a filename (CSV, RData, RDS), or a correctly formatted data.frame}
 }
 \value{
 PK data set

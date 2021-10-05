@@ -2,7 +2,7 @@
 #'
 #' This module builds PK data for intravenously (IV) administered medications.
 #'
-#' @param drug conc concentration data, the output of \code{\link{run_DrugLevel}}, 
+#' @param conc concentration data, the output of \code{\link{run_DrugLevel}}, 
 #' a filename (CSV, RData, RDS), or a correctly formatted data.frame
 #' @param conc.columns a named list that should specify columns in concentration
 #' data; \sQuote{id}, \sQuote{datetime}, \sQuote{druglevel} are required.
