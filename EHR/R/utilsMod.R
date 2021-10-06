@@ -386,7 +386,7 @@ infusionData_mod <- function(flow, mar, flowInt = 60, marInt = 15,
 
   coi <- c("mod_id", "date.time", "infuse.dose", "unit", "rate", "weight", "maxint")
   if(nrow(i1)>0 & nrow(i2)>0) {
-    infusionFile <- combine(i1, i2)
+    infusionFile <- joinFlowMar(i1, i2)
   } else if (nrow(i1)>0 & nrow(i2)==0) { #only have i1 dat
     infusionFile <- i1
   } else if (nrow(i1)==0 & nrow(i2)>0) { #only have i2 dat

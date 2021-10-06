@@ -195,11 +195,11 @@ run_MedStrI <- function(mar.path,
   rm(medMAR)
 
   if(length(mar.doseCol) == 2) {
-    unit <- dm[,mar.doseCol[1]]
-    rate <- dm[,mar.doseCol[2]]
+    rate <- dm[,mar.doseCol[1]]
+    unit <- dm[,mar.doseCol[2]]
   } else {
-    unit <- sub('.*[ ]', '', dm[,mar.doseCol])
     rate <- sub('([0-9.]+).*', '\\1', dm[,mar.doseCol])
+    unit <- sub('.*[ ]', '', dm[,mar.doseCol])
   }
   dm[,'unit'] <- unit
   dm[,'rate'] <- suppressWarnings(as.numeric(rate))
@@ -339,10 +339,12 @@ run_MedStrI <- function(mar.path,
   }
   moreWgt <- rbind(w1, w2)
 
+  # remove id-visit column from flow if present
+  mf <- medFlow[,setdiff(names(medFlow), 'mod_id_visit')]
   # combine flow and MAR infusion
   # `inf1` may or may not have "weight" column
   inf <- infusionData_mod(
-    medFlow, inf1, rateunit = rateunit, ratewgtunit = ratewgtunit, addWgt = moreWgt
+    mf, inf1, rateunit = rateunit, ratewgtunit = ratewgtunit, addWgt = moreWgt
   )
   # infusionData_mod enforces mod_id; restore name
   if(mar.idCol != 'mod_id') {

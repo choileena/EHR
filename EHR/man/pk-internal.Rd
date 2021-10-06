@@ -7,7 +7,7 @@
 \alias{daysDiff}
 \alias{minDiff}
 \alias{fixDates}
-\alias{combine}
+\alias{joinFlowMar}
 \alias{updateInterval_mod}
 \alias{fix_serum_time}
 \alias{merge_by_time}
@@ -27,7 +27,7 @@ code{minDiff}: difference (in minutes) of time vector
 
 code{fixDates}: add leading zeroes to date
 
-code{combine}: rbind two data sets (GIVE DIFFERENT NAME)
+code{joinFlowMar}: rbind two data sets
 
 code{updateInterval_mod}: replace maxint with difference between surgery time
 and infusion time (if smaller than maxint)

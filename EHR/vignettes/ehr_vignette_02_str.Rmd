@@ -208,7 +208,7 @@ The same steps can be used for the sample values data csv file. It is read in us
 ```{r conc-in1}
 # concentration sample values data
 # read in raw data
-conc.raw<-read.csv(file.path(rawDataDir, "SampleConcentration_DATA.csv"))
+conc.raw <-read.csv(file.path(rawDataDir, "SampleConcentration_DATA.csv"))
 head(conc.raw)
 
 # helper function used to make subject_id
@@ -302,7 +302,7 @@ head(creat.in)
 # Albumin lab data
 alb.in <- readTransform(file.path(rawDataDir, "Albumin_DATA.csv"),
     rename = c('Subject.uniq' = 'subject_uid'))
-head(creat.in)
+head(alb.in)
 ```
 
 ### (2) Merge data to create new ID variables
@@ -538,7 +538,17 @@ head(ivdose.out)
     + `ratewgtunit`: string specifying units for hourly rate by weight (default: 'mcg/kg/hr')
     + `weightunit`: string specifying units for weight (default: 'kg')
     + `drugname`: drug name of interest (e.g., dex, fent)
-* The output of the `run_MedStrI` function is a dataset with processed IV dosing data including date (date.dose), infusion dose time (infuse.time.real for real infusion time and infuse.time for hourly rounded time) and rate (infuse.dose), bolus dose time (bolus.time) and dose level (bolus.dose), weight used in dose calculation and identification numbers for further merging with the output from other modules.
+* The output of the `run_MedStrI` function is a dataset with processed IV dosing data with the following variables:
+    + user provided identification numbers for further merging with the output from other modules (e.g., mod_id in this example data)
+    + date.dose: date of dose administration
+    + infuse.time.real: actual infusion dosing time
+    + infuse.time: infusion dose time processed (rounded time) based on continuous infusion time
+    + infuse.dose: infusion dose amount (e.g., calculated by rate*weight if the unit includes weight)
+    + bolus.time: bolus dose time
+    + bolus.dose: bolus dose amount
+    + given.dose: the raw dose given is preserved from the flow sheet data when available (identified as "finalunits" in flow.columns)
+    + maxint: infusion recording interval (e.g., default: maxint = 15 min for MAR data; maxint = 60 min for flow data). Depending institutions, this output variable should be used with caution when running `run_Build_PK_IV` (see  *Build-PK-IV* for details).
+    + weight: subject body weight recorded near infusion time, which will be used in dose calculation
 
 ### Part II: e-prescription data
 
@@ -652,7 +662,7 @@ After providing the updated file, the same `run_DrugLevel()` function should be 
 ```{r Pro-Drug-Level-rerun, eval=FALSE}
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
-    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
+    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp = 'event'),
     conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
     samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
     samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
@@ -669,7 +679,7 @@ conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"
 co({
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
-    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
+    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp = 'event'),
     conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
     samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
     samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
@@ -694,11 +704,11 @@ if (file.exists(ms)) file.remove(ms)
 ```
 
 * The `run_DrugLevel` function arguments are as follows:
-    + `conc.path`: file name of concentration data (CSV, RData, RDS), or data.frame
-    + `conc.select`: list of variables in the drug concentration data, which are used for processing
-    + `conc.rename`: rename variables for the variables in conc.select
+    + `conc.path`: (required) file name of concentration data (CSV, RData, RDS), or data.frame
+    + `conc.select`: (required) list of variables in the drug concentration data, which are used for processing; id (e.g., 'mod_id'), sample event id within each subject id (e.g., 'samp'), and drug concentration (e.g., 'fentanyl_calc_conc') are required to be selected
+    + `conc.rename`: rename variables for the variables in conc.select; the selected variables should be renamed using 'conc.level' for drug concentration and 'event' for sample event name (e.g., fentanyl_calc_conc = 'conc.level', samp = 'event')
     + `conc.mod.list`: list containing modifications to variables in the drug concentration data
-    + `samp.path`: file name of data with sampling time (CSV, RData, RDS), or data.frame
+    + `samp.path`: (optional) file name of data with sampling time (CSV, RData, RDS), or data.frame; if provided, 'conc.mod.list' and 'samp.mod.list' should be provided to create unique identification number for concentration samples within each subject, which is a combination of the subject id and the sample event id using the same variable name, and this variable is used to connect the concentration data and the sample data to generate the date/time variable for concentration data
     + `samp.mod.list`: list containing modifications to variables in the sampling time data
     + `check.path`: file path to ‘check’ directory, where the generated files for data checking are stored, and the corresponding data files with fixed data exist. The default (NULL) will not produce any check files.
     + `failmiss_fn`: filename stub for missing concentration date check file
@@ -744,7 +754,8 @@ The Build-PK-IV module creates PK data for IV medications. Both dose data from t
 * Resolve duplicate doses. A file with duplicate bolus dose records, if any, will be produced using the `faildupbol_fn` stub appended with drugname. A ‘fix’ file can be added to correct these records.
      + e.g., if `faildupbol_fn` is 'DuplicateBolus-', the file 'failDuplicateBolus-fent.csv' will be created in the `check.path` directory. The corrected file should replace 'fail' with 'fix' (e.g., 'fixDuplicateBolus-fent.csv'), and include an additional variable called 'flag' with the value 'keep' for the records to be retained.
 
-* Add zero dose values (i.e., impute stopping time for a continuous infusion) and (conceptually) impute missing records if ‘gap’ is provided in `dose.columns`. This allows a continuous infusion given when there are missing records between infusion dosing records. For example, suppose that ‘gap’ = 60 is defined (which is typical gap size when infusion dosing is supposed to be recorded hourly for inpatients) and time between two records (i.e., gap) are greater than 1 hour (i.e., missing record). If the gap between the two records is less or equal to twice of the gap (i.e., 2*60 = 120 min), a continuous infusion is assumed until the 2nd dose record; otherwise, the first infusion is assumed to be stopped (i.e., add zero doses) after 60 min (i.e., equal to the gap size) and a new infusion (the 2nd record) starts at its recorded time. Both infuse.time.real and infuse.time are used to impute stopping time for a continuous infusion based on 'gap' if it is provided in the dose data, while infuse.time.real is used to generate 'time' variable in the processed data.
+* Add zero dose values (i.e., impute stopping time for a continuous infusion) and (conceptually) impute missing records if ‘gap’ is provided in `dose.columns`. This allows a continuous infusion given when there are missing records between infusion dosing records. For example, suppose that ‘gap’ = 60 is defined (which is typical gap size when infusion dosing is supposed to be recorded hourly for inpatients) and time between two records (i.e., gap) are greater than 1 hour (i.e., missing record). If the gap between the two records is less or equal to twice of the gap (i.e., 2*60 = 120 min), a continuous infusion is assumed until the 2nd dose record; otherwise, the first infusion is assumed to be stopped (i.e., add zero doses) after 60 min (i.e., equal to the gap size) and a new infusion (the 2nd record) starts at its recorded time. Both infuse.time.real and infuse.time are used to impute stopping time for a continuous infusion based on 'gap' if it is provided in the dose data, while infuse.time.real is used to generate 'time' variable in the processed data. Note that if no `gap` variable is set, no additional (zero dose) rows will be created (as `addZeroDose` is the function (internal function) that adds a stopping dose). 
+For example of Vanderbilt University Medical Center, after *Epic* EHR system was implemented, only MAR data are collected without flow sheet data, which have infusion data recorded with any time intervals, and hence `maxint` should not be set for 'gap' in `dose.columns` argument of `run_Build_PK_IV` function.
 
 * Combine dose and concentration data into PK data format.
 
