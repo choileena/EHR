@@ -77,9 +77,9 @@ The data for example 1 includes a demographic file, a concentration file, an IV 
 ```{r simp-in}
 # define directories
 td <- tempdir()
-dir.create(file.path(td, 'check1'))
-rawDataDir <- system.file("examples", "str_ex1", package="EHR")
 checkDir <- file.path(td, 'check1')
+rawDataDir <- system.file("examples", "str_ex1", package="EHR")
+dir.create(checkDir)
 
 # pre-processed demographic data 
 demo <- read.csv(file.path(rawDataDir,"Demographics_DATA_simple.csv"))
@@ -151,11 +151,11 @@ head(simple_pk_dat,15)
 To begin example 2 we define directories for the raw data, the processed data, and files used for interactive checking. If a file path for interactive checking is not provided, the interactive checking will not be performed.
 
 ```{r ex2-dirs}
-dir.create(file.path(td, 'data2'))
-dir.create(file.path(td, 'check2'))
-rawDataDir <- system.file("examples", "str_ex2", package="EHR")
 dataDir <- file.path(td, 'data2')
 checkDir <- file.path(td, 'check2')
+rawDataDir <- system.file("examples", "str_ex2", package="EHR")
+dir.create(dataDir)
+dir.create(checkDir)
 ```
 
 ## Pre-Processing for Raw Extracted Data
@@ -703,6 +703,24 @@ ms <- file.path(checkDir,paste0("multipleSetsConc-", drugname, Sys.Date(),".csv"
 if (file.exists(ms)) file.remove(ms)
 ```
 
+Before discussing the function arguments, we should first describe the expected data: either a single concentration data set, or concentration data plus sampling time data. If the concentration data set includes a date-time variable, then sampling time data is not necessary.
+
+Concentration data should include the following named columns:
+
+  1. mod_id: patient-level ID
+  2. mod_id_visit: visit-level ID
+  3. event: sample event name
+  4. conc.level: drug concentration amount
+  5. mod_id_event: unique identifier for subject, visit, and event number. As an example, this can be created by pasting together "mod_id_visit" with "event".
+  6. date.time (unless provided with sampling time): date-time of concentration sample
+
+If sampling time is provided, it should include the following named columns:
+
+  1. mod_id_event: unique identifier for subject, visit, and event number
+  2. Sample.Collection.Date.and.Time: date-time of sample collection
+
+If `conc.path` and `samp.path` specify data sets that are formatted as described above, then the `conc.select`, `conc.rename`, `conc.mod.list`, and `samp.mod.list` arguments can be ignored (and set to `NULL`). Otherwise they should be used to help create the proper format.
+
 * The `run_DrugLevel` function arguments are as follows:
     + `conc.path`: (required) file name of concentration data (CSV, RData, RDS), or data.frame
     + `conc.select`: list of variables in the drug concentration data, which are used for processing; id (e.g., 'mod_id'), sample event id within each subject id (e.g., 'samp'), and drug concentration (e.g., 'fentanyl_calc_conc') are required to be selected if the data are not in an appropriate form.
@@ -742,8 +760,6 @@ str(lab.out)
     + `lab.path`: filename of a lab file (CSV, RData, RDS), or data.frame
     + `lab.select`: list of variables in the laboratory data to be retained
     + `lab.mod.list`: list of expressions giving modifications to make to variables in the laboratory data; passed to `dataTransformation`
-
-
 
 ## Build-PK-IV
 
