@@ -590,7 +590,7 @@ Pro-Drug Level module processes drug concentration data that can be merged with 
 
 * Combine drug concentration data with sampling time: This step is necessary only if the drug concentration data file does not contain the sampling time (i.e., the time when blood samples were drawn for drug concentration measurements). When this is the case, the sampling time should be obtained from a separate data file.
 
-* Check missing date/time for drug level measurements. If there are any missing dates, a file listing these records will be produced using the `failmiss_fn` stub appended with drugname. A 'fix' file can be added to correct these records. If no 'fix' file is provided, records with missing dates will be removed.
+* Check missing date-time for drug level measurements. If there are any missing dates, a file listing these records will be produced using the `failmiss_fn` stub appended with drugname. A 'fix' file can be added to correct these records. If no 'fix' file is provided, records with missing dates will be removed.
      + e.g., if `failmiss_fn` is 'MissingConcDate-', the file 'failMissingConcDate-dex.csv' will be created in the `check.path` directory. The file with corrected dates and times should replace 'fail' with 'fix' (e.g., 'fixMissingConcDate-dex.csv'), and be placed in the same `check.path` directory.
 
 
@@ -598,7 +598,7 @@ Pro-Drug Level module processes drug concentration data that can be merged with 
      + e.g., if `multsets_fn` is 'multipleSetsConc-', the file such as 'multipleSetsConc-dex2020-07-15.csv' will be created in the `check.path` directory.
 
 
-* Check duplicate concentration records on the same date/time. If there are any records with multiple concentrations on the same date/time, a file listing these records will be produced using the `faildup_fn` stub appended with drugname. A 'fix' file can be added to correct these records. If no 'fix' file is found, all duplicates are retained. 
+* Check duplicate concentration records on the same date-time. If there are any records with multiple concentrations on the same date-time, a file listing these records will be produced using the `faildup_fn` stub appended with drugname. A 'fix' file can be added to correct these records. If no 'fix' file is found, all duplicates are retained. 
      + e.g., if `faildup_fn` is 'DuplicateConc-', the file 'failDuplicateConc-dex.csv' will be created in the `check.path` directory.
 The corrected file should replace 'fail' with 'fix', e.g. 'fixDuplicateConc-dex.csv', and include an additional variable called 'flag' with the value 'keep' for the records to be retained.
 
@@ -710,7 +710,7 @@ Concentration data should include the following named columns:
   1. mod_id: patient-level ID
   2. mod_id_visit: visit-level ID
   3. event: sample event name
-  4. conc.level: drug concentration amount
+  4. conc.level: drug concentration level
   5. mod_id_event: unique identifier for subject, visit, and event number. As an example, this can be created by pasting together "mod_id_visit" with "event".
   6. date.time (unless provided with sampling time): date-time of concentration sample
 
@@ -726,7 +726,7 @@ If `conc.path` and `samp.path` specify data sets that are formatted as described
     + `conc.select`: list of variables in the drug concentration data, which are used for processing; id (e.g., 'mod_id'), sample event id within each subject id (e.g., 'samp'), and drug concentration (e.g., 'fentanyl_calc_conc') are required to be selected if the data are not in an appropriate form.
     + `conc.rename`: rename variables for the variables in conc.select; the selected variables should be renamed using 'conc.level' for drug concentration and 'event' for sample event name (e.g., fentanyl_calc_conc = 'conc.level', samp = 'event')
     + `conc.mod.list`: list containing modifications to variables in the drug concentration data
-    + `samp.path`: (optional) file name of data with sampling time (CSV, RData, RDS), or data.frame; if provided, 'conc.mod.list' and 'samp.mod.list' should be provided to create unique identification number for concentration samples within each subject, which is a combination of the subject id and the sample event id using the same variable name, and this variable is used to connect the concentration data and the sample data to generate the date/time variable for concentration data
+    + `samp.path`: (optional) file name of data with sampling time (CSV, RData, RDS), or data.frame; if provided, 'conc.mod.list' and 'samp.mod.list' should be provided to create 'mod_id_event' as shown above\ (unless provided in each dataset), which will be used to connect the concentration data and the sample data to generate the date-time variable for concentration data
     + `samp.mod.list`: list containing modifications to variables in the sampling time data
     + `check.path`: file path to ‘check’ directory, where the generated files for data checking are stored, and the corresponding data files with fixed data exist. The default (NULL) will not produce any check files.
     + `failmiss_fn`: filename stub for missing concentration date check file
@@ -736,7 +736,7 @@ If `conc.path` and `samp.path` specify data sets that are formatted as described
     + `LLOQ`: lower limit of quantification (LLOQ)
          - e.g., dexmedetomidine 0.005 ng/mL, fentanyl 0.05 ng/mL
     + `demo.list`: file name for processed demographic file that is used to exclude subjects based on exclusion criteria
-* The output of the `run_DrugLevel` function is a dataset for processed drug concentration levels (conc.level) matched with date/time (date.time), as well as necessary identification numbers for further merging with the output from other modules.
+* The output of the `run_DrugLevel` function is a dataset for processed drug concentration levels (conc.level) matched with date-time (date.time), as well as necessary identification numbers for further merging with the output from other modules.
 
 ## Pro-Laboratory
 
