@@ -208,7 +208,7 @@ The same steps can be used for the sample values data csv file. It is read in us
 ```{r conc-in1}
 # concentration sample values data
 # read in raw data
-conc.raw<-read.csv(file.path(rawDataDir, "SampleConcentration_DATA.csv"))
+conc.raw <-read.csv(file.path(rawDataDir, "SampleConcentration_DATA.csv"))
 head(conc.raw)
 
 # helper function used to make subject_id
@@ -302,7 +302,7 @@ head(creat.in)
 # Albumin lab data
 alb.in <- readTransform(file.path(rawDataDir, "Albumin_DATA.csv"),
     rename = c('Subject.uniq' = 'subject_uid'))
-head(creat.in)
+head(alb.in)
 ```
 
 ### (2) Merge data to create new ID variables
@@ -662,7 +662,7 @@ After providing the updated file, the same `run_DrugLevel()` function should be 
 ```{r Pro-Drug-Level-rerun, eval=FALSE}
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
-    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
+    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp = 'event'),
     conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
     samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
     samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
@@ -679,7 +679,7 @@ conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"
 co({
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
-    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
+    conc.rename=c(fentanyl_calc_conc = 'conc.level', samp = 'event'),
     conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
     samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
     samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
@@ -704,11 +704,11 @@ if (file.exists(ms)) file.remove(ms)
 ```
 
 * The `run_DrugLevel` function arguments are as follows:
-    + `conc.path`: file name of concentration data (CSV, RData, RDS), or data.frame
-    + `conc.select`: list of variables in the drug concentration data, which are used for processing
-    + `conc.rename`: rename variables for the variables in conc.select
+    + `conc.path`: (required) file name of concentration data (CSV, RData, RDS), or data.frame
+    + `conc.select`: (required) list of variables in the drug concentration data, which are used for processing; id (e.g., 'mod_id'), sample event id within each subject id (e.g., 'samp'), and drug concentration (e.g., 'fentanyl_calc_conc') are required to be selected
+    + `conc.rename`: rename variables for the variables in conc.select; the selected variables should be renamed using 'conc.level' for drug concentration and 'event' for sample event name (e.g., fentanyl_calc_conc = 'conc.level', samp = 'event')
     + `conc.mod.list`: list containing modifications to variables in the drug concentration data
-    + `samp.path`: file name of data with sampling time (CSV, RData, RDS), or data.frame
+    + `samp.path`: (optional) file name of data with sampling time (CSV, RData, RDS), or data.frame; if provided, 'conc.mod.list' and 'samp.mod.list' should be provided to create unique identification number for concentration samples within each subject, which is a combination of the subject id and the sample event id using the same variable name, and this variable is used to connect the concentration data and the sample data to generate the date/time variable for concentration data
     + `samp.mod.list`: list containing modifications to variables in the sampling time data
     + `check.path`: file path to ‘check’ directory, where the generated files for data checking are stored, and the corresponding data files with fixed data exist. The default (NULL) will not produce any check files.
     + `failmiss_fn`: filename stub for missing concentration date check file
