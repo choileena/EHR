@@ -86,9 +86,9 @@ samp_data <- data.frame(mod_id = rep(1:3,each=4),
 saveRDS(samp_data,'samp_data.rds')
 
 run_DrugLevel(
-  conc.path='conc_data.rds',
-  conc.select=c('mod_id','mod_id_visit','samp','drug_calc_conc'),
-  conc.rename=c(drug_calc_conc= 'conc.level', samp='event'),
+  conc.path = 'conc_data.rds',
+  conc.select = c('mod_id','mod_id_visit','samp','drug_calc_conc'),
+  conc.rename = c(drug_calc_conc= 'conc.level', samp='event'),
   conc.mod.list = list(mod_id_event = expression(paste(mod_id_visit, event, sep = "_"))),
   samp.path = 'samp_data.rds',
   samp.mod.list = list(mod_id_event = expression(paste(mod_id_visit, samp, sep = "_"))),
@@ -96,6 +96,17 @@ run_DrugLevel(
   drugname = 'drugnm',
   LLOQ = 0.05
 )
+
+# minimal example with data in required format
+conc_data <- conc_data[,c('mod_id','mod_id_visit','samp','drug_calc_conc')]
+conc_data[,'mod_id_event'] <- paste(conc_data[,'mod_id_visit'], conc_data['samp'], sep = "_")
+names(conc_data)[3:4] <- c('event','conc.level')
+samp_data[,'mod_id_event'] <- paste(samp_data[,'mod_id_visit'], samp_data['samp'], sep = "_")
+conc_samp_link <- match(conc_data[,'mod_id_event'], samp_data[,'mod_id_event'])
+conc_date <- samp_data[conc_samp_link, 'Sample.Collection.Date.and.Time']
+conc_data[,'date.time'] <- as.POSIXct(conc_date)
+run_DrugLevel(conc_data)
+
 }
 
 }

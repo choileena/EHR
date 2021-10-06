@@ -313,30 +313,35 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
   cat(sprintf('%s total unique subjects in the concentration data\n', length(unique(dat[,'mod_id']))))
 
   # use information to make rule based approach
-  ddd <- dat[dat[,'mod_id'] %in% multipleSets.id,]
-  ddd <- ddd[order(ddd[,c('mod_id')]),]
-  if(!is.null(checkDir)) {
-    fn <- file.path(checkDir, sprintf(paste0(multsets_filename, drugname,"%s.csv"), Sys.Date()))
-    msg <- sprintf('%s rows need review, see file %s\n', nrow(ddd), fn)
-    writeCheckData(ddd, fn, msg)
-  }
+  hasXid <- dat[,'mod_id'] %in% multipleSets.id
+  nodupid <- unique(dat[!hasXid, 'mod_id_visit'])
+  ddd <- dat[hasXid,]
+  if(nrow(ddd)) {
+    ddd <- ddd[order(ddd[,c('mod_id')]),]
+    if(!is.null(checkDir)) {
+      fn <- file.path(checkDir, sprintf(paste0(multsets_filename, drugname,"%s.csv"), Sys.Date()))
+      msg <- sprintf('%s rows need review, see file %s\n', nrow(ddd), fn)
+      writeCheckData(ddd, fn, msg)
+    }
 
-  if(is.na(lowerLimit)) {
-    ddd[,'valid'] <- 1
+    if(is.na(lowerLimit)) {
+      ddd[,'valid'] <- 1
+    } else {
+      ddd[,'valid'] <- +(ddd[,'conc.level'] >= lowerLimit)
+    }
+    tt <- tapply(ddd$valid, ddd$mod_id_visit, sum)
+    tt <- data.frame(mod_id_visit=names(tt), num=tt)
+    dd.x <- ddd[!duplicated(ddd$mod_id_visit), c('mod_id_visit', 'mod_id', 'eid')]
+    dd.y <- merge(dd.x, tt)
+
+    select.set <- do.call(rbind, lapply(split(dd.y, dd.y[,'mod_id']), function(i) {
+      i[which.max(i[,'num']),]
+    }))
+    valid.multi.id <- c(nodupid, select.set[,'mod_id_visit'])
+    dat <- dat[dat[,'mod_id_visit'] %in% valid.multi.id ,]
   } else {
-    ddd[,'valid'] <- +(ddd[,'conc.level'] >= lowerLimit)
+    dat <- dat[dat[,'mod_id_visit'] %in% nodupid ,]
   }
-  tt <- tapply(ddd$valid, ddd$mod_id_visit, sum)
-  tt <- data.frame(mod_id_visit=names(tt), num=tt)
-  dd.x <- ddd[!duplicated(ddd$mod_id_visit), c('mod_id_visit', 'mod_id', 'eid')]
-  dd.y <- merge(dd.x, tt)
-
-  select.set <- do.call(rbind, lapply(split(dd.y, dd.y[,'mod_id']), function(i) {
-    i[which.max(i[,'num']),]
-  }))
-  nodupid <- unique(dat[!(dat[,'mod_id'] %in% multipleSets.id), 'mod_id_visit'])
-  valid.multi.id <- c(nodupid, select.set[,'mod_id_visit'])
-  dat <- dat[dat[,'mod_id_visit'] %in% valid.multi.id ,]
   cat(sprintf('%s total unique subjects ids (after excluding multiple visits) in the concentration data\n', length(unique(dat[,'mod_id_visit']))))
   cat(sprintf('%s total unique subjects in the concentration data\n', length(unique(dat[,'mod_id']))))
 
