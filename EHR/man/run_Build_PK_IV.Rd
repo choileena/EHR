@@ -13,6 +13,9 @@ run_Build_PK_IV(
   demo.columns = list(),
   lab.list = NULL,
   lab.columns = list(),
+  dosePriorWindow = 7,
+  labPriorWindow = 7,
+  postWindow = NA,
   pk.vars = NULL,
   drugname = NULL,
   check.path = NULL,
@@ -66,6 +69,16 @@ the lab data was obtained, which can refer to a single date-time variable
 (datetime = \sQuote{date_time}) or two variables holding date and time separately
 (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})). Any other columns present in lab
 data are treated as lab values.}
+
+\item{dosePriorWindow}{Dose data is merged with drug level data. This value sets the
+time frame window with the number of days prior to the first drug level data; defaults to 7.}
+
+\item{labPriorWindow}{Lab data is merged with drug level data. This value sets the
+time frame window with the number of days prior to the first drug level data; defaults to 7.}
+
+\item{postWindow}{Data is merged with drug level data. This postWindow can set the end time
+for the drug level data, being the number of days after the first drug level data. The
+default (NA) will use the date of the last drug level data.}
 
 \item{pk.vars}{variables to include in the returned PK data. The variable \sQuote{date}
 is a special case; when included, it maps the \sQuote{time} offset to its original date-time.

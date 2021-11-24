@@ -38,6 +38,13 @@
 #' (datetime = \sQuote{date_time}) or two variables holding date and time separately
 #' (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})). Any other columns present in lab
 #' data are treated as lab values.
+#' @param dosePriorWindow Dose data is merged with drug level data. This value sets the
+#' time frame window with the number of days prior to the first drug level data; defaults to 7.
+#' @param labPriorWindow Lab data is merged with drug level data. This value sets the
+#' time frame window with the number of days prior to the first drug level data; defaults to 7.
+#' @param postWindow Data is merged with drug level data. This postWindow can set the end time
+#' for the drug level data, being the number of days after the first drug level data. The
+#' default (NA) will use the date of the last drug level data.
 #' @param pk.vars variables to include in the returned PK data. The variable \sQuote{date}
 #' is a special case; when included, it maps the \sQuote{time} offset to its original date-time.
 #' Other named variables will be merged from the concentration data set. For example,
@@ -105,6 +112,9 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
                             dose, dose.columns = list(),
                             demo.list = NULL, demo.columns = list(),
                             lab.list = NULL, lab.columns = list(),
+                            dosePriorWindow = 7,
+                            labPriorWindow = 7,
+                            postWindow = NA,
                             pk.vars = NULL, drugname = NULL, check.path = NULL,
                             missdemo_fn='-missing-demo',
                             faildupbol_fn='DuplicateBolus-',
@@ -193,7 +203,7 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   # trim Doses - determine whether each dose is valid by comparing to concentration data
   tdArgs <- list(doseData=dose, drugLevelData=conc, drugLevelID=conc.col$id,
     drugLevelTimeVar="date.time", drugLevelVar=conc.col$druglevel,
-    otherDoseTimeVar=NULL, otherDoseVar=NULL
+    otherDoseTimeVar=NULL, otherDoseVar=NULL, lookForward=dosePriorWindow, last=postWindow
   )
   if(hasInf) {
     tdArgs$infusionDoseTimeVar <- 'infuse.time'
@@ -343,7 +353,8 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
       lab.vars <- c(lab.vars, cln)
       if(length(cln)) {
         curlab <- lab.list[[i]][,c(lab.col$id, 'date.time', cln)]
-        tmp <- merge_by_time(tmp, curlab, maxTime=168, x.id='mod_id', y.id=lab.col$id, x.time='date', y.time='date.time')
+        labMax <- labPriorWindow * 24
+        tmp <- merge_by_time(tmp, curlab, maxTime=labMax, x.id='mod_id', y.id=lab.col$id, x.time='date', y.time='date.time')
       }
     }
     missLab <- setdiff(lab.vars, names(tmp))
