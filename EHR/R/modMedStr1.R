@@ -46,9 +46,11 @@
 #' @param check.path path to \sQuote{check} directory, where check files are
 #' created. The default (NULL) will not produce any check files.
 #' @param failflow_fn filename for duplicate flow data with rate zero
+#' @param failnounit_fn filename for MAR data with missing unit
 #' @param failunit_fn filename for MAR data with invalid unit
 #' @param failnowgt_fn filename for infusion data with missing weight where unit
 #' indicates weight is required
+#' @param censor_date_fn filename containing censor times created with invalid dose data
 #' @param infusion.unit acceptable unit for infusion data
 #' @param bolus.unit acceptable unit for bolus data
 #' @param bol.rate.thresh upper limit for bolus rate; values above this are invalid
@@ -127,8 +129,10 @@ run_MedStrI <- function(mar.path,
                         wgt.columns = list(),
                         check.path = NULL,
                         failflow_fn = 'FailFlow',
+                        failnounit_fn = 'NoUnit',
                         failunit_fn = 'Unit',
                         failnowgt_fn = 'NoWgt',
+                        censor_date_fn = 'CensorTime',
                         infusion.unit = 'mcg/kg/hr',
                         bolus.unit = 'mcg',
                         bol.rate.thresh = Inf,
@@ -175,6 +179,8 @@ run_MedStrI <- function(mar.path,
   mar.weightCol <- mar.col$weight
   mar.givenCol <- mar.col$given
 
+  censor_opts <- vector('list', 3)
+
   if(!is.null(mar.drugCol) && !is.null(medchk.path)) {
     ## medChecked data
     list.med <- read(medchk.path)[['medname']]
@@ -194,29 +200,52 @@ run_MedStrI <- function(mar.path,
   }
   rm(medMAR)
 
-  if(length(mar.doseCol) == 2) {
-    rate <- dm[,mar.doseCol[1]]
-    unit <- dm[,mar.doseCol[2]]
-  } else {
-    rate <- sub('([0-9.]+).*', '\\1', dm[,mar.doseCol])
-    unit <- sub('.*[ ]', '', dm[,mar.doseCol])
-  }
-  dm[,'unit'] <- unit
-  dm[,'rate'] <- suppressWarnings(as.numeric(rate))
-  if(length(mar.datetimeCol) == 2) {
-    marDT <- paste(dm[,mar.datetimeCol[1]], dm[,mar.datetimeCol[2]])
-  } else {
-    marDT <- dm[,mar.datetimeCol]
-  }
-  dm[,'date.time'] <- pkdata::parse_dates(marDT)
-  # rename "weight" column if necessary
-  if(!is.null(mar.weightCol) && mar.weightCol != 'weight') {
-    names(dm)[names(dm) == mar.weightCol] <- 'weight'
-    mar.weightCol <- 'weight'
-  }
-  hasUnit <- !is.na(unit)
-  inf0 <- dm[hasUnit & unit == infusion.unit,]
+  dm <- setDoseMar(dm, mar.doseCol, mar.datetimeCol, mar.weightCol)
   reqInfusionColumns <- c(mar.idCol, 'date.time', 'unit', 'rate', mar.weightCol)
+
+  hasUnit <- !is.na(dm[,'unit'])
+  # handle missing unit
+  if(!is.null(check.path)) {
+    dmnu <- dm[!hasUnit,]
+    if(nrow(dmnu) > 0) {
+      nounitfn <- file.path(check.path, paste0('fail', failnounit_fn,'-', drugname, '.csv'))
+      nounitfixfn <- sub('fail', 'fix', nounitfn)
+
+      mf <- cbind(dmnu[,reqInfusionColumns], dmnu[,mar.drugCol], flag = 'exclude')
+      msg <- sprintf('%s rows with no unit, see file %s AND create %s\n', nrow(mf), nounitfn, nounitfixfn)
+      writeCheckData(mf, nounitfn, msg)
+
+      if(file.access(nounitfixfn, 4) != -1) {
+        hasfix <- read.csv(nounitfixfn, stringsAsFactors = FALSE)
+        if(nrow(dmnu) != nrow(hasfix)) {
+          wmsg <- sprintf('all rows in fix file %s should match respective rows in fail file %s\n', nounitfn, nounitfixfn)
+          stop(wmsg)
+        }
+        toKeep <- hasfix[,'flag'] != 'exclude'
+        nFixed <- sum(toKeep)
+        nBad <- sum(!toKeep)
+        if(nFixed > 0L) {
+          # update required columns (ideally just "unit")
+          dmnu[toKeep, reqInfusionColumns] <- hasfix[toKeep, reqInfusionColumns]
+          cat(sprintf('file %s read, %s records added\n', nounitfixfn, nFixed))
+          dm0 <- setDoseMar(dmnu[toKeep,], mar.doseCol, 'date.time', mar.weightCol)
+          dm1 <- rbind(dm[hasUnit,], dm0)
+          # re-order data
+          dm <- dm1[order(dm1[,mar.idCol], dm1[,'date.time']),]
+          hasUnit <- !is.na(dm[,'unit'])
+        }
+        ## unfixed/bad data should be censored
+        if(nBad > 0L) {
+          censor_opts[[1]] <- dmnu[!toKeep, c(mar.idCol, 'date.time')]
+        }
+      } else {
+        censor_opts[[1]] <- dmnu[, c(mar.idCol, 'date.time')]
+      }
+    }
+  }
+
+  unit <- dm[,'unit']
+  inf0 <- dm[hasUnit & unit == infusion.unit,]
   inf1 <- inf0[,reqInfusionColumns]
 
   bol <- dm[hasUnit & unit == bolus.unit,]
@@ -314,15 +343,22 @@ run_MedStrI <- function(mar.path,
 
     if(file.access(unitfixfn, 4) != -1) {
       hasfix <- read.csv(unitfixfn, stringsAsFactors = FALSE)
-      hasfix <- hasfix[hasfix[,'flag'] == 'keep', reqInfusionColumns]
-      if(nrow(hasfix)) {
-        inf1 <- rbind(inf0[,reqInfusionColumns], hasfix)
-        cat(sprintf('file %s read, %s records added\n', unitfixfn, nrow(hasfix)))
+      toKeep <- hasfix[,'flag'] != 'exclude'
+      nFixed <- sum(toKeep)
+      nBad <- sum(!toKeep)
+      if(nFixed > 0L) {
+        inf1 <- rbind(inf0[,reqInfusionColumns], hasfix[toKeep, reqInfusionColumns])
+        cat(sprintf('file %s read, %s records added\n', unitfixfn, nFixed))
       }
+      ## unfixed/bad data should be censored
+      if(nBad > 0L) {
+        censor_opts[[2]] <- hasfix[!toKeep, c(mar.idCol, 'date.time')]
+      }
+    } else {
+      censor_opts[[2]] <- mf[, c(mar.idCol, 'date.time')]
     }
   } else {
-    cat(sprintf('no units other than %s or %s, file %s not created\n',
-                infusion.unit, bolus.unit, unitfn))
+    cat(sprintf('no units other than %s or %s, file %s not created\n', infusion.unit, bolus.unit, unitfn))
   }
 
   # infusionData_mod() accepts MAR data (inf1) with units
@@ -371,6 +407,9 @@ run_MedStrI <- function(mar.path,
         inf <- inf[order(inf[,mar.idCol], inf[,'date.time']),]
         cat(sprintf('file %s read, %s records corrected\n', nowgtfixfn, nrow(hasfix)))
       }
+    } else {
+      # no fix file
+      censor_opts[[3]] <- needfix[, c(mar.idCol, 'date.time')]
     }
   }
 
@@ -382,6 +421,18 @@ run_MedStrI <- function(mar.path,
   # merge_inf_bolus enforces mod_id; restore name
   if(mar.idCol != 'mod_id') {
     names(hourly)[1] <- mar.idCol
+  }
+
+  censor_opts <- do.call(rbind, censor_opts)
+  if(is.null(check.path)) {
+    warning('no check.path is provided; censor dates will not be utilized')
+  } else if(!is.null(censor_opts)) {
+    # find "min" date-time for mod_id
+    censor_opts <- censor_opts[order(censor_opts[,mar.idCol], censor_opts[,'date.time']),]
+    censor_date <- censor_opts[!duplicated(censor_opts[,mar.idCol]),]
+    cdfn <- file.path(check.path, paste0(censor_date_fn,'-', drugname, '.csv'))
+    msg <- sprintf('censor dates created, please see %s\n', cdfn)
+    writeCheckData(censor_date, cdfn, msg)
   }
 
   cdArgs <- list(

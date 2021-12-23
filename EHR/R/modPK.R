@@ -23,7 +23,14 @@
 #' to either infusion or bolus dosing. \sQuote{gap} and \sQuote{weight} column
 #' names may also be set. Any of the date-time variables can be specified as a
 #' single date-time variable (infuseDatetime = \sQuote{date_time}) or two variables
-#' holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})). 
+#' holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})).
+#' @param censor censoring information, if available; this will censor concentration
+#' and dose data for dates occuring after the censor datetime variable.
+#' @param censor.columns a named list that should specify columns in censoring data; \sQuote{id},
+#' and \sQuote{datetime} are required. \sQuote{datetime} is the date and time when
+#' data should be censored. This can refer to a single date-time variable
+#' (datetime = \sQuote{date_time}) or two variables holding date and time separately
+#' (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).
 #' @param demo.list demographic information, if available; the output from 
 #' \code{\link{run_Demo}} or a correctly formatted data.frame
 #' @param demo.columns a named list that should specify columns in demographic data;
@@ -110,6 +117,8 @@
 
 run_Build_PK_IV <- function(conc, conc.columns = list(),
                             dose, dose.columns = list(),
+                            censor = NULL,
+                            censor.columns = list(),
                             demo.list = NULL, demo.columns = list(),
                             lab.list = NULL, lab.columns = list(),
                             dosePriorWindow = 7,
@@ -124,6 +133,7 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   conc.req <- list(id = NA, datetime = NA, druglevel = NA, idvisit = NULL)
   dose.req <- list(id = NA, date = NULL, infuseDatetime = NULL, infuseTimeExact = NULL, infuseDose = NULL,
     bolusDatetime = NULL, bolusDose = NULL, gap = NULL, weight = NULL)
+  censor.req <- list(id = NA, datetime = NA)
   lab.req <- list(id = NA, datetime = NA)
   demo.req <- list(id = NA, datetime = NULL, idvisit = NULL, weight = NULL)
 
@@ -279,6 +289,51 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
         dem <- demoData[, c(demo.col$id, 'date.time')]
         info1 <- updateInterval_mod(info0, dem)
       }
+    }
+  }
+
+  # censor if necessary
+  if(!is.null(censor)) {
+    censData <- read(censor)
+    cens.col <- validateColumns(censData, censor.columns, censor.req)
+    if(length(cens.col$datetime) == 2) {
+      censDT <- paste(censData[,cens.col$datetime[1]], censData[,cens.col$datetime[2]])
+    } else {
+      censDT <- censData[,cens.col$datetime]
+    }
+    # previously, this was ['surgery_date','time_fromor']
+    censData[,'date.time'] <- pkdata::parse_dates(censDT)
+    # censor dose and concentration data at date.time for each ID
+    doseCensFlag <- logical(nrow(info1))
+    concCensFlag <- logical(nrow(conc))
+    doseIx <- tapply(seq_along(doseCensFlag), info1[,'mod_id'], I)
+    concIx <- tapply(seq_along(concCensFlag), conc[,conc.col$id], I)
+    na_dt <- as.POSIXct(NA)
+    for(i in seq(nrow(censData))) {
+      id_i <- censData[i,cens.col$id]
+      dt_i <- censData[i,'date.time']
+      d_t1 <- d_t2 <- d_t3 <- na_dt
+      if(id_i %in% names(doseIx)) {
+        if(hasInf) {
+          d_t1 <- info1[doseIx[[id_i]], 'infuse.time']
+        }
+        if(hasBol) {
+          d_t2 <- info1[doseIx[[id_i]], 'bolus.time']
+        }
+        toCens <- (!is.na(d_t1) & d_t1 > dt_i) | (!is.na(d_t2) & d_t2 > dt_i)
+        doseCensFlag[doseIx[[id_i]]] <- toCens
+      }
+      if(id_i %in% names(concIx)) {
+        d_t3 <- conc[concIx[[id_i]], 'date.time']
+        toCens <- !is.na(d_t3) & d_t3 > dt_i
+        concCensFlag[concIx[[id_i]]] <- toCens
+      }
+    }
+    if(any(doseCensFlag)) {
+      info1 <- info1[!doseCensFlag,]
+    }
+    if(any(concCensFlag)) {
+      conc <- conc[!concCensFlag,]
     }
   }
 

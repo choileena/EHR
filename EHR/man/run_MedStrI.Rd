@@ -17,8 +17,10 @@ run_MedStrI(
   wgt.columns = list(),
   check.path = NULL,
   failflow_fn = "FailFlow",
+  failnounit_fn = "NoUnit",
   failunit_fn = "Unit",
   failnowgt_fn = "NoWgt",
+  censor_date_fn = "CensorTime",
   infusion.unit = "mcg/kg/hr",
   bolus.unit = "mcg",
   bol.rate.thresh = Inf,
@@ -84,10 +86,14 @@ created. The default (NULL) will not produce any check files.}
 
 \item{failflow_fn}{filename for duplicate flow data with rate zero}
 
+\item{failnounit_fn}{filename for MAR data with missing unit}
+
 \item{failunit_fn}{filename for MAR data with invalid unit}
 
 \item{failnowgt_fn}{filename for infusion data with missing weight where unit
 indicates weight is required}
+
+\item{censor_date_fn}{filename containing censor times created with invalid dose data}
 
 \item{infusion.unit}{acceptable unit for infusion data}
 

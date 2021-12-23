@@ -13,6 +13,8 @@
 #'
 #' code{resolveDoseDups_mod}: correct duplicated infusion and bolus doses
 #'
+#' code{writeCheckData}
+#'
 #' code{processErx}: prepare e-prescription data
 #'
 #' code{processErxAddl}: additional processing, checking for connected observations
@@ -21,9 +23,12 @@
 #'
 #' code{read}: generic read function
 #'
+#' code{setDoseMar}: set unit/rate/date columns
+#'
 #' @name mod-internal
 #' @aliases colflow_mod findMedFlowRow_mod flowData_mod concData_mod
-#' infusionData_mod resolveDoseDups_mod processErx processErxAddl validateColumns read
+#' infusionData_mod resolveDoseDups_mod writeCheckData processErx processErxAddl
+#' validateColumns read setDoseMar
 #' @keywords internal
 NULL
 
@@ -548,7 +553,7 @@ writeCheckData <- function(dat, filename, msg, decor = TRUE, ...) {
   if(decor) cat(dtext)
   cat(msg)
   if(decor) cat(dtext)
-  write.csv(dat, file = filename, row.names = FALSE, quote = FALSE, ...)
+  write.csv(dat, file = filename, row.names = FALSE, quote = TRUE, ...)
 }
 
 ## This function assumes the E-prescription data has columns "ID", "RX_DOSE", "FREQUENCY", "ENTRY_DATE", "STRENGTH_AMOUNT", "DESCRIPTION".
@@ -750,4 +755,28 @@ read <- function(file, readFun = NULL, readArgs = list()) {
     stop(sprintf('file [%s] does not produce a data.frame object', file))
   }
   out
+}
+
+setDoseMar <- function(dm, mar.doseCol, mar.datetimeCol, mar.weightCol) {
+  if(length(mar.doseCol) == 2) {
+    rate <- dm[,mar.doseCol[1]]
+    unit <- dm[,mar.doseCol[2]]
+  } else {
+    rate <- sub('([0-9.]+).*', '\\1', dm[,mar.doseCol])
+    unit <- sub('.*[ ]', '', dm[,mar.doseCol])
+  }
+  dm[,'unit'] <- unit
+  dm[,'rate'] <- suppressWarnings(as.numeric(rate))
+  if(length(mar.datetimeCol) == 2) {
+    marDT <- paste(dm[,mar.datetimeCol[1]], dm[,mar.datetimeCol[2]])
+  } else {
+    marDT <- dm[,mar.datetimeCol]
+  }
+  dm[,'date.time'] <- pkdata::parse_dates(marDT)
+  # rename "weight" column if necessary
+  if(!is.null(mar.weightCol) && mar.weightCol != 'weight') {
+    names(dm)[names(dm) == mar.weightCol] <- 'weight'
+    mar.weightCol <- 'weight'
+  }
+  dm
 }

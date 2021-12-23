@@ -9,6 +9,8 @@ run_Build_PK_IV(
   conc.columns = list(),
   dose,
   dose.columns = list(),
+  censor = NULL,
+  censor.columns = list(),
   demo.list = NULL,
   demo.columns = list(),
   lab.list = NULL,
@@ -51,6 +53,15 @@ to either infusion or bolus dosing. \sQuote{gap} and \sQuote{weight} column
 names may also be set. Any of the date-time variables can be specified as a
 single date-time variable (infuseDatetime = \sQuote{date_time}) or two variables
 holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})).}
+
+\item{censor}{censoring information, if available; this will censor concentration
+and dose data for dates occuring after the censor datetime variable.}
+
+\item{censor.columns}{a named list that should specify columns in censoring data; \sQuote{id},
+and \sQuote{datetime} are required. \sQuote{datetime} is the date and time when
+data should be censored. This can refer to a single date-time variable
+(datetime = \sQuote{date_time}) or two variables holding date and time separately
+(e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
 \item{demo.list}{demographic information, if available; the output from 
 \code{\link{run_Demo}} or a correctly formatted data.frame}

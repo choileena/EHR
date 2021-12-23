@@ -8,10 +8,12 @@
 \alias{concData_mod}
 \alias{infusionData_mod}
 \alias{resolveDoseDups_mod}
+\alias{writeCheckData}
 \alias{processErx}
 \alias{processErxAddl}
 \alias{validateColumns}
 \alias{read}
+\alias{setDoseMar}
 \title{Internal functions for EHR modules}
 \description{
 code{colflow_mod}: build a comparison of potentially duplicate flow data
@@ -28,6 +30,8 @@ which may or may not include weight
 
 code{resolveDoseDups_mod}: correct duplicated infusion and bolus doses
 
+code{writeCheckData}
+
 code{processErx}: prepare e-prescription data
 
 code{processErxAddl}: additional processing, checking for connected observations
@@ -35,5 +39,7 @@ code{processErxAddl}: additional processing, checking for connected observations
 code{validateColumns}: check columns are in place
 
 code{read}: generic read function
+
+code{setDoseMar}: set unit/rate/date columns
 }
 \keyword{internal}
