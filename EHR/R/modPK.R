@@ -310,7 +310,7 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
     concIx <- tapply(seq_along(concCensFlag), conc[,conc.col$id], I)
     na_dt <- as.POSIXct(NA)
     for(i in seq(nrow(censData))) {
-      id_i <- censData[i,cens.col$id]
+      id_i <- as.character(censData[i,cens.col$id])
       dt_i <- censData[i,'date.time']
       d_t1 <- d_t2 <- d_t3 <- na_dt
       if(id_i %in% names(doseIx)) {

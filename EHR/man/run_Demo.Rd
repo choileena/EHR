@@ -4,10 +4,13 @@
 \alias{run_Demo}
 \title{Run Demographic Data}
 \usage{
-run_Demo(demo.path, toexclude, demo.mod.list)
+run_Demo(demo.path, demo.columns = list(), toexclude, demo.mod.list)
 }
 \arguments{
 \item{demo.path}{filename of demographic file (CSV, RData, RDS) or data.frame}
+
+\item{demo.columns}{a named list that should specify columns in demo data; \sQuote{id},
+is required.}
 
 \item{toexclude}{expression that should evaluate to a logical, indicating if
 the observation should be excluded}

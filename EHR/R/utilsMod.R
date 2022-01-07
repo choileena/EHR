@@ -249,114 +249,134 @@ The number of rows after removing the duplicates  %8d\n', n1, n2))
 }
 
 concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveExample = TRUE,
-                         checkDir = NULL, dem=NULL,
+                         checkDir = NULL, dem = NULL,
                          failmissconc_filename,
                          multsets_filename,
-                         faildupconc_filename) {
-
+                         faildupconc_filename,
+                         conc.columns = NULL, samp.columns = NULL, demo.columns = NULL) {
+  # concentration could have up to three ID variables
+  hasEventID <- 'samplinkid' %in% names(conc.columns)
+  hasVisitID <- 'idvisit' %in% names(conc.columns)
+  id1 <- 'id'
+  id2 <- c(id1, 'idvisit')[hasVisitID+1]
+  id3 <- c(id2, 'samplinkid')[hasEventID+1]
+  # id1: mod_id
+  # id2: mod_id_visit
+  # id3: mod_id_event
+  uidv <- conc.columns[[id3]]
   # dat should be standardized by this point
   hasSamp <- !is.null(sampFile)
   if(hasSamp) {
-    concdate <- merge(dat[,c('mod_id_event'),drop=FALSE], sampFile[,c('mod_id_event','Sample.Collection.Date.and.Time')], by='mod_id_event', all.x = TRUE)
-    names(concdate)[2] <- 'date.time'
+    m1 <- dat[, conc.columns$samplinkid]
+    m2 <- sampFile[, samp.columns$conclinkid]
+    concDT <- sampFile[match(m1, m2), 'datetime']
   } else {
-    concdate <- dat[,c('mod_id_event','date.time')]
+    concDT <- dat[, 'datetime']
   }
-  dt <- pkdata::parse_dates(fixDates(concdate[,'date.time']))
+  dt <- pkdata::parse_dates(fixDates(concDT))
+  rnums <- which(is.na(dt))
 
   fn <- file.path(checkDir, paste0('fail', failmissconc_filename, drugname, '.csv'))
-  fixfn <- sub('fail', 'fix', fn)
-  rnums <- which(is.na(dt))
   if(is.null(checkDir)) {
     # bypassing check
   } else if(length(rnums)) {
+    concdate <- cbind(dat[, uidv, drop = FALSE], datetime = concDT)
     needfix <- concdate[rnums,]
-    concdate <- concdate[-rnums,]
+    needfix <- needfix[order(needfix[,uidv]),]
+    nofix <- concdate[-rnums,]
+    fixfn <- sub('fail', 'fix', fn)
     msg <- sprintf('%s rows need review, see file %s AND create %s\n', length(rnums), fn, fixfn)
     writeCheckData(needfix, fn, msg)
     if(file.access(fixfn, 4) != -1) {
       hasfix <- read.csv(fixfn, stringsAsFactors = FALSE)
       if(nrow(hasfix)) {
-        cn <- names(concdate)
-        concdate <- rbind(concdate, hasfix[,cn])
+        cn <- names(nofix)
+        concdate <- rbind(nofix, hasfix[,cn])
         cat(sprintf('file %s read with failures replaced\n', fixfn))
+        # recreate date-time variable
+        concDT <- concdate[match(dat[,uidv], concdate[,uidv]), 'date.time']
+        dt <- pkdata::parse_dates(fixDates(concDT))
       }
     }
   } else {
     cat(sprintf('no failures, file %s not created\n', fn))
   }
-  if(hasSamp) {
-    dt <- concdate[match(dat[,'mod_id_event'], concdate[,'mod_id_event']), 'date.time']
-  } else {
-    dt <- dat[,'date.time']
-  }
-  dat[,'date.time'] <- pkdata::parse_dates(fixDates(dt))
-
-  if(!is.null(dem)) { # if using demographics, keep only conc data with matching demo record
-    dat[,'mod_id'] <- dem[match(dat[,'mod_id_visit'], dem[,'mod_id_visit']), 'mod_id']
-  }
+  dat[,'date.time'] <- dt
 
   if(giveExample) {
-    nodate <- dat[is.na(dat[,'date.time']),'mod_id_event']
-    x <- dat[dat[,'mod_id_event'] %in% nodate, c('mod_id','mod_id_event')]
+    nodate <- dat[is.na(dat[,'date.time']), uidv]
+    x <- dat[dat[,uidv] %in% nodate, c(conc.columns$id,uidv)]
     cat('subjects with concentration missing from sample file\n')
-    print(x[!duplicated(x[,'mod_id_event']),], row.names = FALSE)
+    print(x[!duplicated(x[,uidv]),], row.names = FALSE)
   }
-  # remove missing
   dat <- dat[!is.na(dat[,'date.time']),]
-  dat <- dat[!is.na(dat[,'mod_id']),]
-  
-  # create event id
-  idv <- as.numeric(unique(dat[,'mod_id_visit']))
+
+  # if using demographics, keep only conc data with matching demo record
+  if(!is.null(dem)) {
+    dat[,conc.columns$id] <- dem[match(dat[,conc.columns[[id2]]], dem[,demo.columns[[id2]]]), demo.columns$id]
+  }
+  dat <- dat[!is.na(dat[,conc.columns$id]),]
+  if(nrow(dat) == 0) stop('all concentration data is missing valid IDs or date-times')
+
+  # create `eid` event id
+  # this numbers each visit, ie first visit is eid=1
+  unq_conc_visit <- unique(dat[,conc.columns[[id2]]])
+  idv <- as.numeric(unq_conc_visit)
   tid <- trunc(idv)
   sid <- split(idv, tid)
   nid <- cbind(orig=idv, eid=unsplit(sapply(sid, order), tid))
-  dat[,'eid'] <- nid[match(dat[,'mod_id_visit'], nid[,'orig']), 'eid']
-  multipleSets.id <- unique(dat[dat[,'eid'] > 1, 'mod_id'])
+  dat[,'eid'] <- nid[match(dat[,conc.columns[[id2]]], nid[,'orig']), 'eid']
+  multipleSets.id <- unique(dat[dat[,'eid'] > 1, conc.columns$id])
   cat(sprintf('%s subjects have multiple sets of concentration data\n', length(multipleSets.id)))
-  cat(sprintf('%s total unique subjects ids (including multiple visits) currently in the concentration data\n', length(unique(dat[,'mod_id_visit']))))
-  cat(sprintf('%s total unique subjects in the concentration data\n', length(unique(dat[,'mod_id']))))
+  cat(sprintf('%s total unique subjects ids (including multiple visits) currently in the concentration data\n', length(unq_conc_visit)))
+  cat(sprintf('%s total unique subjects in the concentration data\n', length(unique(dat[,conc.columns$id]))))
 
   # use information to make rule based approach
-  hasXid <- dat[,'mod_id'] %in% multipleSets.id
-  nodupid <- unique(dat[!hasXid, 'mod_id_visit'])
-  ddd <- dat[hasXid,]
-  if(nrow(ddd)) {
-    ddd <- ddd[order(ddd[,c('mod_id')]),]
+  hasXid <- dat[,conc.columns$id] %in% multipleSets.id
+  nodupid <- unique(dat[!hasXid, conc.columns[[id2]]])
+  if(any(hasXid)) {
+    ddd <- dat[hasXid,]
+    ddd <- ddd[order(ddd[,conc.columns$id]),]
     if(!is.null(checkDir)) {
       fn <- file.path(checkDir, sprintf(paste0(multsets_filename, drugname,"%s.csv"), Sys.Date()))
       msg <- sprintf('%s rows need review, see file %s\n', nrow(ddd), fn)
       writeCheckData(ddd, fn, msg)
     }
+    # ~columns: mod_id_visit|mod_id|eid
+    # `dd.x` gives visit number (eid) for each visit
+    dd.x <- ddd[!duplicated(ddd[,conc.columns[[id2]]]), c(conc.columns[[id2]], conc.columns$id, 'eid')]
 
+    # count number of valid concentrations for each visit
     if(is.na(lowerLimit)) {
-      ddd[,'valid'] <- 1
+      validConc <- rep(1, nrow(ddd))
     } else {
-      ddd[,'valid'] <- +(ddd[,'conc.level'] >= lowerLimit)
+      validConc <- +(ddd[,conc.columns$conc] >= lowerLimit)
     }
-    tt <- tapply(ddd$valid, ddd$mod_id_visit, sum)
-    tt <- data.frame(mod_id_visit=names(tt), num=tt)
-    dd.x <- ddd[!duplicated(ddd$mod_id_visit), c('mod_id_visit', 'mod_id', 'eid')]
-    dd.y <- merge(dd.x, tt)
+    tt <- tapply(validConc, ddd[,conc.columns[[id2]]], sum)
+#     tt <- data.frame(mod_id_visit = names(tt), num = tt)
+    nValid <- tt[as.character(dd.x[,conc.columns[[id2]]])]
+#     dd.y <- merge(dd.x, tt, by.x = conc.columns[[id2]], by.y = 'mod_id_visit')
+    # `dd.y` adds number of valid conc for visit
+    dd.y <- cbind(dd.x, num = nValid)
 
-    select.set <- do.call(rbind, lapply(split(dd.y, dd.y[,'mod_id']), function(i) {
+    select.set <- do.call(rbind, lapply(split(dd.y, dd.y[,conc.columns$id]), function(i) {
       i[which.max(i[,'num']),]
     }))
-    valid.multi.id <- c(nodupid, select.set[,'mod_id_visit'])
-    dat <- dat[dat[,'mod_id_visit'] %in% valid.multi.id ,]
+    valid.multi.id <- c(nodupid, select.set[,conc.columns[[id2]]])
+    dat <- dat[dat[,conc.columns[[id2]]] %in% valid.multi.id ,]
   } else {
-    dat <- dat[dat[,'mod_id_visit'] %in% nodupid ,]
+    dat <- dat[dat[,conc.columns[[id2]]] %in% nodupid ,]
   }
-  cat(sprintf('%s total unique subjects ids (after excluding multiple visits) in the concentration data\n', length(unique(dat[,'mod_id_visit']))))
-  cat(sprintf('%s total unique subjects in the concentration data\n', length(unique(dat[,'mod_id']))))
+  cat(sprintf('%s total unique subjects ids (after excluding multiple visits) in the concentration data\n', length(unique(dat[,conc.columns[[id2]]]))))
+  cat(sprintf('%s total unique subjects in the concentration data\n', length(unique(dat[,conc.columns$id]))))
 
   # check for duplicates
   if(!is.null(checkDir)) {
-    cc <- do.call(paste, c(dat[,c('mod_id_visit','date.time')], sep = '|'))
+    cc <- do.call(paste, c(dat[,c(conc.columns[[id2]],'date.time')], sep = '|'))
     rnums <- which(cc %in% cc[duplicated(cc)])
     if(length(rnums)) {
       needfix <- dat[rnums,]
-      needfix <- needfix[order(needfix[,'mod_id_event'], needfix[,'date.time']),]
+      needfix <- needfix[order(needfix[,conc.columns[[id2]]], needfix[,'date.time']),]
       needfix <- cbind(needfix, flag = 'keep')
       nofix <- dat[-rnums,]
       fn <- file.path(checkDir, paste0('fail', faildupconc_filename, drugname, '.csv'))
@@ -376,7 +396,7 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
   }
 
   # reorder by id, date.time
-  dat[order(dat[,'mod_id_visit'], dat[,'date.time'], dat[,'conc.level']),]
+  dat[order(dat[,conc.columns[[id2]]], dat[,'date.time'], dat[,'conc.level']),]
 }
 
 infusionData_mod <- function(flow, mar, flowInt = 60, marInt = 15,

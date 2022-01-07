@@ -6,23 +6,33 @@
 \usage{
 run_DrugLevel(
   conc.path,
+  conc.columns = list(),
   conc.select,
   conc.rename,
-  conc.mod.list = list(mod_id_event = expression(paste(mod_id_visit, event, sep =
-    "_"))),
+  conc.mod.list = NULL,
   samp.path = NULL,
-  samp.mod.list = list(mod_id_event = expression(paste(mod_id_visit, samp, sep = "_"))),
+  samp.columns = list(),
+  samp.mod.list = NULL,
   check.path = NULL,
   failmiss_fn = "MissingConcDate-",
   multsets_fn = "multipleSetsConc-",
   faildup_fn = "DuplicateConc-",
   drugname = NULL,
   LLOQ = NA,
-  demo.list = NULL
+  demo.list = NULL,
+  demo.columns = list()
 )
 }
 \arguments{
 \item{conc.path}{filename of concentration data (CSV, RData, RDS), or data.frame}
+
+\item{conc.columns}{a named list that should specify columns in concentration data.
+\sQuote{id} and \sQuote{conc} are required. \sQuote{idvisit} may also be specified.
+If linking with sampling data, \sQuote{samplinkid} is required. Otherwise
+\sQuote{datetime} is required. This is the date and time when blood samples were
+obtained. This can refer to a single date-time variable
+(datetime = \sQuote{date_time}) or two variables holding date and time
+separately (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
 \item{conc.select}{columns to select from concentration data}
 
@@ -31,6 +41,14 @@ run_DrugLevel(
 \item{conc.mod.list}{list of expressions, giving modifications to make}
 
 \item{samp.path}{filename of data with sampling time (CSV, RData, RDS), or data.frame}
+
+\item{samp.columns}{a named list that should specify columns in sampling data.
+\sQuote{conclinkid} and \sQuote{datetime} are required to link sampling data to
+concentration data. \sQuote{conclinkid} should match the id variable provided as
+\sQuote{samplinkid} in the \sQuote{conc.columns} argument. \sQuote{datetime} is the
+date and time when blood samples were obtained. This can refer to a single date-time
+variable (datetime = \sQuote{date_time}) or two variables holding date and time
+separately (e.g., datetime = c(\sQuote{Date}, \sQuote{Time})).}
 
 \item{samp.mod.list}{list of expressions, giving modifications to make}
 
@@ -50,6 +68,10 @@ will produce filenames without drugname included.}
 
 \item{demo.list}{demographic information; if available, concentration records
 must have a valid demo record}
+
+\item{demo.columns}{a named list that should specify columns in demographic data; \sQuote{id},
+is required. If \sQuote{idvisit} is present in the concentration data, then it is required
+here too.}
 }
 \value{
 drug-level data set
