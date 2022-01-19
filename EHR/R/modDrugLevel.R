@@ -143,9 +143,9 @@ run_DrugLevel <- function(conc.path, conc.columns = list(), conc.select, conc.re
   }
 
   #### demo data
+  demoData <- NULL
   hasDemo <- !is.null(demo.list)
   if(hasDemo) { # if using demographic data
-    demoData <- NULL
     if(inherits(demo.list, 'data.frame')) {
       demoData <- demo.list
     } else {
