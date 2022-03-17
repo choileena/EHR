@@ -423,6 +423,12 @@ run_MedStrI <- function(mar.path,
     names(hourly)[1] <- mar.idCol
   }
 
+  # make sure times are POSIXct
+  for(i in seq_along(censor_opts)) {
+    if(!is.null(censor_opts[[i]])) {
+      censor_opts[[i]][,'date.time'] <- pkdata::parse_dates(censor_opts[[i]][,'date.time'])
+    }
+  }
   censor_opts <- do.call(rbind, censor_opts)
   if(is.null(check.path)) {
     warning('no check.path is provided; censor dates will not be utilized')

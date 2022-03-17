@@ -24,7 +24,8 @@ run_Build_PK_IV(
   missdemo_fn = "-missing-demo",
   faildupbol_fn = "DuplicateBolus-",
   date.format = "\%m/\%d/\%y \%H:\%M:\%S",
-  date.tz = "America/Chicago"
+  date.tz = "America/Chicago",
+  isStrict = FALSE
 )
 }
 \arguments{
@@ -110,6 +111,9 @@ created. The default (NULL) will not produce any check files.}
 \item{date.format}{output format for \sQuote{date} variable}
 
 \item{date.tz}{output time zone for \sQuote{date} variable}
+
+\item{isStrict}{logical; when TRUE dose amount totals are strictly summed rather than repeated
+hourly until stopped}
 }
 \value{
 PK data set

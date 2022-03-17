@@ -65,6 +65,8 @@
 #' @param faildupbol_fn filename for duplicate bolus data
 #' @param date.format output format for \sQuote{date} variable
 #' @param date.tz output time zone for \sQuote{date} variable
+#' @param isStrict logical; when TRUE dose amount totals are strictly summed rather than repeated
+#' hourly until stopped
 #'
 #' @details See EHR Vignette for Structured Data.
 #'
@@ -128,7 +130,8 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
                             missdemo_fn='-missing-demo',
                             faildupbol_fn='DuplicateBolus-',
                             date.format="%m/%d/%y %H:%M:%S",
-                            date.tz="America/Chicago"
+                            date.tz="America/Chicago",
+                            isStrict = FALSE
 ) {
   conc.req <- list(id = NA, datetime = NA, druglevel = NA, idvisit = NULL)
   dose.req <- list(id = NA, date = NULL, infuseDatetime = NULL, infuseTimeExact = NULL, infuseDose = NULL,
@@ -347,6 +350,9 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   if(hasInf) {
     pkArgs$infusionDoseTimeVar <- 'infuse.time'
     pkArgs$infusionDoseVar <- 'infuse.dose'
+    if(isStrict) {
+      pkArgs$infusionCalcDose <- 'infuse.dose'
+    }
   }
   if(hasBol) {
     pkArgs$bolusDoseTimeVar <- 'bolus.time'

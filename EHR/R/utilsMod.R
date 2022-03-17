@@ -294,7 +294,7 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
         concdate <- rbind(nofix, hasfix[,cn])
         cat(sprintf('file %s read with failures replaced\n', fixfn))
         # recreate date-time variable
-        concDT <- concdate[match(dat[,uidv], concdate[,uidv]), 'date.time']
+        concDT <- concdate[match(dat[,uidv], concdate[,uidv]), 'datetime']
         dt <- pkdata::parse_dates(fixDates(concDT))
       }
     }
@@ -388,6 +388,7 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
         hasfix <- hasfix[hasfix[,'flag'] == 'keep',]
         if(nrow(hasfix)) {
           pd <- nrow(dat)
+          # possibly fix dates in `hasfix` before rbind
           dat <- rbind(nofix, hasfix[,names(nofix)])
           cat(sprintf('file %s read, %s records removed\n', fixfn, pd-nrow(dat)))
         }
