@@ -394,6 +394,12 @@ run_MedStrI <- function(mar.path,
   if(!is.null(check.path) && length(rnums)) {
     needfix <- inf[rnums,]
     nofix <- inf[-rnums,]
+    if('orig_rate' %in% names(inf)) {
+      # preserve original rate
+      needfix[,'rate'] <- needfix[,'orig_rate']
+      needfix[,'orig_rate'] <- NULL
+      nofix[,'orig_rate'] <- NULL
+    }
     nowgtfn <- file.path(check.path, paste0('fail', failnowgt_fn,'-', drugname, '.csv'))
     nowgtfixfn <- sub('fail', 'fix', nowgtfn)
     msg <- sprintf('%s rows from %s subjects with "%s" in infusion unit but missing weight, see file %s AND create %s\n',
@@ -402,7 +408,12 @@ run_MedStrI <- function(mar.path,
 
     if(file.access(nowgtfixfn, 4) != -1) {
       hasfix <- read.csv(nowgtfixfn, stringsAsFactors = FALSE)
-      if(nrow(hasfix)) {
+      isFixed <- which(!is.na(hasfix[,'rate']) & !is.na(hasfix[,'weight']))
+      if(length(isFixed)) {
+        # multiply hourly rate per weight unit by weight to get hourly rate
+        # note: this is awkward, would be better to provide data in `missing.wgt.path`
+        # rather than a fix file
+        hasfix[,'rate'] <- hasfix[,'rate'] * hasfix[,'weight']
         inf <- rbind(nofix, hasfix[,names(nofix)])
         inf <- inf[order(inf[,mar.idCol], inf[,'date.time']),]
         cat(sprintf('file %s read, %s records corrected\n', nowgtfixfn, nrow(hasfix)))
@@ -411,6 +422,10 @@ run_MedStrI <- function(mar.path,
       # no fix file
       censor_opts[[3]] <- needfix[, c(mar.idCol, 'date.time')]
     }
+  }
+  # original rate may have been preserved for fix file - delete it now
+  if('orig_rate' %in% names(inf)) {
+    inf[,'orig_rate'] <- NULL
   }
 
   # combine infusion and bolus

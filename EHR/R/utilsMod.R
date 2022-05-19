@@ -458,7 +458,13 @@ infusionData_mod <- function(flow, mar, flowInt = 60, marInt = 15,
     }
   }
   # multiply hourly rate per weight unit by weight to get hourly rate
-  infusionFile2[,'rate'] <- infusionFile2[,'rate'] * infusionFile2[,'weight']
+  if(nrow(infusionFile2)) {
+    infusionFile2[,'orig_rate'] <- infusionFile2[,'rate']
+    infusionFile2[,'rate'] <- infusionFile2[,'rate'] * infusionFile2[,'weight']
+    if(nrow(infusionFile1)) {
+      infusionFile1[,'orig_rate'] <- NA
+    }
+  }
 
   InfusionOut <- rbind(infusionFile1, infusionFile2)
   InfusionOut[order(InfusionOut$mod_id, InfusionOut$date.time),]
