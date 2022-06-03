@@ -418,7 +418,7 @@ The demographic data can be processed by the `run_Demo()` function using:
 exclude_val <- function(x, val=1) { !is.na(x) & x == val }
 
 demo.out <- run_Demo(demo.path = file.path(dataDir, "Fentanyl_demo_mod_id.rds"),
-    demo.columns = list(id = 'mod_id'),
+    demo.columns = list(id = 'mod_id_visit'),
     toexclude = expression(exclude_val(in_hospital_mortality) | exclude_val(add_ecmo)),
     demo.mod.list = list(length_of_icu_stay = 
                         expression(daysDiff(surgery_date, date_icu_dc))))
@@ -608,12 +608,17 @@ The drug concentration data can be processed by the `run_DrugLevel` function usi
 
 ```{r Pro-Drug-Level, eval=FALSE}
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
-    conc.columns = list(id = 'mod_id', conc = 'conc.level', idvisit = 'mod_id_visit', samplinkid = 'mod_id_event'),
+    conc.columns = list(
+      id = 'mod_id', conc = 'conc.level',
+      idvisit = 'mod_id_visit', samplinkid = 'mod_id_event'
+    ),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
     conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
     conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
     samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
-    samp.columns = list(conclinkid = 'mod_id_event', datetime = 'Sample.Collection.Date.and.Time'),
+    samp.columns = list(
+      conclinkid = 'mod_id_event', datetime = 'Sample.Collection.Date.and.Time'
+    ),
     samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
     check.path=checkDir,
     failmiss_fn = 'MissingConcDate-',
@@ -669,12 +674,17 @@ After providing the updated file, the same `run_DrugLevel()` function should be 
 
 ```{r Pro-Drug-Level-rerun, eval=FALSE}
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
-    conc.columns = list(id = 'mod_id', conc = 'conc.level', idvisit = 'mod_id_visit', samplinkid = 'mod_id_event'),
+    conc.columns = list(
+      id = 'mod_id', conc = 'conc.level',
+      idvisit = 'mod_id_visit', samplinkid = 'mod_id_event'
+    ),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
     conc.rename=c(fentanyl_calc_conc = 'conc.level', samp = 'event'),
     conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
     samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
-    samp.columns = list(conclinkid = 'mod_id_event', datetime = 'Sample.Collection.Date.and.Time'),
+    samp.columns = list(
+      conclinkid = 'mod_id_event', datetime = 'Sample.Collection.Date.and.Time'
+    ),
     samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
     check.path=checkDir,
     failmiss_fn = 'MissingConcDate-',
