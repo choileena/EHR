@@ -8,7 +8,6 @@
 \alias{concData_mod}
 \alias{infusionData_mod}
 \alias{resolveDoseDups_mod}
-\alias{writeCheckData}
 \alias{processErx}
 \alias{processErxAddl}
 \alias{validateColumns}

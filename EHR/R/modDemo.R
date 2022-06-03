@@ -34,7 +34,7 @@
 #' # make demographic data that:
 #' # (1) excludes ids with weight.lbs < 150, age > 60, or enroll.date before 2019/04/01
 #' # (2) creates new 'highrisk' variable for subjects with weight.lbs>170 and age>55
-#' out <- run_Demo(demo.path = tmpfile,
+#' out <- run_Demo(demo.path = tmpfile, demo.columns = list(id = 'mod_id_visit'),
 #'                toexclude = expression(
 #'                  exclude_wt(weight.lbs)|exclude_age(age)|exclude_enroll(enroll.date)
 #'                ),

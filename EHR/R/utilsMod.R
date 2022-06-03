@@ -27,7 +27,7 @@
 #'
 #' @name mod-internal
 #' @aliases colflow_mod findMedFlowRow_mod flowData_mod concData_mod
-#' infusionData_mod resolveDoseDups_mod writeCheckData processErx processErxAddl
+#' infusionData_mod resolveDoseDups_mod processErx processErxAddl
 #' validateColumns read setDoseMar
 #' @keywords internal
 NULL
