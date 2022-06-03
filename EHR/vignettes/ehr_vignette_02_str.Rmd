@@ -418,6 +418,7 @@ The demographic data can be processed by the `run_Demo()` function using:
 exclude_val <- function(x, val=1) { !is.na(x) & x == val }
 
 demo.out <- run_Demo(demo.path = file.path(dataDir, "Fentanyl_demo_mod_id.rds"),
+    demo.columns = list(id = 'mod_id'),
     toexclude = expression(exclude_val(in_hospital_mortality) | exclude_val(add_ecmo)),
     demo.mod.list = list(length_of_icu_stay = 
                         expression(daysDiff(surgery_date, date_icu_dc))))
@@ -428,6 +429,7 @@ demo.out$exclude
 
 * The `run_Demo` function arguments are as follows:
     + `demo.path`: file name of demographic file (CSV, RData, RDS) or data.frame
+    + `demo.columns`: a named list that should specify columns in demo data; `id` is required
     + `toexclude`: (optional) a set of user-defined expressions to set exclusion rules to be applied to the demographic dataset within the module
     + `demo.mod.list`: (optional) a list of user defined expressions to set modification rules within the module
 
@@ -606,35 +608,41 @@ The drug concentration data can be processed by the `run_DrugLevel` function usi
 
 ```{r Pro-Drug-Level, eval=FALSE}
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
+    conc.columns = list(id = 'mod_id', conc = 'conc.level', idvisit = 'mod_id_visit', samplinkid = 'mod_id_event'),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
     conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
     conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
     samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
+    samp.columns = list(conclinkid = 'mod_id_event', datetime = 'Sample.Collection.Date.and.Time'),
     samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
     check.path=checkDir,
     failmiss_fn = 'MissingConcDate-',
     multsets_fn = 'multipleSetsConc-',
     faildup_fn = 'DuplicateConc-',
-    drugname=drugname,
-    LLOQ=LLOQ,
-    demo.list=demo.out)
+    drugname = drugname,
+    LLOQ = LLOQ,
+    demo.list = demo.out,
+    demo.columns = list(id = 'mod_id', idvisit = 'mod_id_visit'))
 ```
 
 ```{r Pro-Drug-Level-fake, echo=FALSE}
 co({
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
+    conc.columns = list(id = 'mod_id', conc = 'conc.level', idvisit = 'mod_id_visit', samplinkid = 'mod_id_event'),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
     conc.rename=c(fentanyl_calc_conc = 'conc.level', samp= 'event'),
     conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
     samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
+    samp.columns = list(conclinkid = 'mod_id_event', datetime = 'Sample.Collection.Date.and.Time'),
     samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
     check.path=checkDir,
     failmiss_fn = 'MissingConcDate-',
     multsets_fn = 'multipleSetsConc-',
     faildup_fn = 'DuplicateConc-',
-    drugname=drugname,
-    LLOQ=LLOQ,
-    demo.list=demo.out)
+    drugname = drugname,
+    LLOQ = LLOQ,
+    demo.list = demo.out,
+    demo.columns = list(id = 'mod_id', idvisit = 'mod_id_visit'))
 })
 ```
 
@@ -651,7 +659,7 @@ The output provides a message that 3 rows are missing concentration date. The fi
 We can correct the missing dates by providing an updated file called 'fixMissingConcDate-fent.csv' that contains the missing data.
 
 ```{r fixdate}
-fail.miss.conc.date[,"date.time"] <- c("9/30/2016 09:32","10/1/2016 19:20","10/2/2016 02:04")
+fail.miss.conc.date[,"datetime"] <- c("9/30/2016 09:32","10/1/2016 19:20","10/2/2016 02:04")
 fail.miss.conc.date
  
 write.csv(fail.miss.conc.date, file.path(checkDir,"fixMissingConcDate-fent.csv"))
@@ -661,35 +669,41 @@ After providing the updated file, the same `run_DrugLevel()` function should be 
 
 ```{r Pro-Drug-Level-rerun, eval=FALSE}
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
+    conc.columns = list(id = 'mod_id', conc = 'conc.level', idvisit = 'mod_id_visit', samplinkid = 'mod_id_event'),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
     conc.rename=c(fentanyl_calc_conc = 'conc.level', samp = 'event'),
     conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
     samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
+    samp.columns = list(conclinkid = 'mod_id_event', datetime = 'Sample.Collection.Date.and.Time'),
     samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
     check.path=checkDir,
     failmiss_fn = 'MissingConcDate-',
     multsets_fn = 'multipleSetsConc-',
     faildup_fn = 'DuplicateConc-', 
-    drugname=drugname,
-    LLOQ=LLOQ,
-    demo.list=demo.out)
+    drugname = drugname,
+    LLOQ = LLOQ,
+    demo.list = demo.out,
+    demo.columns = list(id = 'mod_id', idvisit = 'mod_id_visit'))
 ```
 
 ```{r Pro-Drug-Level-rerun-fake, echo=FALSE}
 co({
 conc.out <- run_DrugLevel(conc.path=file.path(dataDir,"Fentanyl_conc_mod_id.rds"),
+    conc.columns = list(id = 'mod_id', conc = 'conc.level', idvisit = 'mod_id_visit', samplinkid = 'mod_id_event'),
     conc.select=c('mod_id','mod_id_visit','samp','fentanyl_calc_conc'),
     conc.rename=c(fentanyl_calc_conc = 'conc.level', samp = 'event'),
     conc.mod.list=list(mod_id_event = expression(paste(mod_id_visit, event, sep = '_'))),
     samp.path=file.path(dataDir,"Fentanyl_samp_mod_id.rds"),
+    samp.columns = list(conclinkid = 'mod_id_event', datetime = 'Sample.Collection.Date.and.Time'),
     samp.mod.list=list(mod_id_event = expression(paste(mod_id_visit, samp, sep = '_'))),
     check.path=checkDir,
     failmiss_fn = 'MissingConcDate-',
     multsets_fn = 'multipleSetsConc-',
     faildup_fn = 'DuplicateConc-', 
-    drugname=drugname,
-    LLOQ=LLOQ,
-    demo.list=demo.out)
+    drugname = drugname,
+    LLOQ = LLOQ,
+    demo.list = demo.out,
+    demo.columns = list(id = 'mod_id', idvisit = 'mod_id_visit'))
 })
 ```
 
@@ -705,30 +719,31 @@ if (file.exists(ms)) file.remove(ms)
 
 Before discussing the function arguments, we should first describe the expected data: either a single concentration data set, or concentration data plus sampling time data. If the concentration data set includes a date-time variable, then sampling time data is not necessary.
 
-Concentration data should include the following named columns:
+Concentration data should include the following columns specified in `conc.columns`:
 
-  1. mod_id: patient-level ID
-  2. mod_id_visit: visit-level ID
-  3. event: sample event name
-  4. conc.level: drug concentration level
-  5. mod_id_event: unique identifier for subject, visit, and event number. As an example, this can be created by pasting together "mod_id_visit" with "event".
-  6. date.time (unless provided with sampling time): date-time of concentration sample
+  1. id: patient-level ID
+  2. idvisit: visit-level ID
+  3. conc: drug concentration level
+  4. datetime (unless provided with sampling time): date-time of concentration sample
+  5. samplinkid: unique identifier for subject, visit, and event number. This will be used to link sampling data when necessary.
 
-If sampling time is provided, it should include the following named columns:
+If sampling time is provided, it should include the following columns in `samp.columns`:
 
-  1. mod_id_event: unique identifier for subject, visit, and event number
-  2. Sample.Collection.Date.and.Time: date-time of sample collection
+  1. conclinkid: unique identifier for subject, visit, and event number
+  2. datetime: date-time of sample collection
 
-If `conc.path` and `samp.path` specify data sets that are formatted as described above, then the `conc.select`, `conc.rename`, `conc.mod.list`, and `samp.mod.list` arguments can be ignored (and set to `NULL`). Otherwise they should be used to help create the proper format.
+The `conc.select`, `conc.rename`, `conc.mod.list`, and `samp.mod.list` arguments can usually be ignored (and set to `NULL`). Otherwise they should be used to help create the proper format. For example, the subject/visit/event identifier may nee dto be created.
 
 * The `run_DrugLevel` function arguments are as follows:
     + `conc.path`: (required) file name of concentration data (CSV, RData, RDS), or data.frame
+    + `conc.columns`: (required) a named list that should specify columns in concentration data; `id`, and `conc` are required. `idvisit` may also be specified. If linking with sampling data, `samplinkid` is required. Otherwise `datetime` is required. This is the date and time for concentration measurement, which can refer to a single date-time variable (datetime = `date_time`) or two variables holding date and time separately (e.g., datetime = c('Date', 'Time')).
     + `conc.select`: list of variables in the drug concentration data, which are used for processing; id (e.g., 'mod_id'), sample event id within each subject id (e.g., 'samp'), and drug concentration (e.g., 'fentanyl_calc_conc') are required to be selected if the data are not in an appropriate form.
     + `conc.rename`: rename variables for the variables in conc.select; the selected variables should be renamed using 'conc.level' for drug concentration and 'event' for sample event name (e.g., fentanyl_calc_conc = 'conc.level', samp = 'event')
     + `conc.mod.list`: list containing modifications to variables in the drug concentration data
     + `samp.path`: (optional) file name of data with sampling time (CSV, RData, RDS), or data.frame; if provided, 'conc.mod.list' and 'samp.mod.list' should be provided to create 'mod_id_event' as shown above (unless provided in each dataset), which will be used to connect the concentration data and the sample data to generate the date-time variable for concentration data
+    + `samp.columns`: a named list that should specify columns in sampling data. `conclinkid` and `datetime` are required to link sampling data to concentration data. `conclinkid` should match the id variable provided as `samplinkid` in the `conc.columns` argument. `datetime` is the date and time when blood samples were obtained.
     + `samp.mod.list`: list containing modifications to variables in the sampling time data
-    + `check.path`: file path to ‘check’ directory, where the generated files for data checking are stored, and the corresponding data files with fixed data exist. The default (NULL) will not produce any check files.
+    + `check.path`: file path to `check` directory, where the generated files for data checking are stored, and the corresponding data files with fixed data exist. The default (NULL) will not produce any check files.
     + `failmiss_fn`: filename stub for missing concentration date check file
     + `multsets_fn`: filename stub for multiple sets of concentration data check file
     + `faildup_fn`: filename stub for duplicate concentration check file
@@ -736,6 +751,7 @@ If `conc.path` and `samp.path` specify data sets that are formatted as described
     + `LLOQ`: lower limit of quantification (LLOQ)
          - e.g., dexmedetomidine 0.005 ng/mL, fentanyl 0.05 ng/mL
     + `demo.list`: file name for processed demographic file that is used to exclude subjects based on exclusion criteria
+    + `demo.columns`: a named list that should specify columns in demographic data; `id`, is required. If `idvisit` is present in the concentration data, then it is required here too.
 * The output of the `run_DrugLevel` function is a dataset for processed drug concentration levels (conc.level) matched with date-time (date.time), as well as necessary identification numbers for further merging with the output from other modules.
 
 ## Pro-Laboratory
