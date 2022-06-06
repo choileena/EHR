@@ -86,6 +86,6 @@ summary(fit)
 same as those provided in the R package \sQuote{logistf}.
 }
 \author{
-Leena Choi \email{naturechoi@gmail.com} and
+Leena Choi \email{leena.choi@vanderbilt.edu} and
 Cole Beck \email{cole.beck@vumc.org}
 }

@@ -86,6 +86,6 @@ results.sub <- analysisPheWAS(method='firth', adjust='PS', Exposure='exposure',
          }
 }
 \author{
-Leena Choi \email{naturechoi@gmail.com} and
+Leena Choi \email{leena.choi@vanderbilt.edu} and
 Cole Beck \email{cole.beck@vumc.org}
 }

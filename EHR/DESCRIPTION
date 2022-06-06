@@ -2,10 +2,10 @@ Package: EHR
 Version: 0.4-7
 Date: 2022-06-03
 Title: Electronic Health Record (EHR) Data Processing and Analysis Tool
-Maintainer: Leena Choi <naturechoi@gmail.com>
+Maintainer: Leena Choi <leena.choi@vanderbilt.edu>
 Authors@R:
     c(person("Leena", "Choi", role = c("aut", "cre"),
-             email = "naturechoi@gmail.com",
+             email = "leena.choi@vanderbilt.edu",
              comment = c(ORCID = "0000-0002-2544-7090")),
     person("Cole", "Beck", role = "aut",
            email = "cole.beck@vumc.org",

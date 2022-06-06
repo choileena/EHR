@@ -50,7 +50,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Leena Choi \email{naturechoi@gmail.com} (\href{https://orcid.org/0000-0002-2544-7090}{ORCID})
+\strong{Maintainer}: Leena Choi \email{leena.choi@vanderbilt.edu} (\href{https://orcid.org/0000-0002-2544-7090}{ORCID})
 
 Authors:
 \itemize{

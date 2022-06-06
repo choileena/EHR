@@ -20,7 +20,8 @@ getNote <- function(note) {
 getDose <- function(note, ...) {
   d <- medExtractR::medExtractR(getNote(note), ...)
   # return NULL if d is NA
-  if(length(d) == 1 && is.na(d)) return(NULL)
+  bad <- length(d) == 1 && all(is.na(d))
+  if(bad) return(NULL)
 
   # Use file name to label the extractions
   d[,'filename'] <- basename(note)
