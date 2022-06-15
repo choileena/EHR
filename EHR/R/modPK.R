@@ -82,8 +82,6 @@
 #' @return PK data set
 #'
 #' @examples 
-#' \dontrun{
-#' 
 #' # make fake data
 #' set.seed(6543)
 #' 
@@ -113,7 +111,6 @@
 #'                   bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose',
 #'                   gap = 'maxint', weight = 'weight'),
 #'                 pk.vars = 'date')
-#'}
 #'
 #' @export
 
@@ -365,8 +362,8 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   }))
 
   if(hasDemo) {
-    cat(sprintf('The dimension of the PK data before merging with demographics: %s x %s\n', nrow(pkd), ncol(pkd)))
-    cat(sprintf('The number of subjects in the PK data before merging with demographics: %s\n', length(unique(pkd$mod_id))))
+    message(sprintf('The dimension of the PK data before merging with demographics: %s x %s', nrow(pkd), ncol(pkd)))
+    message(sprintf('The number of subjects in the PK data before merging with demographics: %s', length(unique(pkd$mod_id))))
   }
 
   hasMIV <- 'idvisit' %in% names(conc.col)
@@ -452,7 +449,7 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
     }
 
     # drop mod_id based on exclusion criteria
-    cat(sprintf('The number of subjects in the demographic file, who meet the exclusion criteria: %s\n', length(demoExcl)))
+    message(sprintf('The number of subjects in the demographic file, who meet the exclusion criteria: %s', length(demoExcl)))
     tmp <- tmp[!(tmp[,'mod_id_visit'] %in% demoExcl),]
 
     #drop if mod_id is missing (i.e. no demographics for this visit)
@@ -467,8 +464,8 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
       x[,'percent'] <- round(x[,'freq'] / nrow(dd2), 2)
       rownames(x) <- NULL
       fn <- file.path(check.path, paste0(drugname, missdemo_fn, '.csv'))
-      msg <- sprintf('check NA frequency in demographics, see file %s\n', fn)
-      cat(msg)
+      msg <- sprintf('check NA frequency in demographics, see file %s', fn)
+      message(msg)
       write.csv(x, fn, quote=FALSE, row.names=FALSE)
     }
 
@@ -480,10 +477,10 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
     }
 
     missdemov <- setdiff(demo.vars, n_tmp)
-    cat(sprintf('Some demographic variables are missing and will be excluded: %s\n', paste(missdemov, collapse = '\n')))
+    message(sprintf('Some demographic variables are missing and will be excluded: %s', paste(missdemov, collapse = '\n')))
 
     demo.vars <- demo.vars[demo.vars %in% n_tmp]
-    cat(sprintf('The list of final demographic variables: %s\n', paste(demo.vars, collapse = '\n')))
+    message(sprintf('The list of final demographic variables: %s', paste(demo.vars, collapse = '\n')))
   } else {
     demo.vars <- NULL
   }
@@ -493,16 +490,18 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
       varLabel <- lab.vars[i]
       missVar <- tmp[is.na(tmp[,varLabel]), 'mod_id_visit']
       if(length(missVar) == 0) {
-        msg <- sprintf('Checked: there are no missing %s\n', varLabel)
+        msg <- sprintf('Checked: there are no missing %s', varLabel)
       } else {
-        msg <- sprintf('List of IDs missing at least 1 %s: %s\n', varLabel, paste(unique(missVar), collapse = '\n'))
+        msg <- sprintf('List of IDs missing at least 1 %s: %s', varLabel, paste(unique(missVar), collapse = '\n'))
       }
-      cat(msg)
+      message(msg)
     }
   }
 
   misspkv <- setdiff(pk.vars, names(tmp))
-  cat(sprintf('Some PK variables are missing and will be excluded: %s\n', paste(misspkv, collapse = '\n')))
+  if(length(misspkv)) {
+    message(sprintf('Some PK variables are missing and will be excluded: %s', paste(misspkv, collapse = '\n')))
+  }
 
   mainpk <- tmp[, pk.vars, drop = FALSE]
   n_subj <- length(unique(mainpk[['mod_id']]))
@@ -532,10 +531,10 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   tmp3 <- cbind(mainpk[,pkOrder], tmp[, c(demo.vars, lab.vars), drop = FALSE])
 
   if(hasDemo) {
-    msg <- 'The dimension of the final PK data exported with the key demographics: %s x %s with %s distinct subjects (%s)\n'
+    msg <- 'The dimension of the final PK data exported with the key demographics: %s x %s with %s distinct subjects (%s)'
   } else {
-    msg <- 'The dimension of the final PK data: %s x %s with %s distinct subjects (%s)\n'
+    msg <- 'The dimension of the final PK data: %s x %s with %s distinct subjects (%s)'
   }
-  cat(sprintf(msg, nrow(tmp3), ncol(tmp3), n_subj, idvar))
+  message(sprintf(msg, nrow(tmp3), ncol(tmp3), n_subj, idvar))
   tmp3
 }

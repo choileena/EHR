@@ -33,9 +33,8 @@
 #' @export
 
 parseMedExtractR <- function(filename) {
-  ndig <- options()$digits
-  options(digits = 15)
-  on.exit(options(digits = ndig))
+  ndig <- options(digits = 15)
+  on.exit(options(ndig))
   # NSE fix for R CMD CHECK
   pos <- NULL
   expr <- NULL

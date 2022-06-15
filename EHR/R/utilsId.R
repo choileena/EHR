@@ -17,7 +17,6 @@
 #' @return crosswalk of ID columns and their de-identified versions
 #'
 #' @examples
-#' \dontrun{
 #' demo_data <- data.frame(subj_id=c(4.1,4.2,5.1,6.1),
 #'                         pat_id=c(14872,14872,24308,37143),
 #'                         gender=c(1,1,0,1),
@@ -31,10 +30,8 @@
 #' data <- list(demo_data, conc_data)
 #' idcols <- list(c('subj_id', 'pat_id'), 'subj_id')
 #' idCrosswalk(data, idcols, visit.id='subj_id', uniq.id='pat_id')
-#' 
-#' }
+#'
 #' @export
-
 
 idCrosswalk <- function(data, idcols, visit.id="subject_id", uniq.id="subject_uid") {
   dl <- length(data)
@@ -130,7 +127,6 @@ idCrosswalk <- function(data, idcols, visit.id="subject_id", uniq.id="subject_ui
 #' @return The modified data.frame
 #' 
 #' @examples 
-#' \dontrun{
 #' demo_data <- data.frame(subj_id=c(4.1,4.2,5.1,6.1),
 #'                         pat_id=c(14872,14872,24308,37143),
 #'                         gender=c(1,1,0,1),
@@ -147,8 +143,6 @@ idCrosswalk <- function(data, idcols, visit.id="subject_id", uniq.id="subject_ui
 #' demo_data_deident <- pullFakeId(demo_data, xwalk, 
 #'                                 firstCols = c('mod_id','mod_id_visit','mod_visit'),
 #'                                 uniq.id='pat_id')
-#' }
-#' 
 #' 
 #' @export
 
@@ -195,8 +189,7 @@ pullFakeId <- function(dat, xwalk, firstCols = NULL, orderBy = NULL, uniq.id="su
 #'
 #' @return The modified data.frame
 #' 
-#' @examples 
-#' \dontrun{
+#' @examples
 #' demo_data_deident <- data.frame(mod_id=c(1,1,2,3),
 #'                                 mod_id_visit=c(1.1,1.2,2.1,3.1),
 #'                                 mod_visit=c(1,2,1,1),
@@ -213,8 +206,6 @@ pullFakeId <- function(dat, xwalk, firstCols = NULL, orderBy = NULL, uniq.id="su
 #' 
 #' pullRealId(demo_data_deident, xwalk)
 #' pullRealId(demo_data_deident, xwalk, remove.mod.id=TRUE)
-#' }
-#' 
 #' 
 #' @export
 

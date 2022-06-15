@@ -36,9 +36,8 @@
 #' @export
 
 makeDose <- function(x, noteMetaData, naFreq = 'most') {
-  s2f <- options()$stringsAsFactors
-  options(stringsAsFactors = FALSE)
-  on.exit(options(stringsAsFactors = s2f))
+  s2f <- options(stringsAsFactors = FALSE)
+  on.exit(options(s2f))
   ix <- match(x[,'filename'], noteMetaData[,'filename'])
   if(any(is.na(ix))) stop('ensure that all filenames in `x` are present in noteMetaData')
   grid <- noteMetaData[ix,'pid']

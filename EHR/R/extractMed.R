@@ -67,9 +67,8 @@ extractMed <- function(note_fn, drugnames, drgunit,
     stop("extractMed requires the medExtractR package, please install it.",
       call. = FALSE)
   }
-  s2f <- options()$stringsAsFactors
-  options(stringsAsFactors = FALSE)
-  on.exit(options(stringsAsFactors = s2f))
+  s2f <- options(stringsAsFactors = FALSE)
+  on.exit(options(s2f))
   addl <- list(...)
   addlvar <- names(addl)
   batchsize <- 1000

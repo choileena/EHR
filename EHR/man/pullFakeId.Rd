@@ -30,7 +30,6 @@ The modified data.frame
 Replace IDs with de-identified version pulled from a crosswalk.
 }
 \examples{
-\dontrun{
 demo_data <- data.frame(subj_id=c(4.1,4.2,5.1,6.1),
                         pat_id=c(14872,14872,24308,37143),
                         gender=c(1,1,0,1),
@@ -47,7 +46,5 @@ xwalk <- data.frame(subj_id=c(4.1,4.2,5.1,6.1),
 demo_data_deident <- pullFakeId(demo_data, xwalk, 
                                 firstCols = c('mod_id','mod_id_visit','mod_visit'),
                                 uniq.id='pat_id')
-}
-
 
 }

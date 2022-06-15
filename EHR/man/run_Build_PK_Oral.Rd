@@ -43,7 +43,6 @@ This module builds PK data for orally administered medications.
 See EHR Vignette for Build-PK-Oral.
 }
 \examples{
-\dontrun{
 ## Data Generating Function
 mkdat <- function() {
   npat <- 3
@@ -79,6 +78,5 @@ run_Build_PK_Oral(x = dat,
 
 #Process data with last-dose times
 run_Build_PK_Oral(x = dat, doseCol = "dose_morn", ldCol = "ld")
-}
 
 }

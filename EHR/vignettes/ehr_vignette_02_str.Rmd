@@ -16,7 +16,7 @@ knitr::opts_chunk$set(R.options = list(width = 100))
 library(EHR)
 library(lubridate)
 library(pkdata)
-options(stringsAsFactors = FALSE)
+oldopt <- options(stringsAsFactors = FALSE)
 ```
 
 ```{r niceroutput, echo = FALSE}
@@ -46,8 +46,8 @@ findbreaks <- function(x, char = '[ /\\]', charlen = 75) {
   paste(c(strings[1], paste0('     ', strings[-1])), collapse = '\n')
 }
 
-co <- function(expr) {
-  txt <- capture.output(expr)
+co <- function(expr, type = c('output', 'message')) {
+  txt <- capture.output(expr, type = type)
   cat(findbreaks(txt))
   cat("\n")
 }
@@ -122,7 +122,7 @@ simple_pk_dat <- run_Build_PK_IV(
     check.path=checkDir)
 ```
 
-```{r sim-build-pk-iv-fake, echo = FALSE}
+```{r sim-build-pk-iv-fake, echo = FALSE, message = FALSE}
 co({
 simple_pk_dat <- run_Build_PK_IV(
     conc=conc.data,
@@ -139,7 +139,7 @@ simple_pk_dat <- run_Build_PK_IV(
     lab.columns = list(id = 'mod_id', datetime = 'date.time'),
     drugname='fent',
     check.path=checkDir)
-})
+}, 'message')
 ```
 
 ```{r sim-build-pk-iv-out}
@@ -399,7 +399,7 @@ Before running the processing modules, it is necessary to define several options
 ```{r mod-setup}
 # set crosswalk option 
 xwalk <- readRDS(file.path(dataDir, "Fentanyl_module_id.rds"))
-options(pkxwalk = 'xwalk')
+oldxwalk <- options(pkxwalk = 'xwalk')
 
 # define parameters
 drugname <- 'fent'
@@ -486,7 +486,7 @@ ivdose.out <- run_MedStrI(
     drugname = drugname)
 ```
 
-```{r Pro-Med-Str1-fake, echo=FALSE}
+```{r Pro-Med-Str1-fake, echo=FALSE, message = FALSE}
 co({
 ivdose.out <- run_MedStrI(
     mar.path=file.path(dataDir,"Fentanyl_mar_mod_id.rds"),
@@ -510,7 +510,7 @@ ivdose.out <- run_MedStrI(
     ratewgtunit = 'mcg/kg/hr',
     weightunit = 'kg',
     drugname = drugname)
-    })
+}, 'message')
 ```
 
 ```{r Pro-Med-Str1-out}
@@ -844,7 +844,7 @@ pk_dat <- run_Build_PK_IV(
     date.tz="America/Chicago")
 ```
 
-```{r Build-PK-IV-fake, echo=FALSE}
+```{r Build-PK-IV-fake, echo=FALSE, message=FALSE}
 co({
 pk_dat <- run_Build_PK_IV(
     conc=conc.out,
@@ -864,7 +864,7 @@ pk_dat <- run_Build_PK_IV(
     faildupbol_fn='DuplicateBolus-',
     date.format="%m/%d/%y %H:%M:%S",
     date.tz="America/Chicago")
-})
+}, 'message')
 ```
 
 The function `pullRealId()` appends the original IDs -- `subject_id` and `subject_uid` to the data. The parameter `remove.mod.id=TRUE` can be used to also remove any module IDs -- `mod_id`, `mod_visit`, and `mod_id_visit`. 
@@ -895,6 +895,9 @@ head(pk_dat)
 * The output of the `run_MedStrI` function is a dataset with NONMEM formatted PK variables and (optionally) demographic and laboratory data.
 
 ```{r cleanup, echo = FALSE}
+# restore old options
+options(oldopt)
+options(oldxwalk)
 # normally, you would not delete these files
 # CRAN policy states that a package should do proper cleanup
 to_delete <- c(file.path(td, 'check1'), file.path(td, 'check2'), file.path(td, 'data2'))

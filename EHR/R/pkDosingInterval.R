@@ -72,7 +72,6 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 #' @return data.frame
 #'
 #' @examples
-#' \dontrun{
 #' ## Data Generating Function
 #' mkdat <- function() {
 #'   npat <- 3
@@ -108,7 +107,6 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 #' 
 #' #Process data with last-dose times
 #' run_Build_PK_Oral(x = dat, doseCol = "dose_morn", ldCol = "ld")
-#' }
 #'
 #' @export
 

@@ -65,23 +65,20 @@
 #' @return structured data set
 #'
 #' @examples 
-#' \dontrun{
 #' # flow data for 'Fakedrug1'
 #' flow <- data.frame(mod_id=c(1,1,2,2,2),
 #'                    mod_id_visit=c(46723,46723,84935,84935,84935),
-#'                    record.date=c("7/5/2019 5:25","7/5/2019 6:01",
-#'                                  "9/4/2020 3:21", "9/4/2020 4:39",
-#'                                  "9/4/2020 5:32"),
+#'                    record.date=c("07/05/2019 5:25","07/05/2019 6:01",
+#'                                  "09/04/2020 3:21", "09/04/2020 4:39",
+#'                                  "09/04/2020 5:32"),
 #'                    Final.Weight=c(6.75,6.75,4.5,4.5,4.5),
 #'                    Final.Rate=c(rep("1 mcg/kg/hr",2),
 #'                                 rep("0.5 mcg/kg/hr",3)),
 #'                    Final.Units=c("3.375","6.5",
 #'                                  "2.25","2.25","2.25"))
-#' flow[,'Perform.Date'] <- pkdata::parse_dates(EHR:::fixDates(flow[,'record.date']))
+#' flow[,'Perform.Date'] <- pkdata::parse_dates(flow[,'record.date'])
 #' flow[,'unit'] <- sub('.*[ ]', '', flow[,'Final.Rate'])
 #' flow[,'rate'] <- as.numeric(sub('([0-9.]+).*', '\\1', flow[,'Final.Rate']))
-#'
-#' saveRDS(flow, 'flow.rds')
 #'
 #' # mar data for 4 fake drugs
 #' mar <- data.frame(mod_id=rep(1,5),
@@ -94,26 +91,20 @@
 #'                   `med:route`=rep("IV",5),
 #'                   `med:given`=rep("Given",5),
 #'                   check.names=FALSE)
-#'                   
-#' saveRDS(mar, 'mar.rds')
 #' 
 #' # medcheck file for drug of interest ('Fakedrug1')
 #' medcheck <- data.frame(medname="Fakedrug1",freq=4672)
 #' 
-#' write.csv(medcheck, 'medcheck.csv')
-#' 
-#' 
-#' run_MedStrI(mar.path='mar.rds',
+#' run_MedStrI(mar.path = mar,
 #'             mar.columns = list(id = 'mod_id', datetime = c('Date','Time'),
 #'                                dose = 'med:dosage', drug = 'med:mDrug', given = 'med:given'),
-#'             flow.path='flow.rds',
+#'             flow.path = flow,
 #'             flow.columns = list(id = 'mod_id', datetime = 'Perform.Date',
 #'                                 finalunits = 'Final.Units', unit = 'unit',
 #'                                 rate = 'rate', weight = 'Final.Weight'),
-#'             medchk.path='medcheck.csv',
-#'             check.path=tempdir(),
-#'             drugname='fakedrg1')
-#'}
+#'             medchk.path = medcheck,
+#'             check.path = tempdir(),
+#'             drugname = 'fakedrg1')
 #'
 #' @export
 
@@ -212,7 +203,7 @@ run_MedStrI <- function(mar.path,
       nounitfixfn <- sub('fail', 'fix', nounitfn)
 
       mf <- cbind(dmnu[,reqInfusionColumns], dmnu[,mar.drugCol], flag = 'exclude')
-      msg <- sprintf('%s rows with no unit, see file %s AND create %s\n', nrow(mf), nounitfn, nounitfixfn)
+      msg <- sprintf('%s rows with no unit, see file %s AND create %s', nrow(mf), nounitfn, nounitfixfn)
       writeCheckData(mf, nounitfn, msg)
 
       if(file.access(nounitfixfn, 4) != -1) {
@@ -227,7 +218,7 @@ run_MedStrI <- function(mar.path,
         if(nFixed > 0L) {
           # update required columns (ideally just "unit")
           dmnu[toKeep, reqInfusionColumns] <- hasfix[toKeep, reqInfusionColumns]
-          cat(sprintf('file %s read, %s records added\n', nounitfixfn, nFixed))
+          message(sprintf('file %s read, %s records added', nounitfixfn, nFixed))
           dm0 <- setDoseMar(dmnu[toKeep,], mar.doseCol, 'date.time', mar.weightCol)
           dm1 <- rbind(dm[hasUnit,], dm0)
           # re-order data
@@ -337,7 +328,7 @@ run_MedStrI <- function(mar.path,
 
     coi <- c(mar.idCol, 'date.time', mar.drugCol, 'rate', 'unit', 'weight', 'weight.date.time')
     mf <- cbind(dm[,coi], flag = 'exclude')
-    msg <- sprintf('%s rows with units other than %s or %s, see file %s AND create %s\n',
+    msg <- sprintf('%s rows with units other than %s or %s, see file %s AND create %s',
                 nrow(mf),infusion.unit, bolus.unit, unitfn, unitfixfn)
     writeCheckData(mf, unitfn, msg)
 
@@ -348,7 +339,7 @@ run_MedStrI <- function(mar.path,
       nBad <- sum(!toKeep)
       if(nFixed > 0L) {
         inf1 <- rbind(inf0[,reqInfusionColumns], hasfix[toKeep, reqInfusionColumns])
-        cat(sprintf('file %s read, %s records added\n', unitfixfn, nFixed))
+        message(sprintf('file %s read, %s records added', unitfixfn, nFixed))
       }
       ## unfixed/bad data should be censored
       if(nBad > 0L) {
@@ -358,7 +349,7 @@ run_MedStrI <- function(mar.path,
       censor_opts[[2]] <- mf[, c(mar.idCol, 'date.time')]
     }
   } else {
-    cat(sprintf('no units other than %s or %s, file %s not created\n', infusion.unit, bolus.unit, unitfn))
+    message(sprintf('no units other than %s or %s, file %s not created', infusion.unit, bolus.unit, unitfn))
   }
 
   # infusionData_mod() accepts MAR data (inf1) with units
@@ -402,7 +393,7 @@ run_MedStrI <- function(mar.path,
     }
     nowgtfn <- file.path(check.path, paste0('fail', failnowgt_fn,'-', drugname, '.csv'))
     nowgtfixfn <- sub('fail', 'fix', nowgtfn)
-    msg <- sprintf('%s rows from %s subjects with "%s" in infusion unit but missing weight, see file %s AND create %s\n',
+    msg <- sprintf('%s rows from %s subjects with "%s" in infusion unit but missing weight, see file %s AND create %s',
                 nrow(needfix), length(unique(needfix[,mar.idCol])), weightunit, nowgtfn, nowgtfixfn)
     writeCheckData(needfix, nowgtfn, msg)
 
@@ -416,7 +407,7 @@ run_MedStrI <- function(mar.path,
         hasfix[,'rate'] <- hasfix[,'rate'] * hasfix[,'weight']
         inf <- rbind(nofix, hasfix[,names(nofix)])
         inf <- inf[order(inf[,mar.idCol], inf[,'date.time']),]
-        cat(sprintf('file %s read, %s records corrected\n', nowgtfixfn, nrow(hasfix)))
+        message(sprintf('file %s read, %s records corrected', nowgtfixfn, nrow(hasfix)))
       }
     } else {
       # no fix file
@@ -452,7 +443,7 @@ run_MedStrI <- function(mar.path,
     censor_opts <- censor_opts[order(censor_opts[,mar.idCol], censor_opts[,'date.time']),]
     censor_date <- censor_opts[!duplicated(censor_opts[,mar.idCol]),]
     cdfn <- file.path(check.path, paste0(censor_date_fn,'-', drugname, '.csv'))
-    msg <- sprintf('censor dates created, please see %s\n', cdfn)
+    msg <- sprintf('censor dates created, please see %s', cdfn)
     writeCheckData(censor_date, cdfn, msg)
   }
 

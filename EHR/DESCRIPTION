@@ -1,6 +1,6 @@
 Package: EHR
-Version: 0.4-7
-Date: 2022-06-03
+Version: 0.4-8
+Date: 2022-06-15
 Title: Electronic Health Record (EHR) Data Processing and Analysis Tool
 Maintainer: Leena Choi <leena.choi@vanderbilt.edu>
 Authors@R:

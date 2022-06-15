@@ -121,23 +121,20 @@ bolus medication data.
 See EHR Vignette for Structured Data.
 }
 \examples{
-\dontrun{
 # flow data for 'Fakedrug1'
 flow <- data.frame(mod_id=c(1,1,2,2,2),
                    mod_id_visit=c(46723,46723,84935,84935,84935),
-                   record.date=c("7/5/2019 5:25","7/5/2019 6:01",
-                                 "9/4/2020 3:21", "9/4/2020 4:39",
-                                 "9/4/2020 5:32"),
+                   record.date=c("07/05/2019 5:25","07/05/2019 6:01",
+                                 "09/04/2020 3:21", "09/04/2020 4:39",
+                                 "09/04/2020 5:32"),
                    Final.Weight=c(6.75,6.75,4.5,4.5,4.5),
                    Final.Rate=c(rep("1 mcg/kg/hr",2),
                                 rep("0.5 mcg/kg/hr",3)),
                    Final.Units=c("3.375","6.5",
                                  "2.25","2.25","2.25"))
-flow[,'Perform.Date'] <- pkdata::parse_dates(EHR:::fixDates(flow[,'record.date']))
+flow[,'Perform.Date'] <- pkdata::parse_dates(flow[,'record.date'])
 flow[,'unit'] <- sub('.*[ ]', '', flow[,'Final.Rate'])
 flow[,'rate'] <- as.numeric(sub('([0-9.]+).*', '\\\\1', flow[,'Final.Rate']))
-
-saveRDS(flow, 'flow.rds')
 
 # mar data for 4 fake drugs
 mar <- data.frame(mod_id=rep(1,5),
@@ -150,25 +147,19 @@ mar <- data.frame(mod_id=rep(1,5),
                   `med:route`=rep("IV",5),
                   `med:given`=rep("Given",5),
                   check.names=FALSE)
-                  
-saveRDS(mar, 'mar.rds')
 
 # medcheck file for drug of interest ('Fakedrug1')
 medcheck <- data.frame(medname="Fakedrug1",freq=4672)
 
-write.csv(medcheck, 'medcheck.csv')
-
-
-run_MedStrI(mar.path='mar.rds',
+run_MedStrI(mar.path = mar,
             mar.columns = list(id = 'mod_id', datetime = c('Date','Time'),
                                dose = 'med:dosage', drug = 'med:mDrug', given = 'med:given'),
-            flow.path='flow.rds',
+            flow.path = flow,
             flow.columns = list(id = 'mod_id', datetime = 'Perform.Date',
                                 finalunits = 'Final.Units', unit = 'unit',
                                 rate = 'rate', weight = 'Final.Weight'),
-            medchk.path='medcheck.csv',
-            check.path=tempdir(),
-            drugname='fakedrg1')
-}
+            medchk.path = medcheck,
+            check.path = tempdir(),
+            drugname = 'fakedrg1')
 
 }

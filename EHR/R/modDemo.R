@@ -60,7 +60,7 @@ run_Demo <- function(demo.path, demo.columns = list(), toexclude, demo.mod.list)
   }
 
   excl.id <- demo[parsed.excl, demo.col$id] # the list of subject_id that should be excluded
-  cat(sprintf('The number of subjects in the demographic data, who meet the exclusion criteria: %s\n', length(excl.id)))
+  message(sprintf('The number of subjects in the demographic data, who meet the exclusion criteria: %s', length(excl.id)))
 
   list(demo = demo, exclude = excl.id)
 }

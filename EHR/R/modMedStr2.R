@@ -12,7 +12,6 @@
 #' @return str data set
 #'
 #' @examples
-#' \dontrun{
 #' erx_data <- data.frame(GRID=paste0("ID",c(1,1,2,2,2,2)),
 #'                        MED_NAME=c("fakedrug","fakedrug","fakedrug",
 #'                                   "Brandname","fakedrug","fakedrug"),
@@ -28,12 +27,8 @@
 #'                                      "Brandname 100mg tablet", "fakedrug 100 mg tablet",
 #'                                      "fakedrug 100 mg tablet"))
 #' 
-#' write.csv(erx_data, 'erx_data.csv')
-#' 
-#' run_MedStrII('erx_data.csv', list(id = 'GRID', dose = 'RX_DOSE', freq = 'FREQUENCY',
+#' run_MedStrII(erx_data, list(id = 'GRID', dose = 'RX_DOSE', freq = 'FREQUENCY',
 #'              date = 'ENTRY_DATE', str = 'STRENGTH_AMOUNT', desc = 'DESCRIPTION'))
-#' }
-#'
 #'
 #' @export
 

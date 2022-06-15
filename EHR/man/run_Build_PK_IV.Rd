@@ -134,8 +134,6 @@ is assumed until the 2nd dose record; otherwise, the first infusion is assumed t
 (i.e., add zero doses) after 60 min (i.e., equal to the gap size)  and a new infusion (the 2nd record) starts at its recorded time.
 }
 \examples{
-\dontrun{
-
 # make fake data
 set.seed(6543)
 
@@ -165,6 +163,5 @@ run_Build_PK_IV(conc = plconc,
                   bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose',
                   gap = 'maxint', weight = 'weight'),
                 pk.vars = 'date')
-}
 
 }

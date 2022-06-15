@@ -23,7 +23,6 @@ The modified data.frame
 Replace de-identified IDs with identified version pulled from a crosswalk.
 }
 \examples{
-\dontrun{
 demo_data_deident <- data.frame(mod_id=c(1,1,2,3),
                                 mod_id_visit=c(1.1,1.2,2.1,3.1),
                                 mod_visit=c(1,2,1,1),
@@ -40,7 +39,5 @@ xwalk <- data.frame(subj_id=c(4.1,4.2,5.1,6.1),
 
 pullRealId(demo_data_deident, xwalk)
 pullRealId(demo_data_deident, xwalk, remove.mod.id=TRUE)
-}
-
 
 }
