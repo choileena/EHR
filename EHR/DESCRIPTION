@@ -1,6 +1,6 @@
 Package: EHR
-Version: 0.4-8
-Date: 2022-06-15
+Version: 0.4-9
+Date: 2022-06-21
 Title: Electronic Health Record (EHR) Data Processing and Analysis Tool
 Maintainer: Leena Choi <leena.choi@vanderbilt.edu>
 Authors@R:
@@ -38,7 +38,7 @@ Imports: stats, utils, data.table, methods, lubridate, pkdata
 Suggests:
     glmnet,
     logistf,
-    medExtractR,
+    medExtractR (>= 0.4.1),
     knitr,
     rmarkdown,
     ggplot2,
