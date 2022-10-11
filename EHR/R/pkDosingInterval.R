@@ -10,12 +10,12 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
   cnames <- names(x)
   # save covariates for later
   covars <- x[,setdiff(cnames, c('id','dt','dose',ldCol))]
-  dt_index <- as.character(x[,'dt'] + 30 * 60, '%Y-%m-%d %H:%M:%S')
+  dt_index <- format(x[,'dt'] + 30 * 60, '%Y-%m-%d %H:%M:%S')
 
   # last dose variable
   if(!is.null(ldCol)) {
     stopifnot(ldCol %in% cnames)
-    lastdosetime <- as.character(x[,ldCol], '%Y-%m-%d %H:%M:%S')
+    lastdosetime <- format(x[,ldCol], '%Y-%m-%d %H:%M:%S')
   } else {
     lastdosetime <- rep(NA_character_, nr)
   }
@@ -33,7 +33,7 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 
   dat <- cbind(data.frame(CID=x[1,'id'], time = NA_integer_, date=dt_index, conc=NA, dose=x[, 'dose'], addl=addl_vals[-1], II=12, mdv=1), covars)
   dat <- rbind(dat[1,], dat)
-  dat[1,'date'] <- as.character(firstTime, '%Y-%m-%d %H:%M:%S')
+  dat[1,'date'] <- format(firstTime, '%Y-%m-%d %H:%M:%S')
   dat[1,'addl'] <- addl_vals[1]
   # update II if addl is zero
   dat[!is.na(dat[,'addl']) & dat[,'addl'] == 0, 'II'] <- NA
@@ -121,7 +121,7 @@ run_Build_PK_Oral <- function(x, idCol = 'id', dtCol = 'dt', doseCol = 'dose', c
   # save covariates for later
   covars <- setdiff(x_cols, c(exp_cols, ldCol))
 
-  dt_str <- as.character(x[,dtCol], '%Y-%m-%d %H:%M:%S')
+  dt_str <- format(x[,dtCol], '%Y-%m-%d %H:%M:%S')
   # convert time to UTC
   x[,dtCol] <- as.POSIXct(dt_str, tz = tz)
 
@@ -162,7 +162,7 @@ run_Build_PK_Oral <- function(x, idCol = 'id', dtCol = 'dt', doseCol = 'dose', c
   t0 <- as.POSIXct(tapply(xx[,'date'], xx[,'CID'], min), origin = '1970-01-01', tz = tz)
   xx_t0 <- t0[match(xx[,'CID'], names(t0))]
   xx[,'time'] <- round(as.numeric(difftime(xx[,'date'], xx_t0, units = 'hours')), 2)
-  xx[,'date'] <- as.character(xx[,'date'], '%Y-%m-%d %H:%M:%S')
+  xx[,'date'] <- format(xx[,'date'], '%Y-%m-%d %H:%M:%S')
   # remove rows with negative `addl`
   xx <- xx[is.na(xx[,'addl']) | xx[,'addl'] >= 0,]
   names(xx)[match(c('conc','dose'), names(xx))] <- c('dv','amt')
