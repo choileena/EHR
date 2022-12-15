@@ -137,7 +137,7 @@ is assumed until the 2nd dose record; otherwise, the first infusion is assumed t
 # make fake data
 set.seed(6543)
 
-build_date <- function(x) as.character(seq(x, length.out=5, by="1 hour"))
+build_date <- function(x) format(seq(x, length.out=5, by="1 hour"), "\%Y-\%m-\%d \%H:\%M")
 dates <- unlist(lapply(rep(Sys.time(),3), build_date))
 
 plconc <- data.frame(mod_id = rep(1:3,each=5),

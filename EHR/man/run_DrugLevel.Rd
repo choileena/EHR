@@ -92,7 +92,7 @@ conc_data <- data.frame(mod_id = rep(1:3,each=4),
                        drug_calc_conc=15*exp(-1*rep(1:4,times=3))+rnorm(12,0,0.1))
 
 # sample times
-build_date <- function(x) as.character(seq(x, length.out=4, by="1 hour"))
+build_date <- function(x) format(seq(x, length.out=4, by="1 hour"), "\%Y-\%m-\%d \%H:\%M")
 dates <- unlist(lapply(rep(Sys.time(),3), build_date))
 
 samp_data <- data.frame(mod_id = rep(1:3,each=4),

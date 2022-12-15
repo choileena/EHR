@@ -30,7 +30,7 @@ findbreaks <- function(x, char = '[ /\\]', charlen = 75) {
   }
   cur <- x
   nbuf <- ceiling(nchar(x) / charlen)
-  if(nbuf == 1) {
+  if(length(nbuf) == 0 || nbuf == 1) {
     return(cur)
   }
   strings <- character(nbuf)
