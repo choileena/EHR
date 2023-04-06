@@ -18,6 +18,9 @@
 #' created. The default (NULL) will not produce any check files.
 #' @param drugname drug of interest, included in filename of check files. The default (NULL)
 #' will produce filenames without drugname included.
+#' @param conflict.window Time window (in minutes) to consider nearby doses. The default is 60 minutes.
+#' Equal doses within the window will be considered duplicats and removed. Unequal doses
+#' will be also be excluded and saved to a check file (if \sQuote{check.path} is set).
 #'
 #' @details See EHR Vignette for Structured Data.
 #'
@@ -39,7 +42,7 @@
 #'
 #' @export
 
-run_MedStrIII <- function(dose.path, dose.columns = list(), req.vals = list(), check.path = NULL, drugname = NULL) {
+run_MedStrIII <- function(dose.path, dose.columns = list(), req.vals = list(), check.path = NULL, drugname = NULL, conflict.window = 60) {
   dose.in <- read(dose.path)
   dose.req <- list(id = NA, datetime = NA, dose = NA, duration = NULL)
   dose.col <- validateColumns(dose.in, dose.columns, dose.req)
@@ -82,7 +85,7 @@ run_MedStrIII <- function(dose.path, dose.columns = list(), req.vals = list(), c
 
   # remove duplicates
   # use 1-hour window for 'rate'
-  window_size <- 60
+  window_size <- conflict.window
   if(!is.na(window_size)) {
     timediff <- c(NA, as.numeric(difftime(dat[-1,'date.time'], dat[-nr,'date.time'], unit = 'min')))
     persdiff <- !duplicated(dat[,'id'])

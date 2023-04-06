@@ -9,7 +9,8 @@ run_MedStrIII(
   dose.columns = list(),
   req.vals = list(),
   check.path = NULL,
-  drugname = NULL
+  drugname = NULL,
+  conflict.window = 60
 )
 }
 \arguments{
@@ -32,6 +33,10 @@ created. The default (NULL) will not produce any check files.}
 
 \item{drugname}{drug of interest, included in filename of check files. The default (NULL)
 will produce filenames without drugname included.}
+
+\item{conflict.window}{Time window (in minutes) to consider nearby doses. The default is 60 minutes.
+Equal doses within the window will be considered duplicats and removed. Unequal doses
+will be also be excluded and saved to a check file (if \sQuote{check.path} is set).}
 }
 \value{
 structured data set
