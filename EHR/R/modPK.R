@@ -19,8 +19,10 @@
 #' may also be specified for infusion data -- this variable represents an
 #' precise time, if for example the \sQuote{infuseDatetime} variable is rounded.
 #' \sQuote{bolusDatetime} and \sQuote{bolusDose} should be set if bolus dose
-#' data is present. A generic \sQuote{date} variable may be provided, agnostic
-#' to either infusion or bolus dosing. \sQuote{gap} and \sQuote{weight} column
+#' data is present. Additionally, dose data can be provided with the \sQuote{otherDatetime},
+#' \sQuote{otherDose}, and \sQuote{otherRate} variables. \sQuote{otherRate} is carried through
+#' rather than calculated based on dose duration. A generic \sQuote{date} variable may
+#' be provided, agnostic to either infusion or bolus dosing. \sQuote{gap} and \sQuote{weight} column
 #' names may also be set. Any of the date-time variables can be specified as a
 #' single date-time variable (infuseDatetime = \sQuote{date_time}) or two variables
 #' holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})).
@@ -132,7 +134,8 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
 ) {
   conc.req <- list(id = NA, datetime = NA, druglevel = NA, idvisit = NULL)
   dose.req <- list(id = NA, date = NULL, infuseDatetime = NULL, infuseTimeExact = NULL, infuseDose = NULL,
-    bolusDatetime = NULL, bolusDose = NULL, gap = NULL, weight = NULL)
+    bolusDatetime = NULL, bolusDose = NULL, gap = NULL, weight = NULL,
+    otherDatetime = NULL, otherDose = NULL, otherRate = NULL)
   censor.req <- list(id = NA, datetime = NA)
   lab.req <- list(id = NA, datetime = NA)
   demo.req <- list(id = NA, datetime = NULL, idvisit = NULL, weight = NULL)
@@ -161,8 +164,10 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
 
   # standardize dose data
   dose.col <- validateColumns(dose, dose.columns, dose.req)
-  hasInf <- 'infuseDose' %in% names(dose.col)
-  hasBol <- 'bolusDose' %in% names(dose.col)
+  dcnames <- names(dose.col)
+  hasInf <- 'infuseDose' %in% dcnames
+  hasBol <- 'bolusDose' %in% dcnames
+  hasOther <- 'otherDose' %in% dcnames
   # force mod_id
   if(dose.col$id != 'mod_id') {
     names(dose)[match(dose.col$id, names(dose))] <- 'mod_id'
@@ -179,7 +184,7 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
       dose[,'infuse.dose'] <- dose[,dose.col$infuseDose]
     }
     # require a "real" (accurate) date-time
-    if('infuseTimeExact' %in% names(dose.col)) {
+    if('infuseTimeExact' %in% dcnames) {
       if(length(dose.col$infuseTimeExact) == 2) {
         infdtr <- paste(dose[,dose.col$infuseTimeExact[1]], dose[,dose.col$infuseTimeExact[2]])
       } else {
@@ -203,7 +208,22 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
     }
     dosecoi <- c(dosecoi, 'bolus.time', 'bolus.dose')
   }
-  if('date' %in% names(dose.col)) {
+  if(hasOther) {
+    if(length(dose.col$otherDatetime) == 2) {
+      othdt <- paste(dose[,dose.col$otherDatetime[1]], dose[,dose.col$otherDatetime[2]])
+    } else {
+      othdt <- dose[,dose.col$otherDatetime]
+    }
+    dose[,'other.time'] <- pkdata::parse_dates(othdt)
+    if(dose.col$otherDose != 'other.dose') {
+      dose[,'other.dose'] <- dose[,dose.col$otherDose]
+    }
+    if(dose.col$otherRate != 'other.rate') {
+      dose[,'other.rate'] <- dose[,dose.col$otherRate]
+    }
+    dosecoi <- c(dosecoi, 'other.time', 'other.dose', 'other.rate')
+  }
+  if('date' %in% dcnames) {
     dose[,'date.dose'] <- pkdata::parse_dates(dose[,dose.col$date])
     dosecoi <- c(dosecoi, 'date.dose')
   }
@@ -223,6 +243,10 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
     tdArgs$bolusDoseTimeVar <- 'bolus.time'
     tdArgs$bolusDoseVar <- 'bolus.dose'
   }
+  if(hasOther) {
+    tdArgs$otherDoseTimeVar <- 'other.time'
+    tdArgs$otherDoseVar <- 'other.dose'
+  }
   info <- do.call(pkdata::trimDoses, tdArgs)
   ni <- names(info)
   # require 'date.dose' column
@@ -235,12 +259,16 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
       ix <- which(is.na(tmpDate))
       tmpDate[ix] <- as.Date(info[ix,'bolus.time'])
     }
+    if(hasOther) {
+      ix <- which(is.na(tmpDate))
+      tmpDate[ix] <- as.Date(info[ix,'other.time'])
+    }
     info[,'date.dose'] <- tmpDate
   }
 
   info <- resolveDoseDups_mod(info, checkDir=check.path, drugname=drugname, faildupbol_filename=faildupbol_fn)
 
-  if('gap' %in% names(dose.col)) {
+  if('gap' %in% dcnames) {
     # force column name 'maxint'
     names(info)[match(dose.col$gap, ni)] <- 'maxint'
     # skip if no infusion data
@@ -320,7 +348,10 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
         if(hasBol) {
           d_t2 <- info1[doseIx[[id_i]], 'bolus.time']
         }
-        toCens <- (!is.na(d_t1) & d_t1 > dt_i) | (!is.na(d_t2) & d_t2 > dt_i)
+        if(hasOther) {
+          d_t3 <- info1[doseIx[[id_i]], 'other.time']
+        }
+        toCens <- (!is.na(d_t1) & d_t1 > dt_i) | (!is.na(d_t2) & d_t2 > dt_i) | (!is.na(d_t3) & d_t3 > dt_i)
         doseCensFlag[doseIx[[id_i]]] <- toCens
       }
       if(id_i %in% names(concIx)) {
@@ -355,6 +386,11 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
     pkArgs$bolusDoseTimeVar <- 'bolus.time'
     pkArgs$bolusDoseVar <- 'bolus.dose'
   }
+  if(hasOther) {
+    pkArgs$otherDoseTimeVar <- 'other.time'
+    pkArgs$otherDoseVar <- 'other.dose'
+    pkArgs$otherRateVar <- 'other.rate'
+  }
 
   pkd <- do.call(rbind, lapply(uids, function(i) {
     datArgs <- list(doseData = doseById[[i]], drugLevelData = drugLevelById[[i]])
@@ -376,7 +412,7 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   pk.excl <- setdiff(pk.excl, pk.vars)
   pk.vars <- setdiff(names(pkd), pk.excl)
 
-  if(hasInf && 'weight' %in% names(dose.col)) {
+  if(hasInf && 'weight' %in% dcnames) {
     flow.weight <- info[!is.na(info[,dose.col$weight]), c('mod_id','infuse.time.real',dose.col$weight)]
     # force column name 'weight"
     if(dose.col$weight != 'weight') {
@@ -407,7 +443,7 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
       }
       lab.list[[i]][,'date.time'] <- pkdata::parse_dates(labdt)
       cln <- names(lab.list[[i]])
-      cln <- setdiff(cln, c(lab.col$id, 'date.time'))
+      cln <- setdiff(cln, c(lab.col$id, 'date.time', lab.col$datetime))
       lab.vars <- c(lab.vars, cln)
       if(length(cln)) {
         curlab <- lab.list[[i]][,c(lab.col$id, 'date.time', cln)]

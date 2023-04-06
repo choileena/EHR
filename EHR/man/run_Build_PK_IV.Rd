@@ -49,8 +49,10 @@ should be set if infusion dose data is present. \sQuote{infuseTimeExact}
 may also be specified for infusion data -- this variable represents an
 precise time, if for example the \sQuote{infuseDatetime} variable is rounded.
 \sQuote{bolusDatetime} and \sQuote{bolusDose} should be set if bolus dose
-data is present. A generic \sQuote{date} variable may be provided, agnostic
-to either infusion or bolus dosing. \sQuote{gap} and \sQuote{weight} column
+data is present. Additionally, dose data can be provided with the \sQuote{otherDatetime},
+\sQuote{otherDose}, and \sQuote{otherRate} variables. \sQuote{otherRate} is carried through
+rather than calculated based on dose duration. A generic \sQuote{date} variable may
+be provided, agnostic to either infusion or bolus dosing. \sQuote{gap} and \sQuote{weight} column
 names may also be set. Any of the date-time variables can be specified as a
 single date-time variable (infuseDatetime = \sQuote{date_time}) or two variables
 holding date and time separately (e.g., infuseDatetime = c(\sQuote{Date}, \sQuote{Time})).}

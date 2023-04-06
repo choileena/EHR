@@ -447,7 +447,7 @@ pkdata <- function(doseData, drugLevelData, doseIdVar = "id",
             # if orv is present, calculate rate
             if(length(orv)) {
                 # look for numbers in the otherRateVar column
-                rates <- regexpr("[0-9]+", dose.info[,orv])
+                rates <- regexpr("[0-9.]+", dose.info[,orv])
                 other.data$rate[which(rates > -1)] <- as.numeric(regmatches(dose.info[,orv], rates))
             }
         }

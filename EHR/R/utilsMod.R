@@ -557,6 +557,8 @@ resolveDoseDups_mod <- function(dat, checkDir, drugname, faildupbol_filename) {
     }
     orderVars <- c(orderVars, 'bolus.time')
   }
+  # no infusion nor bolus
+  if(length(orderVars) == 1) return(dat)
 
   # re-order by id and time variables
   dat[do.call(order, dat[,orderVars]),]
