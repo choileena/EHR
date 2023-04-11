@@ -613,10 +613,8 @@ processErx <- function(rx, description=TRUE, strength_exclude="\\s*mg|\\(.*\\)",
   str[grep("c\\(", str)] <- NA
   str <- tolower(str)
   str <- gsub(strength_exclude, '', str)
+#   str_num <- stdzStrength(str)
   rx[,'strength'] <- nowarnnum(str)
-
-  ## Drop observations missing strength
-  rx <- rx[!is.na(rx[,'strength']),]
 
   ## Get numeric frequency
   freq <- unique(rx[,'FREQUENCY'])
@@ -625,6 +623,20 @@ processErx <- function(rx, description=TRUE, strength_exclude="\\s*mg|\\(.*\\)",
   ix <- match(rx[,'FREQUENCY'], freq)
   rx[,'freq.standard'] <- freqstnd[ix]
   rx[,'freq.num'] <- freqnum[ix]
+
+#   # check for split strength, if sensible with frequency
+#   ssd <- lapply(attr(str_num, 'addl_data'), `[[`, 'str')
+#   lssd <- lengths(ssd)
+#   # use "c" to remove attribute
+#   str_num <- c(str_num)
+#   ssd_sums <- vapply(ssd, sum, numeric(1))
+#   # replace 0 with NA
+#   ssd_sums[ssd_sums == 0] <- NA
+#   has_ss <- !is.na(rx[,'freq.num']) & lssd > 1 & lssd == rx[,'freq.num']
+#   str_num[has_ss] <- ssd_sums[has_ss]
+#   rx[,'strength'] <- str_num
+  ## Drop observations missing strength
+  rx <- rx[!is.na(rx[,'strength']),]
 
   ## Get numeric dose
   dose <- tolower(rx[,'RX_DOSE'])

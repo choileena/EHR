@@ -27,7 +27,7 @@
 #' @return structured data set
 #'
 #' @examples
-#' dose data for single user
+#' # dose data for single user
 #' doseData <- structure(list(id = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 #'   dt = c("2020-01-01 08:00", "2020-01-02 08:00", "2020-01-02 20:00",
 #'     "2020-01-02 20:00", "2020-01-03 08:00", "2020-01-05 08:00", "2020-01-05 08:00",

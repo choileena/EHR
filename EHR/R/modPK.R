@@ -114,6 +114,31 @@
 #'                   gap = 'maxint', weight = 'weight'),
 #'                 pk.vars = 'date')
 #'
+#' # example data coming from `run_MedStrIII`
+#' doseData <- structure(list(id = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+#'   dt = c("2020-01-01 08:00", "2020-01-02 08:00", "2020-01-02 20:00",
+#'     "2020-01-02 20:00", "2020-01-03 08:00", "2020-01-05 08:00", "2020-01-05 08:00",
+#'     "2020-01-05 08:00", "2020-01-05 20:00", "2020-01-06 08:00", "2020-01-06 08:00",
+#'     "2020-01-06 20:00", "2020-01-07 20:00", "2020-01-07 20:00"),
+#'   dose = c(30, 10, 20, 30, 10, 10, 20, 30, 10, 20, 10, 10, 20, 20),
+#'   dur = c(3600, 7200, 1800, 3600, 3600, 7200, 1800, 3600, 7200, 1800, 1800, 1800, 1800, 3600)),
+#'   class = "data.frame", row.names = c(NA, -14L))
+#' 
+#' dose <- run_MedStrIII(dose.path = doseData,
+#'   dose.columns = list(id = 'id', datetime = 'dt', dose = 'dose', duration = 'dur'))
+#'
+#' concData <- structure(list(id = c(1, 1, 1, 1, 1, 1), dt = c("2020-01-02 07:30", 
+#' "2020-01-03 07:30", "2020-01-04 07:30", "2020-01-05 07:30", "2020-01-06 07:30", 
+#' "2020-01-07 07:30"), level = c(0.524, 0.494, 0.059, 0.003, 0.384, 
+#' 0.455)), class = "data.frame", row.names = c(NA, -6L))
+#'
+#' run_Build_PK_IV(conc = concData,
+#'                 conc.columns = list(id = 'id', datetime = 'dt', druglevel = 'level'),
+#'                 dose = dose,
+#'                 dose.columns = list(id = 'id', otherDatetime = 'date.time',
+#'                   otherDose = 'dose', otherRate = 'rate'),
+#'                 pk.vars = 'date')
+#'
 #' @export
 
 run_Build_PK_IV <- function(conc, conc.columns = list(),
