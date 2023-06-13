@@ -137,7 +137,7 @@ run_DrugLevel <- function(conc.path, conc.columns = list(), conc.select, conc.re
     } else {
       concDT <- conc[,conc.col$datetime]
     }
-    conc[,'datetime'] <- concDT
+    conc[,'date.time'] <- concDT
   }
 
   #### demo data

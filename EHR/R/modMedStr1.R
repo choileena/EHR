@@ -203,6 +203,7 @@ run_MedStrI <- function(mar.path,
       nounitfixfn <- sub('fail', 'fix', nounitfn)
 
       mf <- cbind(dmnu[,reqInfusionColumns], dmnu[,mar.drugCol], flag = 'exclude')
+      names(mf)[ncol(mf)-1] <- mar.drugCol
       msg <- sprintf('%s rows with no unit, see file %s AND create %s', nrow(mf), nounitfn, nounitfixfn)
       writeCheckData(mf, nounitfn, msg)
 
@@ -217,7 +218,8 @@ run_MedStrI <- function(mar.path,
         nBad <- sum(!toKeep)
         if(nFixed > 0L) {
           # update required columns (ideally just "unit")
-          dmnu[toKeep, reqInfusionColumns] <- hasfix[toKeep, reqInfusionColumns]
+          getfix <- dtMirror(hasfix[toKeep, reqInfusionColumns], dmnu[toKeep, reqInfusionColumns])
+          dmnu[toKeep, reqInfusionColumns] <- getfix[, reqInfusionColumns]
           message(sprintf('file %s read, %s records added', nounitfixfn, nFixed))
           dm0 <- setDoseMar(dmnu[toKeep,], mar.doseCol, 'date.time', mar.weightCol)
           dm1 <- rbind(dm[hasUnit,], dm0)
@@ -329,7 +331,7 @@ run_MedStrI <- function(mar.path,
     coi <- c(mar.idCol, 'date.time', mar.drugCol, 'rate', 'unit', 'weight', 'weight.date.time')
     mf <- cbind(dm[,coi], flag = 'exclude')
     msg <- sprintf('%s rows with units other than %s or %s, see file %s AND create %s',
-                nrow(mf),infusion.unit, bolus.unit, unitfn, unitfixfn)
+                nrow(mf), infusion.unit, bolus.unit, unitfn, unitfixfn)
     writeCheckData(mf, unitfn, msg)
 
     if(file.access(unitfixfn, 4) != -1) {
@@ -338,7 +340,9 @@ run_MedStrI <- function(mar.path,
       nFixed <- sum(toKeep)
       nBad <- sum(!toKeep)
       if(nFixed > 0L) {
-        inf1 <- rbind(inf0[,reqInfusionColumns], hasfix[toKeep, reqInfusionColumns])
+        # recreate dates
+        getfix <- dtMirror(hasfix[toKeep, reqInfusionColumns], inf0[,reqInfusionColumns])
+        inf1 <- rbind(inf0[,reqInfusionColumns], getfix)
         message(sprintf('file %s read, %s records added', unitfixfn, nFixed))
       }
       ## unfixed/bad data should be censored
@@ -405,7 +409,9 @@ run_MedStrI <- function(mar.path,
         # note: this is awkward, would be better to provide data in `missing.wgt.path`
         # rather than a fix file
         hasfix[,'rate'] <- hasfix[,'rate'] * hasfix[,'weight']
-        inf <- rbind(nofix, hasfix[,names(nofix)])
+        # recreate dates
+        getfix <- dtMirror(hasfix, nofix)
+        inf <- rbind(nofix, getfix)
         inf <- inf[order(inf[,mar.idCol], inf[,'date.time']),]
         message(sprintf('file %s read, %s records corrected', nowgtfixfn, nrow(hasfix)))
       }

@@ -1,0 +1,2 @@
+"mod_id","date.time","med:mDrug","rate","unit","weight","weight.date.time","flag"
+1,2019-07-05 13:31:00,"Fakedrug1",0.5,"mcg/kg/hr",6.75,2019-07-05 06:01:00,"keep"

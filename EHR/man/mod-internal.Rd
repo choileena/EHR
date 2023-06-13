@@ -2,6 +2,7 @@
 % Please edit documentation in R/utilsMod.R
 \name{mod-internal}
 \alias{mod-internal}
+\alias{dtMirror}
 \alias{colflow_mod}
 \alias{findMedFlowRow_mod}
 \alias{flowData_mod}
@@ -15,9 +16,11 @@
 \alias{setDoseMar}
 \title{Internal functions for EHR modules}
 \description{
-code{colflow_mod}: build a comparison of potentially duplicate flow data
+code{dtMirror}: mirror date-time formats from old data set to new
 }
 \details{
+code{colflow_mod}: build a comparison of potentially duplicate flow data
+
 code{findMedFlowRow_mod}: find row numbers for matching ID and time
 
 code{flowData_mod}: correct flow data

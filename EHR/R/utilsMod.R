@@ -1,5 +1,7 @@
 #' Internal functions for EHR modules
-#' 
+#'
+#' code{dtMirror}: mirror date-time formats from old data set to new
+#'
 #' code{colflow_mod}: build a comparison of potentially duplicate flow data
 #'
 #' code{findMedFlowRow_mod}: find row numbers for matching ID and time
@@ -26,11 +28,28 @@
 #' code{setDoseMar}: set unit/rate/date columns
 #'
 #' @name mod-internal
-#' @aliases colflow_mod findMedFlowRow_mod flowData_mod concData_mod
+#' @aliases dtMirror colflow_mod findMedFlowRow_mod flowData_mod concData_mod
 #' infusionData_mod resolveDoseDups_mod processErx processErxAddl
 #' validateColumns read setDoseMar
 #' @keywords internal
 NULL
+
+dtMirror <- function(newdat, basedat) {
+  n1 <- names(basedat)
+  n2 <- names(newdat)
+  if(length(setdiff(n2, n1)) > 0) stop('new data does contain columns of original data')
+  if(any(n1 != n2)) {
+    # newdat should look like basedat
+    newdat <- newdat[,names(basedat)]
+  }
+  # determine date-time columns
+  dtcols <- names(Filter(isTRUE, vapply(basedat, inherits, logical(1), 'POSIXt')))
+  for(i in dtcols) {
+    curtz <- attr(basedat[,i], 'tzone')
+    newdat[,i] <- pkdata::parse_dates(fixDates(newdat[,i]), tz = curtz)
+  }
+  newdat
+}
 
 colflow_mod <- function(dat) {
   sd <- split(dat, dat[,'date.time'])
@@ -128,7 +147,8 @@ The number of rows after removing the duplicates  %8d', n1, n2))
           if(file.access(fixfn, 4) != -1) {
             hasfix <- read.csv(fixfn, stringsAsFactors = FALSE)
             if(nrow(hasfix)) {
-              dat <- rbind(dat, hasfix[,names(dat)])
+              # recreate dates
+              dat <- rbind(dat, dtMirror(hasfix, dat))
               message(sprintf('file %s read with failures replaced', fixfn))
             }
           }
@@ -136,6 +156,7 @@ The number of rows after removing the duplicates  %8d', n1, n2))
       } else {
         message(sprintf('no failures, file %s not created', fn))
       }
+      # r1/r2 no longer problems, remove from "problem data"
       if(length(r1)) pd1 <- pd1[-r1,]
       if(length(r2)) pd2 <- pd2[-r2,]
     } else {
@@ -237,7 +258,9 @@ The number of rows after removing the duplicates  %8d', n1, n2))
     allBadRows <- sort(unlist(badRows))
     n1 <- nrow(dat)
     n2 <- length(allBadRows)
-    dat <- dat[-allBadRows,]
+    if(n2 > 0) {
+      dat <- dat[-allBadRows,]
+    }
     n3 <- nrow(dat)
     message(sprintf('The number of rows before removing bad rows %8d
   The number of bad rows                      %8d
@@ -271,9 +294,16 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
     m2 <- sampFile[, samp.columns$conclinkid]
     concDT <- sampFile[match(m1, m2), 'datetime']
   } else {
-    concDT <- dat[, 'datetime']
+    concDT <- dat[, 'date.time']
   }
-  dt <- pkdata::parse_dates(fixDates(concDT))
+  # use timezone if available
+  if(inherits(concDT, 'POSIXt')) {
+    mytz <- attr(concDT, 'tzone')
+    dt <- concDT
+  } else {
+    mytz <- ''
+    dt <- pkdata::parse_dates(fixDates(concDT), tz = mytz)
+  }
   rnums <- which(is.na(dt))
 
   fn <- file.path(checkDir, paste0('fail', failmissconc_filename, drugname, '.csv'))
@@ -282,7 +312,8 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
   } else if(length(rnums)) {
     concdate <- cbind(dat[, uidv, drop = FALSE], datetime = concDT)
     needfix <- concdate[rnums,]
-    needfix <- needfix[order(needfix[,uidv]),]
+    fixix <- order(needfix[,uidv])
+    needfix <- needfix[fixix,]
     nofix <- concdate[-rnums,]
     fixfn <- sub('fail', 'fix', fn)
     msg <- sprintf('%s rows need review, see file %s AND create %s', length(rnums), fn, fixfn)
@@ -290,12 +321,18 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
     if(file.access(fixfn, 4) != -1) {
       hasfix <- read.csv(fixfn, stringsAsFactors = FALSE)
       if(nrow(hasfix)) {
-        cn <- names(nofix)
-        concdate <- rbind(nofix, hasfix[,cn])
+        newix <- order(fixix)
+        if(any(concdate[rnums,uidv] != hasfix[newix,uidv])) {
+          # fix file no longer matches expected row order
+        }
+        # need to match original order
+        newdt <- hasfix[newix, 'datetime']
+        newdt <- pkdata::parse_dates(fixDates(newdt), tz = mytz)
+        if(any(is.na(newdt))) {
+          # some date-times are still NA
+        }
+        dt[rnums] <- newdt
         message(sprintf('file %s read with failures replaced', fixfn))
-        # recreate date-time variable
-        concDT <- concdate[match(dat[,uidv], concdate[,uidv]), 'datetime']
-        dt <- pkdata::parse_dates(fixDates(concDT))
       }
     }
   } else {
@@ -306,8 +343,11 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
   if(giveExample) {
     nodate <- dat[is.na(dat[,'date.time']), uidv]
     x <- dat[dat[,uidv] %in% nodate, c(conc.columns$id,uidv)]
-    message('subjects with concentration missing from sample file')
-    print(x[!duplicated(x[,uidv]),], row.names = FALSE)
+    mx <- x[!duplicated(x[,uidv]),]
+    if(nrow(mx) > 0) {
+      message('subjects with concentration missing from sample file')
+      print(mx, row.names = FALSE)
+    }
   }
   dat <- dat[!is.na(dat[,'date.time']),]
 
@@ -388,8 +428,14 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
         hasfix <- hasfix[hasfix[,'flag'] == 'keep',]
         if(nrow(hasfix)) {
           pd <- nrow(dat)
-          # possibly fix dates in `hasfix` before rbind
-          dat <- rbind(nofix, hasfix[,names(nofix)])
+          getfix <- hasfix[,names(nofix)]
+          # recreate dates
+          dtcols <- names(Filter(isTRUE, vapply(nofix, inherits, logical(1), 'POSIXt')))
+          for(i in dtcols) {
+            curtz <- attr(nofix[,i], 'tzone')
+            getfix[,i] <- pkdata::parse_dates(fixDates(getfix[,i]), tz = curtz)
+          }
+          dat <- rbind(nofix, getfix)
           message(sprintf('file %s read, %s records removed', fixfn, pd-nrow(dat)))
         }
       }
@@ -397,7 +443,7 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
   }
 
   # reorder by id, date.time
-  dat[order(dat[,conc.columns[[id2]]], dat[,'date.time'], dat[,'conc.level']),]
+  dat[order(dat[,conc.columns[[id2]]], dat[,'date.time'], dat[,conc.columns$conc]),]
 }
 
 infusionData_mod <- function(flow, mar, flowInt = 60, marInt = 15,
@@ -550,7 +596,14 @@ resolveDoseDups_mod <- function(dat, checkDir, drugname, faildupbol_filename) {
         hasfix <- hasfix[hasfix[,'flag'] == 'keep',]
         if(nrow(hasfix)) {
           pd <- nrow(dat)
-          dat <- rbind(nofix, hasfix[,names(nofix)])
+          getfix <- hasfix[,names(nofix)]
+          # recreate dates
+          dtcols <- names(Filter(isTRUE, vapply(dat, inherits, logical(1), 'POSIXt')))
+          for(i in dtcols) {
+            curtz <- attr(dat[,i], 'tzone')
+            getfix[,i] <- pkdata::parse_dates(fixDates(getfix[,i]), tz = curtz)
+          }
+          dat <- rbind(nofix, getfix)
           message(sprintf('file %s read, %s duplicates removed', fixfn, pd-nrow(dat)))
         }
       }

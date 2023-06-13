@@ -150,7 +150,14 @@ The number of rows after removing the duplicates  %8d', nr, n2))
         toKeep <- hasfix[,'flag'] != 'exclude'
         nFixed <- sum(toKeep)
         if(nFixed > 0) {
-          dat <- rbind(dat, hasfix[toKeep,names(dat)])
+          getfix <- hasfix[toKeep,names(dat)]
+          # recreate dates
+          dtcols <- names(Filter(isTRUE, vapply(dat, inherits, logical(1), 'POSIXt')))
+          for(i in dtcols) {
+            curtz <- attr(dat[,i], 'tzone')
+            getfix[,i] <- pkdata::parse_dates(fixDates(getfix[,i]), tz = curtz)
+          }
+          dat <- rbind(dat, getfix)
           message(sprintf('file %s read, %s records added', fixfn, nFixed))
         }
       }
