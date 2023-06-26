@@ -54,6 +54,8 @@
 #' @param postWindow Data is merged with drug level data. This postWindow can set the end time
 #' for the drug level data, being the number of days after the first drug level data. The
 #' default (NA) will use the date of the last drug level data.
+#' @param doseFreq Provides dose schedule interval for repeated dosing case. A value of 2 would
+#' indicate two doses per day. The default (NULL) will not use repeated dosing. 
 #' @param pk.vars variables to include in the returned PK data. The variable \sQuote{date}
 #' is a special case; when included, it maps the \sQuote{time} offset to its original date-time.
 #' Other named variables will be merged from the concentration data set. For example,
@@ -138,6 +140,16 @@
 #'                 dose.columns = list(id = 'id', otherDatetime = 'date.time',
 #'                   otherDose = 'dose', otherRate = 'rate'),
 #'                 pk.vars = 'date')
+#' # use twice daily repeated dosing
+#' dose_rd <- dose
+#' dose_rd[,'rate'] <- dose_rd[,'dose']
+#' run_Build_PK_IV(conc = concData,
+#'                 conc.columns = list(id = 'id', datetime = 'dt', druglevel = 'level'),
+#'                 dose = dose_rd,
+#'                 dose.columns = list(id = 'id', otherDatetime = 'date.time',
+#'                   otherDose = 'dose', otherRate = 'rate'),
+#'                 doseFreq = 2,
+#'                 pk.vars = 'date')
 #'
 #' @export
 
@@ -150,6 +162,7 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
                             dosePriorWindow = 7,
                             labPriorWindow = 7,
                             postWindow = NA,
+                            doseFreq = NULL,
                             pk.vars = NULL, drugname = NULL, check.path = NULL,
                             missdemo_fn='-missing-demo',
                             faildupbol_fn='DuplicateBolus-',
@@ -164,6 +177,12 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   censor.req <- list(id = NA, datetime = NA)
   lab.req <- list(id = NA, datetime = NA)
   demo.req <- list(id = NA, datetime = NULL, idvisit = NULL, weight = NULL)
+
+  useRD <- !is.null(doseFreq)
+  # repeated dosing
+  if(useRD) {
+    dosing_interval <- 24 / doseFreq # if 2, then 24/2=12 hours
+  }
 
   # standardize conc data
   conc.col <- validateColumns(conc, conc.columns, conc.req)
@@ -421,6 +440,46 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
     datArgs <- list(doseData = doseById[[i]], drugLevelData = drugLevelById[[i]])
     pk <- do.call(pkdata, c(datArgs, pkArgs))
   }))
+  # if `pkd` is NULL, something bad happened
+  if(is.null(pkd)) {
+    stop('pk data was not created; either dose or concentration were unavailable')
+  }
+  # adjust for repeated dosing
+  if(useRD) {
+    rate_ix <- which(!is.na(pkd[,'rate']))
+    # count number of doses
+    t1 <- pkd[rate_ix, 'date']
+    # subtract half-an-interval for proper rounding
+    t2 <- t1[-1] - 3600 * dosing_interval / 2
+    addl_vals <- c(as.numeric(difftime(t2, t1[-length(t1)], units = 'hours')) %/% dosing_interval, 0)
+    pkd[rate_ix,'addl'] <- addl_vals
+    pkd[rate_ix,'II'] <- dosing_interval
+    ## possible for II to come from input data set
+
+    rd_dat <- pkd[rate_ix,]
+    rd_n <- nrow(rd_dat)
+    # collapse on same user/dose/rate
+    sameuser <- rd_dat[-1,'mod_id'] == rd_dat[-rd_n,'mod_id']
+    samedose <- rd_dat[-1,'dose'] == rd_dat[-rd_n,'dose']
+    samerate <- rd_dat[-1,'rate'] == rd_dat[-rd_n,'rate']
+    sameuserdose <- c(FALSE, sameuser & samedose & samerate)
+    if(any(sameuserdose)) {
+      rd_torm <- rate_ix[sameuserdose]
+      ix_tokp <- setdiff(rate_ix, rd_torm)
+      # add back collapsed values (including time at dose) to addl_vals
+      rm2kp <- vapply(rd_torm, function(i) max(which(i > ix_tokp)), numeric(1))
+      keep_ix <- match(ix_tokp[rm2kp], rate_ix)
+      addl_ix <- match(rd_torm, rate_ix)
+      rm4addl <- addl_vals[addl_ix] + 1
+      for(i in seq_along(rd_torm)) {
+        addl_vals[keep_ix[i]] <- addl_vals[keep_ix[i]] + rm4addl[i]
+      }
+      # update addl
+      pkd[ix_tokp,'addl'] <- addl_vals[-addl_ix]
+      # update pkd
+      pkd <- pkd[-rd_torm,]
+    }
+  }
 
   if(hasDemo) {
     message(sprintf('The dimension of the PK data before merging with demographics: %s x %s', nrow(pkd), ncol(pkd)))
@@ -587,9 +646,14 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   mainpk[,'mdv'] <- +(is.na(mainpk[,'dv']))
   mainpk[,'evid'] <- +(!is.na(mainpk[,'amt']))
 
-  reqOrder <- c(col1, 'time', 'amt', 'dv', 'rate', 'mdv', 'evid')
+  if(useRD) {
+    reqOrder <- c(col1, 'time', 'amt', 'dv', 'rate', 'addl', 'II', 'mdv', 'evid')
+  } else {
+    reqOrder <- c(col1, 'time', 'amt', 'dv', 'rate', 'mdv', 'evid')
+  }
   pkOrder <- c(reqOrder, setdiff(names(mainpk), reqOrder))
   tmp3 <- cbind(mainpk[,pkOrder], tmp[, c(demo.vars, lab.vars), drop = FALSE])
+  rownames(tmp3) <- NULL
 
   if(hasDemo) {
     msg <- 'The dimension of the final PK data exported with the key demographics: %s x %s with %s distinct subjects (%s)'

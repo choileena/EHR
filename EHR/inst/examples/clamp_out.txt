@@ -1,0 +1,7 @@
+NamedEntity	8	17	semantic=treatment	assertion=present	cui=C1321013	ne=hydration
+NamedEntity	19	30	semantic=drug	cui=C0002144, RxNorm=[519], Generic=[519]	ne=Allopurinol
+NamedEntity	51	58	semantic=drug	cui=C0699319, RxNorm=[202589], Generic=[202589]	ne=Cytoxan
+NamedEntity	62	68	semantic=drug::STRENGTH	ne=600 mg
+NamedEntity	107	118	semantic=drug	cui=C0059985, RxNorm=[24698], Generic=[24698]	ne=Fludarabine
+NamedEntity	154	161	semantic=drug	cui=C0699319, RxNorm=[202589], Generic=[202589]	ne=Cytoxan
+Relation	51	58	drug	62	68	drug::STRENGTH	semantic=attrOf

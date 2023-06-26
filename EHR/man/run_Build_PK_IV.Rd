@@ -18,6 +18,7 @@ run_Build_PK_IV(
   dosePriorWindow = 7,
   labPriorWindow = 7,
   postWindow = NA,
+  doseFreq = NULL,
   pk.vars = NULL,
   drugname = NULL,
   check.path = NULL,
@@ -93,6 +94,9 @@ time frame window with the number of days prior to the first drug level data; de
 \item{postWindow}{Data is merged with drug level data. This postWindow can set the end time
 for the drug level data, being the number of days after the first drug level data. The
 default (NA) will use the date of the last drug level data.}
+
+\item{doseFreq}{Provides dose schedule interval for repeated dosing case. A value of 2 would
+indicate two doses per day. The default (NULL) will not use repeated dosing.}
 
 \item{pk.vars}{variables to include in the returned PK data. The variable \sQuote{date}
 is a special case; when included, it maps the \sQuote{time} offset to its original date-time.
@@ -189,6 +193,16 @@ run_Build_PK_IV(conc = concData,
                 dose = dose,
                 dose.columns = list(id = 'id', otherDatetime = 'date.time',
                   otherDose = 'dose', otherRate = 'rate'),
+                pk.vars = 'date')
+# use twice daily repeated dosing
+dose_rd <- dose
+dose_rd[,'rate'] <- dose_rd[,'dose']
+run_Build_PK_IV(conc = concData,
+                conc.columns = list(id = 'id', datetime = 'dt', druglevel = 'level'),
+                dose = dose_rd,
+                dose.columns = list(id = 'id', otherDatetime = 'date.time',
+                  otherDose = 'dose', otherRate = 'rate'),
+                doseFreq = 2,
                 pk.vars = 'date')
 
 }

@@ -33,7 +33,6 @@
 
 processLastDose <- function(mxrData, noteMetaData, labData) {
   
-  # CHANGE all_res to mxrLD
   # Restrict to last dose extractions, determine start position as numeric
   mxrLD <- mxrData[mxrData[,'entity'] == 'LastDose',]
   mxrLD[,'ld_start'] <- as.numeric(sub(":.+", "", mxrLD[,'pos']))

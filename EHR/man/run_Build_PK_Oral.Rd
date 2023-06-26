@@ -12,7 +12,9 @@ run_Build_PK_Oral(
   concCol = "conc",
   ldCol = NULL,
   first_interval_hours = 336,
-  imputeClosest = NULL
+  doseFreq = 2,
+  imputeClosest = NULL,
+  date.tz = NULL
 )
 }
 \arguments{
@@ -30,8 +32,12 @@ run_Build_PK_Oral(
 
 \item{first_interval_hours}{number of hours before the first concentration to start time=0; the default is 336 hours = 14 days}
 
+\item{doseFreq}{numeric. number of times dose is taken per day; the default is twice per day.}
+
 \item{imputeClosest}{columns to impute missing data with next observation propagated backward; this is in addition to
 all covariates receving imputation using last observation carried forward}
+
+\item{date.tz}{time zone, defaults to local}
 }
 \value{
 data.frame
@@ -74,6 +80,7 @@ run_Build_PK_Oral(x = dat,
                   concCol = "conc",
                   ldCol = NULL,
                   first_interval_hours = 336,
+                  doseFreq = 2,
                   imputeClosest = NULL)
 
 #Process data with last-dose times

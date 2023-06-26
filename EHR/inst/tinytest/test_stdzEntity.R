@@ -43,3 +43,7 @@ expect_equal(stdzDuration(c('ten hours', 'one year', 'a week')), c('10 hour(s)',
 
 expect_equal(stdzDose(c('one tablet', '1/2 pill', '1-3 tabs')), c(1, 0.5, 2))
 expect_equal(stdzDose(c('half capsule', '1-1/2', '1-2')), c(0.5, 1.5, 1.5))
+
+expect_equal(stdzDoseSchedule(c('tapered','weaned','TAPER','taper')), rep('taper',4))
+
+expect_equal(stdzDoseChange(c('decreasing','dropped','increased','decreasing')), c('-','-','+','-'))

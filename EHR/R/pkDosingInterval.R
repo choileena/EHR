@@ -4,7 +4,7 @@
 #'
 #' @keywords internal
 
-build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
+build_lastdose <- function(x, first_interval_hours = 336, doseFreq = 2, ldCol = NULL) {
   nr <- nrow(x)
   names(x)[1:3] <- c('id','dt','dose')
   cnames <- names(x)
@@ -23,15 +23,16 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
   ld_row <- which(hasLD)
 
   first_interval <- first_interval_hours * 3600
+  dosing_interval <- 24 / doseFreq # default: 24/2=12 hours
   firstTime <- x[1,'dt'] - first_interval
   t1 <- c(firstTime, x[-nr,'dt'])
   t2 <- x[,'dt']
   t2[hasLD] <- lastdosetime[hasLD]
-  t2 <- t2 - 3600 * 6
+  t2 <- t2 - 3600 * (dosing_interval / 2) # default: 12/2=6 hours
   # count 12-hour intervals between t1 and t2
-  addl_vals <- c(as.numeric(difftime(t2, t1, units = 'hours')) %/% 12, NA)
+  addl_vals <- c(as.numeric(difftime(t2, t1, units = 'hours')) %/% dosing_interval, NA)
 
-  dat <- cbind(data.frame(CID=x[1,'id'], time = NA_integer_, date=dt_index, conc=NA, dose=x[, 'dose'], addl=addl_vals[-1], II=12, mdv=1), covars)
+  dat <- cbind(data.frame(CID=x[1,'id'], time = NA_integer_, date=dt_index, conc=NA, dose=x[, 'dose'], addl=addl_vals[-1], II=dosing_interval, mdv=1), covars)
   dat <- rbind(dat[1,], dat)
   dat[1,'date'] <- format(firstTime, '%Y-%m-%d %H:%M:%S')
   dat[1,'addl'] <- addl_vals[1]
@@ -64,8 +65,10 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 #' @param concCol concentration column name
 #' @param ldCol last-dose time column name
 #' @param first_interval_hours number of hours before the first concentration to start time=0; the default is 336 hours = 14 days
+#' @param doseFreq numeric. number of times dose is taken per day; the default is twice per day.
 #' @param imputeClosest columns to impute missing data with next observation propagated backward; this is in addition to
 #' all covariates receving imputation using last observation carried forward
+#' @param date.tz time zone, defaults to local
 #'
 #' @details See EHR Vignette for Build-PK-Oral.
 #'
@@ -103,6 +106,7 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 #'                   concCol = "conc",
 #'                   ldCol = NULL,
 #'                   first_interval_hours = 336,
+#'                   doseFreq = 2,
 #'                   imputeClosest = NULL)
 #' 
 #' #Process data with last-dose times
@@ -111,8 +115,9 @@ build_lastdose <- function(x, first_interval_hours = 336, ldCol = NULL) {
 #' @export
 
 run_Build_PK_Oral <- function(x, idCol = 'id', dtCol = 'dt', doseCol = 'dose', concCol = 'conc', ldCol = NULL,
-                              first_interval_hours = 336, imputeClosest = NULL) {
+                              first_interval_hours = 336, doseFreq = 2, imputeClosest = NULL, date.tz = NULL) {
   tz <- Sys.timezone()
+  if(!is.null(date.tz)) tz <- date.tz
 
   x <- read(x)
   x_cols <- names(x)
@@ -130,7 +135,7 @@ run_Build_PK_Oral <- function(x, idCol = 'id', dtCol = 'dt', doseCol = 'dose', c
 
   dose <- x[,c(idCol, dtCol, doseCol, ldCol, covars)]
   sl <- split(dose, dose[,idCol])
-  ll <- lapply(sl, build_lastdose, ldCol = ldCol, first_interval_hours = first_interval_hours)
+  ll <- lapply(sl, build_lastdose, ldCol = ldCol, first_interval_hours = first_interval_hours, doseFreq = doseFreq)
   dose.dat <- do.call(qrbind, ll)
 
   xx <- rbind(conc.dat, dose.dat)

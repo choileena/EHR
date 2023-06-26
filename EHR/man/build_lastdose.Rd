@@ -4,7 +4,7 @@
 \alias{build_lastdose}
 \title{PK oral functions}
 \usage{
-build_lastdose(x, first_interval_hours = 336, ldCol = NULL)
+build_lastdose(x, first_interval_hours = 336, doseFreq = 2, ldCol = NULL)
 }
 \description{
 code{build_lastdose}: build PK oral with lastdose information
