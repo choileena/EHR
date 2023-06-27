@@ -67,7 +67,7 @@ build_lastdose <- function(x, first_interval_hours = 336, doseFreq = 2, ldCol = 
 #' @param first_interval_hours number of hours before the first concentration to start time=0; the default is 336 hours = 14 days
 #' @param doseFreq numeric. number of times dose is taken per day; the default is twice per day.
 #' @param imputeClosest columns to impute missing data with next observation propagated backward; this is in addition to
-#' all covariates receving imputation using last observation carried forward
+#' all covariates receiving imputation using last observation carried forward
 #' @param date.tz time zone, defaults to local
 #'
 #' @details See EHR Vignette for Build-PK-Oral.
