@@ -36,17 +36,3 @@ pk2 <- run_Build_PK_Oral(x = dat, doseCol = "dose_morn", ldCol = "ld", doseFreq 
 
 expect_equivalent(c(0,8,8), colSums(is.na(pk1))[c('time','amt','dv')])
 expect_equivalent(c(0,8,11), colSums(is.na(pk2))[c('time','amt','dv')])
-
-# f1 <- system.file("examples", "oral_pk_raw.csv", package = "EHR")
-# f2 <- system.file("examples", "oral_pk_output.csv", package = "EHR")
-# dat1 <- read.csv(f1)
-# 
-# ivout <- run_Build_PK_IV(conc = dat1,
-#   conc.columns = list(id = 'CID', datetime = 'DT', druglevel = 'DV'),
-#   dose = dat2,
-#   dose.columns = list(id = 'CID', otherDatetime = 'DT', otherDose = 'AMT', otherRate = 'RATE'),
-#   doseFreq = 2
-# )
-# it should match this
-# ans <- read.csv(f2, na.strings = '.')[,c('CID','TIME','AMT','DV','RATE','ADDL','II','EVID')]
-# expect_equivalent(ivout[,setdiff(names(ivout), 'mdv')], ans)

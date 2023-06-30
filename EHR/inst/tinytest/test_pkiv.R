@@ -150,6 +150,8 @@ f3 <- system.file("examples", "iv_pk_output.csv", package = "EHR")
 dat1 <- read.csv(f1)
 dat2 <- read.csv(f2)
 
+# doseFreq can be specified by II column
+# dose and conc in same file?
 ivout <- run_Build_PK_IV(conc = dat1,
   conc.columns = list(id = 'CID', datetime = 'DT', druglevel = 'DV'),
   dose = dat2,
@@ -159,3 +161,14 @@ ivout <- run_Build_PK_IV(conc = dat1,
 # it should match this -- should dose after last conc be removed?
 ans <- read.csv(f3, na.strings = '.')[,c('CID','TIME','AMT','DV','RATE','ADDL','II','EVID')]
 expect_equivalent(ivout[,setdiff(names(ivout), 'mdv')], ans)
+
+# f1 <- system.file("examples", "oral_pk_raw.csv", package = "EHR")
+# f2 <- system.file("examples", "oral_pk_output.csv", package = "EHR")
+# dat1 <- read.csv(f1)
+# # dat1 <- dat1[c(1,3,4,6,7,10,13),]
+# 
+# # doseFreq can be specified by II column
+# oralout <- run_Build_PK_Oral(dat1, idCol = 'CID', dtCol = 'DT', doseCol = "AMT", concCol = 'DV', doseFreq = 2)
+# # it should match this
+# ans <- read.csv(f2)[,c('CID','TIME','AMT','DV','EVID','ADDL','II')]
+# # expect_equivalent(oralout[,setdiff(names(oralout), 'mdv')], ans)

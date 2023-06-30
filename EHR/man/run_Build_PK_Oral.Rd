@@ -35,7 +35,7 @@ run_Build_PK_Oral(
 \item{doseFreq}{numeric. number of times dose is taken per day; the default is twice per day.}
 
 \item{imputeClosest}{columns to impute missing data with next observation propagated backward; this is in addition to
-all covariates receving imputation using last observation carried forward}
+all covariates receiving imputation using last observation carried forward}
 
 \item{date.tz}{time zone, defaults to local}
 }

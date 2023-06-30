@@ -126,14 +126,19 @@ run_Build_PK_Oral <- function(x, idCol = 'id', dtCol = 'dt', doseCol = 'dose', c
   # save covariates for later
   covars <- setdiff(x_cols, c(exp_cols, ldCol))
 
-  dt_str <- format(x[,dtCol], '%Y-%m-%d %H:%M:%S')
-  # convert time to UTC
-  x[,dtCol] <- as.POSIXct(dt_str, tz = tz)
+  if(length(dtCol) == 2) {
+    xDT <- paste(x[,dtCol[1]], x[,dtCol[2]])
+  } else {
+    xDT <- x[,dtCol]
+  }
+  xDT <- pkdata::parse_dates(xDT)
+  dt_str <- format(xDT, '%Y-%m-%d %H:%M:%S')
+  x[,'date.time'] <- as.POSIXct(dt_str, tz = tz)
 
   # pk_form for conc
   conc.dat <- cbind(data.frame(CID = x[,idCol], time = NA_integer_, date = dt_str, conc = x[,concCol], dose = NA, addl = NA, II = NA, mdv = 0), x[,covars])
 
-  dose <- x[,c(idCol, dtCol, doseCol, ldCol, covars)]
+  dose <- x[,c(idCol, 'date.time', doseCol, ldCol, covars)]
   sl <- split(dose, dose[,idCol])
   ll <- lapply(sl, build_lastdose, ldCol = ldCol, first_interval_hours = first_interval_hours, doseFreq = doseFreq)
   dose.dat <- do.call(qrbind, ll)
