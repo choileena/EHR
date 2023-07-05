@@ -42,3 +42,33 @@ t1 <- data.frame(
 c2 <- makeDose(t1, md, 'bid')$note
 o2 <- data.frame(dose.intake = c(300,300), dose.seq = c(1,2), dose.daily = c(600,600))
 expect_equal(c2[,c('dose.intake','dose.seq','dose.daily')], o2)
+
+f1 <- system.file("examples", "tac_mxr_out.csv", package = "EHR")
+p1 <- parseMedExtractR(f1)
+b1 <- buildDose(p1)
+b11 <- b1[b1[,'drugname'] == 'PROGRAF',]
+bmd <- function(x) {
+  fns <- strsplit(x, '_')
+  pid <- sapply(fns, `[`, 1)
+  date <- as.Date(sapply(fns, `[`, 2), format = '%Y-%m-%d')
+  note <- sapply(fns, `[`, 3)
+  data.frame(filename = x, pid, date, note, stringsAsFactors = FALSE)
+}
+md11 <- bmd(b11[['filename']])
+# no metadata
+expect_error(makeDose(b11, md11[FALSE,]))
+
+# duration
+set.seed(5)
+b11[,'duration'] <- sample(c(NA, 'one week', '1 month', '5 days'), nrow(b11), replace = TRUE)
+# addl strength
+b11[6:7,'dosestr'] <- c('2-1','2-1')
+b11[8:9,'strength'] <- c('2-1','2-1')
+b11[8:9,'dose'] <- 1
+b11[8:9,'dosestr'] <- NA
+b11[nrow(b11), 'lastdose'] <- as.POSIXct('2005-10-31 19:00')
+b11[,'route'] <- 'orally'
+makeDose(b11, md11)[[2]]
+## no test here
+## for "bid" freq, is this 3 or 6?
+## need: borrow dose/strength/dosestr/dosechange

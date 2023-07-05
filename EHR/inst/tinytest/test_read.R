@@ -24,7 +24,7 @@ f2 <- system.file("examples", "lampid1_2016-02-05_note4_1.txt", package = "EHR")
 d2 <- scan(f2, '', sep = '\n', quiet = TRUE)
 save(d2, file = td1)
 # generic read, no data set
-expect_error(EHR:::read(f2, 'scan', list(what = '', sep = '\n')))
+expect_error(EHR:::read(f2, 'scan', list(what = '', sep = '\n', quiet = TRUE)))
 # RData environment, error with no data set
 expect_error(EHR:::read(td1))
 

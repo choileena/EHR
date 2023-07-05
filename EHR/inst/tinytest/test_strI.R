@@ -1,5 +1,7 @@
 library(EHR)
 
+suppress <- function(x) suppressMessages(suppressWarnings(capture.output(x)))
+
 flow <- data.frame(mod_id=c(1,1,2,2,2),
                   mod_id_visit=c(46723,46723,84935,84935,84935),
                   record.date=c("07/05/2019 5:25","07/05/2019 6:01",
@@ -76,8 +78,46 @@ file.copy(file.path('..','examples','fixNoUnit-fakedrg1.csv'), file.path(td, 'fi
 file.copy(file.path('..','examples','fixNoWgt-fakedrg1.csv'), file.path(td, 'fixNoWgt-fakedrg1.csv'))
 file.copy(file.path('..','examples','fixUnit-fakedrg1.csv'), file.path(td, 'fixUnit-fakedrg1.csv'))
 
-suppressMessages(r1 <- do.call(run_MedStrI, args))
-suppressMessages(r2 <- do.call(run_MedStrI, args1))
+suppress(r1 <- do.call(run_MedStrI, args))
+suppress(r2 <- do.call(run_MedStrI, args1))
 
 expect_equal(nrow(r1), 10)
 expect_equivalent(r1, r2)
+
+args2 <- args
+args2$check.path <- NULL
+args2$mar.path <- mar[FALSE,]
+args2$flow.columns$idvisit <- 'mod_id_visit'
+flow2 <- flow
+flow2[2,'Perform.Date'] <- flow2[1,'Perform.Date']
+flow2[2,'Final.Units'] <- 0
+flow2[3:5,'mod_id_visit'] <- c(2.0,2.1,2.1)
+flow2[4,'Perform.Date'] <- flow2[3,'Perform.Date']
+flow2[4,'Final.Units'] <- NA
+flow2[3:4,'rate'] <- NA
+flow2[7,'mod_id_visit'] <- 84935.1
+flow2[7,'rate'] <- 0.5
+flow2[7,'Final.Units'] <- NA
+flow2[9,] <- flow2[8,]
+flow2[8:9,'mod_id_visit'] <- c(4.1,4.2)
+flow2[9,'Final.Units'] <- 0
+flow2 <- rbind(flow2, flow2[3:5,])
+flow2[10:12,'mod_id'] <- 5
+flow2[10:12,'mod_id_visit'] <- c(5.0,5.1,5.1)
+flow2[10:12,'Final.Units'] <- c(2.25,4.5,4.5)
+flow2[10:12,'rate'] <- c(0.5,1,1)
+args2$flow.path <- flow2
+# `mod_id_visit` isn't returned?
+suppress(r3 <- do.call(run_MedStrI, args2))
+expect_equivalent(flow2[c(1,3,5,8,11,12),'Final.Units'], r3[,'given.dose'])
+
+# no flow
+args3 <- args
+args3$flow.path <- flow[FALSE,]
+args3$check.path <- NULL
+suppress(r4 <- do.call(run_MedStrI, args3))
+expect_equivalent(mar[2,'dosage'], r4[,'bolus.dose'])
+
+# no flow or mar
+args3$mar.path <- mar[FALSE,]
+expect_warning(do.call(run_MedStrI, args3))

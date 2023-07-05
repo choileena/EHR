@@ -32,9 +32,6 @@
 #' \code{findOptPath}: uses the helper functions \code{getCosts} and \code{getOpt} to 
 #' determine the optimal path based on the selected distance method
 #' 
-#' \code{stdRoute}: standardize the "route" entity. This function is also used in the 
-#' \code{collapseDose} function and process.
-#' 
 #' \code{grp}: groups drug entities based on a particular anchor point (e.g. strength 
 #' or dose)
 #' 
@@ -53,7 +50,7 @@
 #' @name build-internal
 #' @aliases tstrsplit2 convert entVal entStart entStop
 #' remainder getCombosIx getPaths getOpt getCosts findOptPath
-#' stdRoute grp anchorByStrength combineGroups makeCombos findRareValues
+#' grp anchorByStrength combineGroups makeCombos findRareValues
 #' @keywords internal
 NULL
 
@@ -396,7 +393,7 @@ combineGroups <- function(dat, layers = NULL) {
   if(!is.na(ix) && length(dat[['route']])) {
     rte <- entVal(dat[['route']])
     # one form of route
-    if(length(unique(stdRoute(rte))) == 1) {
+    if(length(unique(stdzRoute(rte))) == 1) {
       route <- dat[[ix]]
       rteloc <- loc[[ix]]
       dat <- dat[-ix]

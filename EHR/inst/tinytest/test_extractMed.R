@@ -12,7 +12,7 @@ o <- suppressMessages(extractMed(tac_fn,
   max_edit_dist = 2,
   lastdose = TRUE,
   batchsize = 10,
-  progress = TRUE
+  progress = FALSE
 ))
 
 expect_equal(nrow(o), 30)

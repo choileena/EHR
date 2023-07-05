@@ -33,7 +33,7 @@ doseData <- structure(list(id = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
   class = "data.frame", row.names = c(NA, -14L)
 )
 
-dose <- run_MedStrIII(dose.path = doseData, dose.columns = list(id = 'id', datetime = 'dt', dose = 'dose', duration = 'dur'))
+suppress(dose <- run_MedStrIII(dose.path = doseData, dose.columns = list(id = 'id', datetime = 'dt', dose = 'dose', duration = 'dur')))
 dose_rd <- dose
 dose_rd[2:4,'rate'] <- dose_rd[2:4,'dose']
 
@@ -46,24 +46,24 @@ concData <- structure(
   class = "data.frame", row.names = c(NA, -6L)
 )
 
-pk1 <- run_Build_PK_IV(conc = plconc,
+suppress(pk1 <- run_Build_PK_IV(conc = plconc,
   conc.columns = list(id = 'mod_id', datetime = 'date.time', druglevel = 'conc.level', idvisit = 'mod_id_visit'),
   dose = ivdose,
   dose.columns = list(id = 'mod_id', date = 'date.dose', bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose', gap = 'maxint', weight = 'weight')
-)
+))
 
-pk2 <- run_Build_PK_IV(conc = concData,
+suppress(pk2 <- run_Build_PK_IV(conc = concData,
   conc.columns = list(id = 'id', datetime = 'dt', druglevel = 'level'),
   dose = dose,
   dose.columns = list(id = 'id', otherDatetime = 'date.time', otherDose = 'dose', otherRate = 'rate')
-)
+))
 
-pk3 <- run_Build_PK_IV(conc = concData,
+suppress(pk3 <- run_Build_PK_IV(conc = concData,
   conc.columns = list(id = 'id', datetime = 'dt', druglevel = 'level'),
   dose = dose_rd,
   dose.columns = list(id = 'id', otherDatetime = 'date.time', otherDose = 'dose', otherRate = 'rate'),
   doseFreq = 2
-)
+))
 
 expect_true(all(plconc$conc.level - na.omit(pk1$dv) < 1e-8))
 expect_equivalent(c(0,15,3), colSums(is.na(pk1))[c('time','amt','dv')])
@@ -144,31 +144,45 @@ expect_equivalent(c(0,1,2), colSums(is.na(pk5))[c('time','amt','dv')])
 expect_equivalent(c(6.75,0,NA), pk5$rate)
 expect_equivalent(c('120/80','122/80','122/80'), na.omit(pk5$bp))
 
+# these examples may move to `run_Build_PK`
 f1 <- system.file("examples", "iv_pk_raw_conc.csv", package = "EHR")
 f2 <- system.file("examples", "iv_pk_raw_dose.csv", package = "EHR")
 f3 <- system.file("examples", "iv_pk_output.csv", package = "EHR")
 dat1 <- read.csv(f1)
 dat2 <- read.csv(f2)
 
-# doseFreq can be specified by II column
-# dose and conc in same file?
-ivout <- run_Build_PK_IV(conc = dat1,
+suppress(ivout <- run_Build_PK_IV(conc = dat1,
   conc.columns = list(id = 'CID', datetime = 'DT', druglevel = 'DV'),
   dose = dat2,
   dose.columns = list(id = 'CID', otherDatetime = 'DT', otherDose = 'AMT', otherRate = 'RATE'),
   doseFreq = 2
-)
-# it should match this -- should dose after last conc be removed?
+))
 ans <- read.csv(f3, na.strings = '.')[,c('CID','TIME','AMT','DV','RATE','ADDL','II','EVID')]
 expect_equivalent(ivout[,setdiff(names(ivout), 'mdv')], ans)
 
-# f1 <- system.file("examples", "oral_pk_raw.csv", package = "EHR")
-# f2 <- system.file("examples", "oral_pk_output.csv", package = "EHR")
-# dat1 <- read.csv(f1)
-# # dat1 <- dat1[c(1,3,4,6,7,10,13),]
-# 
-# # doseFreq can be specified by II column
-# oralout <- run_Build_PK_Oral(dat1, idCol = 'CID', dtCol = 'DT', doseCol = "AMT", concCol = 'DV', doseFreq = 2)
-# # it should match this
-# ans <- read.csv(f2)[,c('CID','TIME','AMT','DV','EVID','ADDL','II')]
-# # expect_equivalent(oralout[,setdiff(names(oralout), 'mdv')], ans)
+# duplicate infusion & bolus
+dose2 <- dose1[c(1:3, 3:6, 6),]
+dose2[8,'infuse.dose'] <- 2.5
+td <- tempdir()
+# create fail file
+suppress(run_Build_PK_IV(conc = conc1,
+  conc.columns = list(id = 'id', datetime = 'dt', druglevel = 'level'),
+  dose = dose2,
+  dose.columns = list(id = 'mod_id', infuseDatetime = 'infuse.time', infuseTimeExact = 'infuse.time.real', infuseDose = 'infuse.dose',
+    bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose', gap = 'maxint', weight = 'weight'
+  ), pk.vars = 'date', check.path = td
+))
+dupbol <- read.csv(file.path(td, 'failDuplicateBolus-.csv'))
+dupbol[seq(2, nrow(dupbol), by=2),'flag'] <- 'drop'
+fxfh <- file.path(td, 'fixDuplicateBolus-.csv')
+write.csv(dupbol, file = fxfh)
+# utilize fix file
+## this adds back a row that was previously removed?
+suppress(pk6 <- run_Build_PK_IV(conc = conc1,
+  conc.columns = list(id = 'id', datetime = 'dt', druglevel = 'level'),
+  dose = dose2,
+  dose.columns = list(id = 'mod_id', infuseDatetime = 'infuse.time', infuseTimeExact = 'infuse.time.real', infuseDose = 'infuse.dose',
+    bolusDatetime = 'bolus.time', bolusDose = 'bolus.dose', gap = 'maxint', weight = 'weight'
+  ), pk.vars = 'date', check.path = td
+))
+expect_equal(nrow(pk6), 5)

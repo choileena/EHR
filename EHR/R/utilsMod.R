@@ -213,8 +213,8 @@ The number of rows after removing the duplicates  %8d', n1, n2))
 
     # Subject.id is not duplicated, but conflicting rows for final.units
     # when the rate is non-zero and one final.units = 0
-    ix1 <- pd4[,'final.units'] != 0 & pd4[,'u2'] == 0
-    ix2 <- pd4[,'final.units'] == 0 & pd4[,'u2'] != 0
+    ix1 <- pd4[,'final.units'] == 0 & pd4[,'u2'] != 0
+    ix2 <- pd4[,'final.units'] != 0 & pd4[,'u2'] == 0
     ix <- ix1 | ix2
     message(sprintf('%s invalid duplicate rows with one unit = 0', sum(ix)))
     if(any(ix)) {

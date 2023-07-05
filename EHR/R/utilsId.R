@@ -45,7 +45,7 @@ idCrosswalk <- function(data, idcols, visit.id="subject_id", uniq.id="subject_ui
   red <- Reduce(function(x, y) merge(x, y, all = TRUE), res)
   # special case: only one ID variable to de-identify
   if(visit.id == uniq.id && ncol(red) == 1 && names(red) == visit.id) {
-    red <- red[order(red[, visit.id], red[, uniq.id]),,drop = FALSE]
+    red <- red[order(red[, visit.id]),,drop = FALSE]
     uid <- seq(nrow(red))
     red[, "mod_visit"] <- 1
     red[, "mod_id"] <- uid
@@ -60,6 +60,11 @@ idCrosswalk <- function(data, idcols, visit.id="subject_id", uniq.id="subject_ui
     idlen <- lengths(meanIds)
     meanIds[idlen == 0] <- NA
     meanIds <- unlist(meanIds)
+    # tapply typically creates one-dimensional array
+    # drop the dimension with `c`
+    if(length(dim(meanIds)) == 1) {
+      meanIds <- c(meanIds)
+    }
     ix <- which(idlen > 1)
     if (length(ix)) {
       badId <- names(ix)
@@ -67,7 +72,7 @@ idCrosswalk <- function(data, idcols, visit.id="subject_id", uniq.id="subject_ui
                                                   uniq.id)]))
       stop("discrepancy with visit.id and uniq.id must be fixed")
     }
-    red[, uniq.id] <- meanIds[match(red[, "subj"], names(meanIds))]
+    red[, uniq.id] <- meanIds[as.character(red[, "subj"])]
 
     # if missing `visit.id` can be found for `uniq.id`, use that instead
     # visit number would be unknown though

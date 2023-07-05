@@ -1,5 +1,7 @@
 library(EHR)
 
+suppress <- function(x) suppressMessages(suppressWarnings(capture.output(x)))
+
 set.seed(26)
 # concentrations
 conc_data <- data.frame(mod_id = rep(1:3,each=4),
@@ -20,7 +22,7 @@ samp_data <- data.frame(mod_id = rep(1:3,each=4),
   Sample.Collection.Date.and.Time = dates
 )
 
-suppressMessages(o1 <- run_DrugLevel(
+suppress(o1 <- run_DrugLevel(
   conc.path = conc_data,
   conc.columns = list(id = 'mod_id', idvisit = 'mod_id_visit', samplinkid = 'mod_id_event', conc = 'conc.level'),
   conc.select = c('mod_id','mod_id_visit','samp','drug_calc_conc'),
@@ -48,16 +50,41 @@ conc_data[3,'mytime'] <- conc_data[2,'mytime']
 conc_data[4,'mytime'] <- NA
 
 td <- tempdir()
-suppressMessages(o2 <- run_DrugLevel(conc_data, conc.columns = list(
+suppress(run_DrugLevel(conc_data, conc.columns = list(
   id = 'mod_id', idvisit = 'mod_id_visit', datetime = c('mydate','mytime'), conc = 'conc.level'),
   demo.list = list(demo =  data.frame(id = c(1, 2), idv = c(1.2, 2.1), weight = c(45, 50))),
   demo.columns = list(id = 'id', idvisit = 'idv'),
   check.path = td
 ))
-expect_equal(nrow(o2), 7)
+noconc <- read.csv(file.path(td, 'failMissingConcDate-.csv'))
+noconc[,'datetime'] <- '2023-07-05 15:18'
+fxfh <- file.path(td, 'fixMissingConcDate-.csv')
+write.csv(noconc, file = fxfh)
+# utilize fix file
+suppress(o2 <- run_DrugLevel(conc_data, conc.columns = list(
+  id = 'mod_id', idvisit = 'mod_id_visit', datetime = c('mydate','mytime'), conc = 'conc.level'),
+  demo.list = list(demo =  data.frame(id = c(1, 2), idv = c(1.2, 2.1), weight = c(45, 50))),
+  demo.columns = list(id = 'id', idvisit = 'idv'),
+  check.path = td
+))
+expect_equal(nrow(o2), 8)
 
-expect_error(run_DrugLevel(conc_data, conc.columns = list(
+suppress(expect_error(run_DrugLevel(conc_data, conc.columns = list(
   id = 'mod_id', idvisit = 'mod_id_visit', datetime = c('mydate','mytime'), conc = 'conc.level'),
   demo.list = list(demo =  data.frame(id = 4, idv = 4.0, weight = 99)),
   demo.columns = list(id = 'id', idvisit = 'idv')
-))
+)))
+
+mtimes <- as.POSIXct(seq(28800, by = 14400, length.out = 4), origin = '2005-08-26', tz = 'UTC')
+e1 <- data.frame(id = 1, event = 1.1, conc = 15*exp(-1*1:4)+rnorm(4,0,0.1), dt = mtimes + round(rnorm(4, sd = 1800)))
+e2 <- data.frame(id = 1, event = 1.2, conc = 16*exp(-1*1:4)+rnorm(4,0,0.1), dt = mtimes + round(rnorm(4, sd = 1800)))
+e3 <- data.frame(id = 1, event = 3, conc = 17*exp(-1*1:4)+rnorm(4,0,0.1), dt = mtimes + round(rnorm(4, sd = 1800)))
+e4 <- rbind(e1, e1, e2, e3)
+suppress(run_DrugLevel(e4, conc.columns = list(id = 'id', datetime = 'dt', conc = 'conc', idvisit = 'event'), check.path = td))
+dupconc <- read.csv(file.path(td, 'failDuplicateConc-.csv'))
+dupconc[seq(2, nrow(dupconc), by=2),'flag'] <- 'drop'
+fxfh <- file.path(td, 'fixDuplicateConc-.csv')
+write.csv(dupconc, file = fxfh)
+# utilize fix file
+suppress(o4 <- run_DrugLevel(e4, conc.columns = list(id = 'id', datetime = 'dt', conc = 'conc', idvisit = 'event'), check.path = td))
+expect_equivalent(e1, o4[,names(e1)])
