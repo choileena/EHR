@@ -37,7 +37,7 @@ NULL
 dtMirror <- function(newdat, basedat) {
   n1 <- names(basedat)
   n2 <- names(newdat)
-  if(length(setdiff(n2, n1)) > 0) stop('new data does contain columns of original data')
+  if(length(setdiff(n1, n2)) > 0) stop('new data does contain columns of original data')
   if(any(n1 != n2)) {
     # newdat should look like basedat
     newdat <- newdat[,names(basedat)]
@@ -45,7 +45,7 @@ dtMirror <- function(newdat, basedat) {
   # determine date-time columns
   dtcols <- names(Filter(isTRUE, vapply(basedat, inherits, logical(1), 'POSIXt')))
   for(i in dtcols) {
-    curtz <- attr(basedat[,i], 'tzone')
+    curtz <- attr(as.POSIXlt(basedat[1,i]), 'tzone')[[1]]
     newdat[,i] <- pkdata::parse_dates(fixDates(newdat[,i]), tz = curtz)
   }
   newdat
@@ -298,7 +298,7 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
   }
   # use timezone if available
   if(inherits(concDT, 'POSIXt')) {
-    mytz <- attr(concDT, 'tzone')
+    mytz <- attr(as.POSIXlt(concDT[1]), 'tzone')[[1]]
     dt <- concDT
   } else {
     mytz <- ''
@@ -428,14 +428,7 @@ concData_mod <- function(dat, sampFile, lowerLimit = NA, drugname = NULL, giveEx
         hasfix <- hasfix[hasfix[,'flag'] == 'keep',]
         if(nrow(hasfix)) {
           pd <- nrow(dat)
-          getfix <- hasfix[,names(nofix)]
-          # recreate dates
-          dtcols <- names(Filter(isTRUE, vapply(nofix, inherits, logical(1), 'POSIXt')))
-          for(i in dtcols) {
-            curtz <- attr(nofix[,i], 'tzone')
-            getfix[,i] <- pkdata::parse_dates(fixDates(getfix[,i]), tz = curtz)
-          }
-          dat <- rbind(nofix, getfix)
+          dat <- rbind(nofix, dtMirror(hasfix, nofix))
           message(sprintf('file %s read, %s records removed', fixfn, pd-nrow(dat)))
         }
       }
@@ -596,14 +589,7 @@ resolveDoseDups_mod <- function(dat, checkDir, drugname, faildupbol_filename) {
         hasfix <- hasfix[hasfix[,'flag'] == 'keep',]
         if(nrow(hasfix)) {
           pd <- nrow(dat)
-          getfix <- hasfix[,names(nofix)]
-          # recreate dates
-          dtcols <- names(Filter(isTRUE, vapply(dat, inherits, logical(1), 'POSIXt')))
-          for(i in dtcols) {
-            curtz <- attr(dat[,i], 'tzone')
-            getfix[,i] <- pkdata::parse_dates(fixDates(getfix[,i]), tz = curtz)
-          }
-          dat <- rbind(nofix, getfix)
+          dat <- rbind(nofix, dtMirror(hasfix, nofix))
           message(sprintf('file %s read, %s duplicates removed', fixfn, pd-nrow(dat)))
         }
       }
