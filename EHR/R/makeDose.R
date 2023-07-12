@@ -326,7 +326,8 @@ makeDose <- function(x, noteMetaData, naFreq = 'most') {
   }
 
   # numeric freq
-  x[,'freq.num'] <- cfreq2[match(x[,'freq'], cfreq1)]
+#   x[,'freq.num'] <- cfreq2[match(x[,'freq'], cfreq1)]
+  x[,'freq.num'] <- freqNum(stdzFreq(x[,'freq']))
   # this is unlikely to occur
   x[is.na(x[,'freq.num']), 'freq.num'] <- freqNum(na.freq)
 

@@ -1,0 +1,7 @@
+1|Mycophenolate 500 mg Tab ( CellCept ) 2 tablets by mouth twice a day|Mycophenolate|DIN|1|14
+1|Mycophenolate 500 mg Tab ( CellCept ) 2 tablets by mouth twice a day|500mg|DOSE|15|21
+1|Mycophenolate 500 mg Tab ( CellCept ) 2 tablets by mouth twice a day|Tab|DDF|22|25
+1|Mycophenolate 500 mg Tab ( CellCept ) 2 tablets by mouth twice a day|CellCept|DBN|27|35
+1|Mycophenolate 500 mg Tab ( CellCept ) 2 tablets by mouth twice a day|2 tablets|DOSEAMT|37|46
+1|Mycophenolate 500 mg Tab ( CellCept ) 2 tablets by mouth twice a day|by mouth|RUT|47|55
+1|Mycophenolate 500 mg Tab ( CellCept ) 2 tablets by mouth twice a day|a day|FREQ|62|67

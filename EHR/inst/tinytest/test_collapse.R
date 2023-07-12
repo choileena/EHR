@@ -68,7 +68,10 @@ b11[8:9,'dose'] <- 1
 b11[8:9,'dosestr'] <- NA
 b11[nrow(b11), 'lastdose'] <- as.POSIXct('2005-10-31 19:00')
 b11[,'route'] <- 'orally'
-makeDose(b11, md11)[[2]]
-## no test here
-## for "bid" freq, is this 3 or 6?
-## need: borrow dose/strength/dosestr/dosechange
+mdo <- makeDose(b11, md11)[[2]]
+expect_equal(c(4,rep(3,6),4,4), mdo$dose.daily)
+
+medex_output <- system.file("examples", "medex_out.txt", package = "EHR")
+medex_parsed <- parseMedEx(medex_output)
+medex_res <- collapseDose(buildDose(medex_parsed), data.frame(filename='medex_out.txt'))
+expect_equal(1000, medex_res$note$dose.daily)
