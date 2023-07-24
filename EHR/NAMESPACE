@@ -2,6 +2,8 @@
 
 export(Logistf)
 export(addLastDose)
+export(add_Demo)
+export(add_Labs)
 export(analysisPheWAS)
 export(buildDose)
 export(collapseDose)

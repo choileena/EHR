@@ -42,7 +42,6 @@
 #' 
 #' out
 #'
-#'
 #' @export
 
 run_Demo <- function(demo.path, demo.columns = list(), toexclude, demo.mod.list) {
@@ -63,4 +62,56 @@ run_Demo <- function(demo.path, demo.columns = list(), toexclude, demo.mod.list)
   message(sprintf('The number of subjects in the demographic data, who meet the exclusion criteria: %s', length(excl.id)))
 
   list(demo = demo, exclude = excl.id)
+}
+
+#' Merge in Demographic Data
+#'
+#' This module will merge demographic data with a base data set by id.
+#'
+#' @param dat Base data set, a filename (CSV, RData, RDS), or data.frame
+#' @param dat.columns a named list that should specify columns in data.
+#' \sQuote{id} is required. \sQuote{idvisit} may also be specified;
+#' \sQuote{idvisit} can be used when there are multiple visits 
+#' (i.e., several occasions) for the same subject.
+#' @param demo.list demographic information, if available; the output from 
+#' \code{\link{run_Demo}} or a correctly formatted data.frame
+#' @param demo.columns a named list that should specify columns in demographic data;
+#' \sQuote{id} is required. \sQuote{idvisit} may also be used to specify
+#' columns for the unique idvisit. Any other columns
+#' present in the demographic data are treated as covariates.
+#'
+#' @return data.frame
+#'
+#' @examples
+#' user <- data.frame(id = c('A','A','B'), event = c('A.1','A.2','B.1'), enroll = '2025-02-25')
+#' demo <- data.frame(id = c('A', 'B'), age = c(25, 45))
+#' demo_w_visit <- data.frame(id = c('A','A','B'), event = c('A.1','A.2','B.1'), age = c(25, 26, 45))
+#' add_Demo(user, list(id = 'id'), demo, list(id = 'id'))
+#' add_Demo(user, list(id = 'id', idvisit = 'event'), demo_w_visit, list(id = 'id', idvisit = 'event'))
+#' @export
+
+add_Demo <- function(dat, dat.columns, demo.list, demo.columns) {
+  dat.req <- list(id = NA, idvisit = NULL)
+  demo.req <- list(id = NA, idvisit = NULL)
+
+  dat.col <- validateColumns(dat, dat.columns, dat.req)
+  hasMIV <- 'idvisit' %in% names(dat.col)
+
+  demoData <- NULL
+  if(inherits(demo.list, 'data.frame')) {
+    demoData <- demo.list
+  } else {
+    if('demo' %in% names(demo.list)) {
+      demoData <- demo.list$demo
+    }
+  }
+  if(is.null(demoData)) {
+    stop('Demographic data was provided in an unexpected format.')
+  }
+  demo.col <- validateColumns(demoData, demo.columns, demo.req)
+
+  if(hasMIV & !('idvisit' %in% names(demo.col))) {
+    stop('Demographic data missing idvisit variable though specified for dat')
+  }
+  merge(dat, demoData, by.x=c(dat.col$idvisit, dat.col$id), by.y=c(demo.col$idvisit, demo.col$id), all.x=TRUE)
 }

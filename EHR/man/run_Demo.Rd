@@ -55,5 +55,4 @@ out <- run_Demo(demo.path = tmpfile, demo.columns = list(id = 'mod_id_visit'),
 
 out
 
-
 }

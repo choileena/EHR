@@ -513,32 +513,9 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   }
 
   if(hasLabs) {
-    lab.vars <- c()
-    # if input is single DF, turn into list
-    if(inherits(lab.list, 'data.frame')) {
-      lab.list <- list(lab.list)
-    }
-    for(i in seq_along(lab.list)) {
-      lab.col <- validateColumns(lab.list[[i]], lab.columns, lab.req)
-      if(length(lab.col$datetime) == 2) {
-        labdt <- paste(lab.list[[i]][,lab.col$datetime[1]], lab.list[[i]][,lab.col$datetime[2]])
-      } else {
-        labdt <- lab.list[[i]][,lab.col$datetime]
-      }
-      lab.list[[i]][,'date.time'] <- pkdata::parse_dates(labdt)
-      cln <- names(lab.list[[i]])
-      cln <- setdiff(cln, c(lab.col$id, 'date.time', lab.col$datetime))
-      lab.vars <- c(lab.vars, cln)
-      if(length(cln)) {
-        curlab <- lab.list[[i]][,c(lab.col$id, 'date.time', cln)]
-        labMax <- labPriorWindow * 24
-        tmp <- merge_by_time(tmp, curlab, maxTime=labMax, x.id='mod_id', y.id=lab.col$id, x.time='date', y.time='date.time')
-      }
-    }
-    missLab <- setdiff(lab.vars, names(tmp))
-    if(length(missLab)) {
-      stop(sprintf('there was a problem merging lab variables: %s', paste(missLab, collapse = ', ')))
-    }
+    plmc <- names(tmp)
+    tmp <- add_Labs(tmp, list(id='mod_id', datetime='date'), lab.list, lab.columns, labPriorWindow)
+    lab.vars <- setdiff(names(tmp), plmc)
   } else {
     lab.vars <- NULL
   }

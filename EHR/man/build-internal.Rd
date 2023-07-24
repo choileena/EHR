@@ -13,7 +13,6 @@
 \alias{getOpt}
 \alias{getCosts}
 \alias{findOptPath}
-\alias{stdRoute}
 \alias{grp}
 \alias{anchorByStrength}
 \alias{combineGroups}
@@ -53,9 +52,6 @@ and returns the path with the minimum cost
 
 \code{findOptPath}: uses the helper functions \code{getCosts} and \code{getOpt} to 
 determine the optimal path based on the selected distance method
-
-\code{stdRoute}: standardize the "route" entity. This function is also used in the 
-\code{collapseDose} function and process.
 
 \code{grp}: groups drug entities based on a particular anchor point (e.g. strength 
 or dose)
