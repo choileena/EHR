@@ -143,19 +143,19 @@ run_Build_PK <- function(dose, dose.columns = list(),
   ni <- names(info)
   # require 'date.dose' column
   if(!('date.dose' %in% ni)) {
-    tmpDate <- rep(as.Date(NA), nrow(info))
+    tmpDate <- character(nrow(info))
     if(hasInf) {
-      tmpDate <- as.Date(info[,'infuse.time'])
+      tmpDate <- format(info[,'infuse.time'], '%Y-%m-%d')
     }
     if(hasBol) {
       ix <- which(is.na(tmpDate))
-      tmpDate[ix] <- as.Date(info[ix,'bolus.time'])
+      tmpDate[ix] <- format(info[ix,'bolus.time'], '%Y-%m-%d')
     }
     if(hasOther) {
       ix <- which(is.na(tmpDate))
-      tmpDate[ix] <- as.Date(info[ix,'other.time'])
+      tmpDate[ix] <- format(info[ix,'other.time'], '%Y-%m-%d')
     }
-    info[,'date.dose'] <- tmpDate
+    info[,'date.dose'] <- as.Date(tmpDate)
   }
 
   # info <- resolveDoseDups_mod(info, checkDir=NULL)

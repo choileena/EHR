@@ -295,19 +295,19 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
   ni <- names(info)
   # require 'date.dose' column
   if(!('date.dose' %in% ni)) {
-    tmpDate <- rep(as.Date(NA), nrow(info))
+    tmpDate <- character(nrow(info))
     if(hasInf) {
-      tmpDate <- as.Date(info[,'infuse.time'])
+      tmpDate <- format(info[,'infuse.time'], '%Y-%m-%d')
     }
     if(hasBol) {
       ix <- which(is.na(tmpDate))
-      tmpDate[ix] <- as.Date(info[ix,'bolus.time'])
+      tmpDate[ix] <- format(info[ix,'bolus.time'], '%Y-%m-%d')
     }
     if(hasOther) {
       ix <- which(is.na(tmpDate))
-      tmpDate[ix] <- as.Date(info[ix,'other.time'])
+      tmpDate[ix] <- format(info[ix,'other.time'], '%Y-%m-%d')
     }
-    info[,'date.dose'] <- tmpDate
+    info[,'date.dose'] <- as.Date(tmpDate)
   }
 
   info <- resolveDoseDups_mod(info, checkDir=check.path, drugname=drugname, faildupbol_filename=faildupbol_fn)
@@ -514,6 +514,10 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
 
   if(hasLabs) {
     plmc <- names(tmp)
+    # if all weight is missing
+    if('weight' %in% plmc & all(is.na(tmp[,'weight']))) {
+      plmc <- setdiff(plmc, 'weight')
+    }
     tmp <- add_Labs(tmp, list(id='mod_id', datetime='date'), lab.list, lab.columns, labPriorWindow)
     lab.vars <- setdiff(names(tmp), plmc)
   } else {
@@ -538,7 +542,9 @@ run_Build_PK_IV <- function(conc, conc.columns = list(),
       names(demoData)[match(demo.col$weight, names(demoData))] <- 'weight'
     }
 
+    # merge will reorder by character ID, need to undo
     tmp <- merge(tmp, demoData, by.x=c('mod_id_visit', 'mod_id'), by.y=c(demo.col$idvisit, demo.col$id), all.x=TRUE)
+    tmp <- tmp[order(tmp[,'mod_id_visit'], tmp[,'mod_id'], tmp[,'time']),]
     if('weight' %in% names(demoData)) {
       ix <- which(is.na(tmp[,'weight.x']))
       tmp[ix,'weight.x'] <- tmp[ix,'weight.y']

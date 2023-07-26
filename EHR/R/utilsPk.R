@@ -450,9 +450,9 @@ pkdata <- function(doseData, drugLevelData, doseIdVar = "id",
                 rates <- regexpr("[0-9.]+", dose.info[,orv])
                 other.data$rate[which(rates > -1)] <- as.numeric(regmatches(dose.info[,orv], rates))
             }
+            # throw out zero dose records
+            other.data <- other.data[other.data$dose != 0,]
         }
-        # throw out zero dose records
-        other.data <- other.data[other.data$dose != 0,]
     }
     drug.data.dt <- pkdata::parse_dates(y[, dltv])
     # create drug level pk data frame
