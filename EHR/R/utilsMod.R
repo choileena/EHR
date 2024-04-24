@@ -38,9 +38,9 @@ dtMirror <- function(newdat, basedat) {
   n1 <- names(basedat)
   n2 <- names(newdat)
   if(length(setdiff(n1, n2)) > 0) stop('new data does contain columns of original data')
-  if(any(n1 != n2)) {
+  if(!identical(n1, n2)) {
     # newdat should look like basedat
-    newdat <- newdat[,names(basedat)]
+    newdat <- newdat[,n1]
   }
   # determine date-time columns
   dtcols <- names(Filter(isTRUE, vapply(basedat, inherits, logical(1), 'POSIXt')))
